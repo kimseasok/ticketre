@@ -1,0 +1,100 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\Brand;
+use App\Models\Company;
+use App\Models\Contact;
+use App\Models\KbArticle;
+use App\Models\KbCategory;
+use App\Models\Tenant;
+use App\Models\Ticket;
+use App\Models\User;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
+
+/**
+ * DO NOT USE IN PRODUCTION. Demo data only.
+ */
+class DemoDataSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $tenant = Tenant::factory()->create([
+            'name' => 'Demo Tenant',
+            'slug' => 'demo-tenant',
+            'domain' => 'demo.localhost',
+        ]);
+
+        $brand = Brand::factory()->create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Demo Brand',
+            'slug' => 'demo-brand',
+            'domain' => 'brand.demo.localhost',
+        ]);
+
+        $admin = User::factory()->create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'name' => 'Demo Admin',
+            'email' => 'admin@example.com',
+            'password' => Hash::make('password'),
+        ]);
+        $admin->assignRole('Admin');
+
+        $agent = User::factory()->create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'name' => 'Demo Agent',
+            'email' => 'agent@example.com',
+            'password' => Hash::make('password'),
+        ]);
+        $agent->assignRole('Agent');
+
+        $viewer = User::factory()->create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'name' => 'Demo Viewer',
+            'email' => 'viewer@example.com',
+            'password' => Hash::make('password'),
+        ]);
+        $viewer->assignRole('Viewer');
+
+        $company = Company::factory()->create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Demo Company',
+        ]);
+
+        $contact = Contact::factory()->create([
+            'tenant_id' => $tenant->id,
+            'company_id' => $company->id,
+            'name' => 'Demo Contact',
+            'email' => 'contact@example.com',
+        ]);
+
+        $category = KbCategory::factory()->create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Getting Started',
+            'slug' => 'getting-started',
+        ]);
+
+        KbArticle::factory()->create([
+            'tenant_id' => $tenant->id,
+            'category_id' => $category->id,
+            'title' => 'Welcome to the Service Desk',
+            'slug' => 'welcome',
+            'content' => '<p>This is demo content. DO NOT USE IN PRODUCTION.</p>',
+            'status' => 'published',
+        ]);
+
+        Ticket::factory()->create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'company_id' => $company->id,
+            'contact_id' => $contact->id,
+            'assignee_id' => $agent->id,
+            'subject' => 'Demo ticket',
+            'status' => 'open',
+        ]);
+    }
+}
