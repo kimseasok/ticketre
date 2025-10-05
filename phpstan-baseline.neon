@@ -1,0 +1,561 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^Expression on left side of \\?\\? is not nullable\\.$#"
+			count: 1
+			path: app/Exceptions/Handler.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\User\\:\\:\\$brand\\.$#"
+			count: 1
+			path: app/Http/Middleware/BindAuthenticatedTenant.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\User\\:\\:\\$tenant\\.$#"
+			count: 1
+			path: app/Http/Middleware/BindAuthenticatedTenant.php
+
+		-
+			message: "#^Unable to resolve the template type TInstance in call to method Illuminate\\\\Container\\\\Container\\:\\:instance\\(\\)$#"
+			count: 2
+			path: app/Http/Middleware/BindAuthenticatedTenant.php
+
+		-
+			message: "#^Call to an undefined method Psr\\\\Log\\\\LoggerInterface\\:\\:pushProcessor\\(\\)\\.$#"
+			count: 1
+			path: app/Logging/CorrelationIdProcessor.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$tenant_id\\.$#"
+			count: 1
+			path: app/Models/Attachment.php
+
+		-
+			message: "#^Method App\\\\Models\\\\Attachment\\:\\:attachable\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: app/Models/Attachment.php
+
+		-
+			message: "#^Method App\\\\Models\\\\Attachment\\:\\:tenant\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: app/Models/Attachment.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$tenant_id\\.$#"
+			count: 1
+			path: app/Models/AuditLog.php
+
+		-
+			message: "#^Method App\\\\Models\\\\AuditLog\\:\\:tenant\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: app/Models/AuditLog.php
+
+		-
+			message: "#^Method App\\\\Models\\\\AuditLog\\:\\:user\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: app/Models/AuditLog.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$tenant_id\\.$#"
+			count: 1
+			path: app/Models/Brand.php
+
+		-
+			message: "#^Method App\\\\Models\\\\Brand\\:\\:tenant\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: app/Models/Brand.php
+
+		-
+			message: "#^Method App\\\\Models\\\\Brand\\:\\:tickets\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: app/Models/Brand.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$tenant_id\\.$#"
+			count: 1
+			path: app/Models/Company.php
+
+		-
+			message: "#^Method App\\\\Models\\\\Company\\:\\:contacts\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: app/Models/Company.php
+
+		-
+			message: "#^Method App\\\\Models\\\\Company\\:\\:tenant\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: app/Models/Company.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$tenant_id\\.$#"
+			count: 1
+			path: app/Models/Contact.php
+
+		-
+			message: "#^Method App\\\\Models\\\\Contact\\:\\:company\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: app/Models/Contact.php
+
+		-
+			message: "#^Method App\\\\Models\\\\Contact\\:\\:tenant\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: app/Models/Contact.php
+
+		-
+			message: "#^Method App\\\\Models\\\\Contact\\:\\:tickets\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: app/Models/Contact.php
+
+		-
+			message: "#^Method App\\\\Models\\\\Contact\\:\\:toSearchableArray\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: app/Models/Contact.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$tenant_id\\.$#"
+			count: 1
+			path: app/Models/KbArticle.php
+
+		-
+			message: "#^Method App\\\\Models\\\\KbArticle\\:\\:category\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: app/Models/KbArticle.php
+
+		-
+			message: "#^Method App\\\\Models\\\\KbArticle\\:\\:tenant\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: app/Models/KbArticle.php
+
+		-
+			message: "#^Method App\\\\Models\\\\KbArticle\\:\\:toSearchableArray\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: app/Models/KbArticle.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$tenant_id\\.$#"
+			count: 1
+			path: app/Models/KbCategory.php
+
+		-
+			message: "#^Method App\\\\Models\\\\KbCategory\\:\\:articles\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: app/Models/KbCategory.php
+
+		-
+			message: "#^Method App\\\\Models\\\\KbCategory\\:\\:children\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: app/Models/KbCategory.php
+
+		-
+			message: "#^Method App\\\\Models\\\\KbCategory\\:\\:parent\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: app/Models/KbCategory.php
+
+		-
+			message: "#^Method App\\\\Models\\\\KbCategory\\:\\:tenant\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: app/Models/KbCategory.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$brand_id\\.$#"
+			count: 1
+			path: app/Models/Message.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$tenant_id\\.$#"
+			count: 1
+			path: app/Models/Message.php
+
+		-
+			message: "#^Method App\\\\Models\\\\Message\\:\\:attachments\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: app/Models/Message.php
+
+		-
+			message: "#^Method App\\\\Models\\\\Message\\:\\:author\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: app/Models/Message.php
+
+		-
+			message: "#^Method App\\\\Models\\\\Message\\:\\:brand\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: app/Models/Message.php
+
+		-
+			message: "#^Method App\\\\Models\\\\Message\\:\\:tenant\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: app/Models/Message.php
+
+		-
+			message: "#^Method App\\\\Models\\\\Message\\:\\:ticket\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: app/Models/Message.php
+
+		-
+			message: "#^Method App\\\\Models\\\\Tenant\\:\\:brands\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: app/Models/Tenant.php
+
+		-
+			message: "#^Method App\\\\Models\\\\Tenant\\:\\:users\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: app/Models/Tenant.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$brand_id\\.$#"
+			count: 1
+			path: app/Models/Ticket.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$tenant_id\\.$#"
+			count: 1
+			path: app/Models/Ticket.php
+
+		-
+			message: "#^Method App\\\\Models\\\\Ticket\\:\\:assignee\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: app/Models/Ticket.php
+
+		-
+			message: "#^Method App\\\\Models\\\\Ticket\\:\\:attachments\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: app/Models/Ticket.php
+
+		-
+			message: "#^Method App\\\\Models\\\\Ticket\\:\\:brand\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: app/Models/Ticket.php
+
+		-
+			message: "#^Method App\\\\Models\\\\Ticket\\:\\:company\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: app/Models/Ticket.php
+
+		-
+			message: "#^Method App\\\\Models\\\\Ticket\\:\\:contact\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: app/Models/Ticket.php
+
+		-
+			message: "#^Method App\\\\Models\\\\Ticket\\:\\:messages\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: app/Models/Ticket.php
+
+		-
+			message: "#^Method App\\\\Models\\\\Ticket\\:\\:tenant\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: app/Models/Ticket.php
+
+		-
+			message: "#^Method App\\\\Models\\\\Ticket\\:\\:toSearchableArray\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: app/Models/Ticket.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$brand_id\\.$#"
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$tenant_id\\.$#"
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: "#^Method App\\\\Models\\\\User\\:\\:brand\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: "#^Method App\\\\Models\\\\User\\:\\:tenant\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: "#^Method App\\\\Models\\\\User\\:\\:tickets\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$tenant_id\\.$#"
+			count: 1
+			path: app/Models/Webhook.php
+
+		-
+			message: "#^Method App\\\\Models\\\\Webhook\\:\\:tenant\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: app/Models/Webhook.php
+
+		-
+			message: "#^Parameter \\#1 \\$path of method Filament\\\\Panel\\:\\:path\\(\\) expects string, bool\\|string given\\.$#"
+			count: 1
+			path: app/Providers/FilamentServiceProvider.php
+
+		-
+			message: "#^Parameter \\#1 \\$title of static method Illuminate\\\\Support\\\\Str\\:\\:slug\\(\\) expects string, bool\\|string given\\.$#"
+			count: 1
+			path: config/cache.php
+
+		-
+			message: "#^Parameter \\#1 \\$title of static method Illuminate\\\\Support\\\\Str\\:\\:slug\\(\\) expects string, bool\\|string given\\.$#"
+			count: 1
+			path: config/session.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Message\\|Illuminate\\\\Database\\\\Eloquent\\\\Collection\\<int, App\\\\Models\\\\Message\\>\\:\\:\\$tenant_id\\.$#"
+			count: 1
+			path: database/factories/AttachmentFactory.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$id\\.$#"
+			count: 1
+			path: database/factories/AttachmentFactory.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$id\\.$#"
+			count: 1
+			path: database/factories/AuditLogFactory.php
+
+		-
+			message: "#^Cannot access property \\$tenant_id on App\\\\Models\\\\User\\|Illuminate\\\\Database\\\\Eloquent\\\\Collection\\<int, App\\\\Models\\\\User\\>\\|null\\.$#"
+			count: 1
+			path: database/factories/AuditLogFactory.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Tenant\\|Illuminate\\\\Database\\\\Eloquent\\\\Collection\\<int, App\\\\Models\\\\Tenant\\>\\:\\:\\$domain\\.$#"
+			count: 1
+			path: database/factories/BrandFactory.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Tenant\\|Illuminate\\\\Database\\\\Eloquent\\\\Collection\\<int, App\\\\Models\\\\Tenant\\>\\:\\:\\$id\\.$#"
+			count: 2
+			path: database/factories/BrandFactory.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$id\\.$#"
+			count: 1
+			path: database/factories/BrandFactory.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$id\\.$#"
+			count: 1
+			path: database/factories/CompanyFactory.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Company\\|Illuminate\\\\Database\\\\Eloquent\\\\Collection\\<int, App\\\\Models\\\\Company\\>\\:\\:\\$tenant_id\\.$#"
+			count: 1
+			path: database/factories/ContactFactory.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$id\\.$#"
+			count: 1
+			path: database/factories/ContactFactory.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$id\\.$#"
+			count: 1
+			path: database/factories/KbArticleFactory.php
+
+		-
+			message: "#^Cannot access property \\$tenant_id on App\\\\Models\\\\KbCategory\\|Illuminate\\\\Database\\\\Eloquent\\\\Collection\\<int, App\\\\Models\\\\KbCategory\\>\\|null\\.$#"
+			count: 2
+			path: database/factories/KbArticleFactory.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$id\\.$#"
+			count: 1
+			path: database/factories/KbCategoryFactory.php
+
+		-
+			message: "#^Binary operation \"\\.\" between array\\|string and '\\-' results in an error\\.$#"
+			count: 1
+			path: database/factories/KbCategoryFactory.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Ticket\\|Illuminate\\\\Database\\\\Eloquent\\\\Collection\\<int, App\\\\Models\\\\Ticket\\>\\:\\:\\$assignee_id\\.$#"
+			count: 1
+			path: database/factories/MessageFactory.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Ticket\\|Illuminate\\\\Database\\\\Eloquent\\\\Collection\\<int, App\\\\Models\\\\Ticket\\>\\:\\:\\$brand_id\\.$#"
+			count: 1
+			path: database/factories/MessageFactory.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Ticket\\|Illuminate\\\\Database\\\\Eloquent\\\\Collection\\<int, App\\\\Models\\\\Ticket\\>\\:\\:\\$tenant_id\\.$#"
+			count: 1
+			path: database/factories/MessageFactory.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$id\\.$#"
+			count: 1
+			path: database/factories/MessageFactory.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$id\\.$#"
+			count: 5
+			path: database/factories/TicketFactory.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$id\\.$#"
+			count: 2
+			path: database/factories/UserFactory.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$id\\.$#"
+			count: 1
+			path: database/factories/WebhookFactory.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$id\\.$#"
+			count: 18
+			path: database/seeders/DemoDataSeeder.php
+
+		-
+			message: "#^Call to an undefined method Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:assignRole\\(\\)\\.$#"
+			count: 3
+			path: database/seeders/DemoDataSeeder.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$email\\.$#"
+			count: 2
+			path: tests/Feature/AuthTest.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$name\\.$#"
+			count: 1
+			path: tests/Feature/ContactCrudTest.php
+
+		-
+			message: "#^Call to an undefined method Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:trashed\\(\\)\\.$#"
+			count: 1
+			path: tests/Feature/ContactCrudTest.php
+
+		-
+			message: "#^Cannot access property \\$name on Illuminate\\\\Database\\\\Eloquent\\\\Model\\|null\\.$#"
+			count: 1
+			path: tests/Feature/ContactCrudTest.php
+
+		-
+			message: "#^Unable to resolve the template type TValue in call to function expect$#"
+			count: 3
+			path: tests/Feature/ContactCrudTest.php
+
+		-
+			message: "#^Function withEnvironment\\(\\) has parameter \\$variables with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: tests/Feature/DatabaseConfigTest.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$subject\\.$#"
+			count: 1
+			path: tests/Feature/FactoryTest.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$tenant_id\\.$#"
+			count: 1
+			path: tests/Feature/FactoryTest.php
+
+		-
+			message: "#^Unable to resolve the template type TValue in call to function expect$#"
+			count: 2
+			path: tests/Feature/FactoryTest.php
+
+		-
+			message: "#^Call to an undefined method Mockery\\\\ExpectationInterface\\|Mockery\\\\HigherOrderMessage\\:\\:andThrow\\(\\)\\.$#"
+			count: 1
+			path: tests/Feature/HealthcheckTest.php
+
+		-
+			message: "#^Call to an undefined method PHPUnit\\\\Framework\\\\TestCase\\:\\:getJson\\(\\)\\.$#"
+			count: 2
+			path: tests/Feature/HealthcheckTest.php
+
+		-
+			message: "#^Cannot access property \\$status on Illuminate\\\\Database\\\\Eloquent\\\\Model\\|null\\.$#"
+			count: 1
+			path: tests/Feature/KbCrudTest.php
+
+		-
+			message: "#^Cannot access property \\$title on Illuminate\\\\Database\\\\Eloquent\\\\Model\\|null\\.$#"
+			count: 1
+			path: tests/Feature/KbCrudTest.php
+
+		-
+			message: "#^Unable to resolve the template type TValue in call to function expect$#"
+			count: 2
+			path: tests/Feature/KbCrudTest.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$brand_id\\.$#"
+			count: 2
+			path: tests/Feature/RbacPolicyTest.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$tenant_id\\.$#"
+			count: 2
+			path: tests/Feature/RbacPolicyTest.php
+
+		-
+			message: "#^Call to an undefined method Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:assignRole\\(\\)\\.$#"
+			count: 2
+			path: tests/Feature/RbacPolicyTest.php
+
+		-
+			message: "#^Call to an undefined method Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:can\\(\\)\\.$#"
+			count: 2
+			path: tests/Feature/RbacPolicyTest.php
+
+		-
+			message: "#^Unable to resolve the template type TValue in call to function expect$#"
+			count: 2
+			path: tests/Feature/RbacPolicyTest.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$id\\.$#"
+			count: 4
+			path: tests/Feature/TenancyScopeTest.php
+
+		-
+			message: "#^Access to an undefined property Pest\\\\Mixins\\\\Expectation\\<Illuminate\\\\Support\\\\Collection\\<\\(int\\|string\\), mixed\\>\\|null\\>\\:\\:\\$not\\.$#"
+			count: 1
+			path: tests/Feature/TenancyScopeTest.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$status\\.$#"
+			count: 1
+			path: tests/Feature/TicketCrudTest.php
+
+		-
+			message: "#^Call to an undefined method Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:trashed\\(\\)\\.$#"
+			count: 1
+			path: tests/Feature/TicketCrudTest.php
+
+		-
+			message: "#^Unable to resolve the template type TValue in call to function expect$#"
+			count: 2
+			path: tests/Feature/TicketCrudTest.php
+
+		-
+			message: "#^Function assertModuleTypeForDependency\\(\\) has parameter \\$manifest with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: tests/Unit/BuildConfigTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$json of function json_decode expects string, string\\|false given\\.$#"
+			count: 1
+			path: tests/Unit/BuildConfigTest.php
+
+		-
+			message: "#^Argument of an invalid type array\\<int, string\\>\\|false supplied for foreach, only iterables are supported\\.$#"
+			count: 1
+			path: tests/Unit/StaticAnalysisConfigTest.php
+
+		-
+			message: "#^Function extractPhpStanIncludes\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: tests/Unit/StaticAnalysisConfigTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$neonContents of function extractPhpStanIncludes expects string, string\\|false given\\.$#"
+			count: 1
+			path: tests/Unit/StaticAnalysisConfigTest.php
