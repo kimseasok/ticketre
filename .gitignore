@@ -1,0 +1,11 @@
+/vendor/
+/node_modules/
+.env
+.env.docker
+/public/storage
+storage/*.key
+.idea/
+.phpunit.result.cache
+.php-cs-fixer.cache
+/horizon.log
+/storage/logs/*.log
