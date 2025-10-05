@@ -1,0 +1,1487 @@
+# Phase 1 – Work Breakdown Structure
+
+## Epics
+
+### Epic E1: Ticketing Platform Core
+
+#### Feature E1-F1: Multi-channel ticket creation (email, portal, chat widget, API)
+- **Issues**
+  - **E1-F1-I1 – Draft multi-channel intake specification**
+    - Labels: {E1, design, high, ticketing}
+    - Acceptance Criteria:
+      - Architecture brief documents payload, authentication, and throttling requirements for email, portal, chat widget, and API submissions.
+      - Mapping of inbound metadata to ticket schema is reviewed with product and engineering leads.
+      - Specification stored in shared knowledge base with version control link.
+    - Dependencies: None
+    - Milestone: Week 1
+  - **E1-F1-I2 – Implement email ingestion pipeline skeleton**
+    - Labels: {E1, backend, high, ticketing}
+    - Acceptance Criteria:
+      - IMAP listener command stores raw messages to processing queue with tenant context.
+      - Basic parser extracts subject, body, sender, attachments into normalized draft ticket structure.
+      - Happy-path email converted into persisted ticket using ticket field schema.
+    - Dependencies: E1-F1-I1, E1-F3-I1
+    - Milestone: Week 2
+  - **E1-F1-I3 – Build chat widget ticket submission endpoint**
+    - Labels: {E1, backend, medium, ticketing}
+    - Acceptance Criteria:
+      - Public endpoint authenticates widget tokens and validates rate limits.
+      - Payload persisted as ticket with channel metadata and requester contact linking.
+      - Error responses follow documented contract for widget integration.
+    - Dependencies: E1-F1-I1, E1-F3-I1
+    - Milestone: Week 3
+  - **E1-F1-I4 – Deliver customer portal ticket creation flow**
+    - Labels: {E1, frontend, high, ticketing}
+    - Acceptance Criteria:
+      - Portal form supports required fields, file uploads, and channel tagging.
+      - Successful submission triggers confirmation screen and email notification template.
+      - Invalid submissions show inline validation aligned with UX standards.
+    - Dependencies: E1-F1-I1, E1-F3-I2
+    - Milestone: Week 2
+  - **E1-F1-I5 – Expose REST API ticket creation endpoint**
+    - Labels: {E1, backend, high, ticketing}
+    - Acceptance Criteria:
+      - Authenticated POST /api/v1/tickets endpoint validates required fields and custom fields payload.
+      - API responses include ticket ID, status, and links per JSON:API-style schema.
+      - Endpoint covered by automated request tests for success and validation failures.
+    - Dependencies: E1-F1-I1, E1-F3-I2
+    - Milestone: Week 2
+
+#### Feature E1-F2: Multi-tenant (organization/brand) ticket scoping
+- **Issues**
+  - **E1-F2-I1 – Design tenancy data model and middleware**
+    - Labels: {E1, design, high, ticketing}
+    - Acceptance Criteria:
+      - Diagram shows organization, brand, and ticket relationships with tenancy keys.
+      - HTTP middleware strategy documented for resolving tenant from domain and auth context.
+      - Risk assessment covers cross-tenant isolation and data leakage mitigations.
+    - Dependencies: None
+    - Milestone: Week 1
+  - **E1-F2-I2 – Implement tenant resolution middleware**
+    - Labels: {E1, backend, high, ticketing}
+    - Acceptance Criteria:
+      - Middleware sets current tenant in service container based on domain or JWT claims.
+      - Requests without tenant context return standardized 404/401 responses.
+      - Unit tests cover domain-based and header-based resolution paths.
+    - Dependencies: E1-F2-I1
+    - Milestone: Week 2
+  - **E1-F2-I3 – Configure tenant-aware seeds and settings**
+    - Labels: {E1, backend, medium, ticketing}
+    - Acceptance Criteria:
+      - Database seeders provision demo organizations, brands, and default queues isolated per tenant.
+      - Config cache distinguishes tenant-specific email/SLA settings.
+      - Documentation explains how to add new tenants via artisan command.
+    - Dependencies: E1-F2-I2
+    - Milestone: Week 3
+
+#### Feature E1-F3: Ticket fields (subject, status, priority, department, category, assignee, tags, custom fields)
+- **Issues**
+  - **E1-F3-I1 – Establish ticket schema and migrations**
+    - Labels: {E1, backend, high, ticketing}
+    - Acceptance Criteria:
+      - Migration creates tickets table with required fields and tenant foreign keys.
+      - Supporting tables for tags, categories, departments, and custom field definitions exist with constraints.
+      - ERD updated to reflect relationships and shared with team.
+    - Dependencies: E1-F2-I1
+    - Milestone: Week 1
+  - **E1-F3-I2 – Build CRUD services for core ticket fields**
+    - Labels: {E1, backend, high, ticketing}
+    - Acceptance Criteria:
+      - Ticket repository/service layer supports create/update with validation for subject, priority, department, and assignee.
+      - Tags and categories persist via sync operations with audit logging.
+      - Feature tests cover create, update, and validation error scenarios.
+    - Dependencies: E1-F3-I1
+    - Milestone: Week 2
+  - **E1-F3-I3 – Implement custom fields storage layer**
+    - Labels: {E1, backend, medium, ticketing}
+    - Acceptance Criteria:
+      - Polymorphic or JSON column stores arbitrary custom fields with type metadata.
+      - Admin API allows registering new custom fields with validation rules.
+      - Custom field values retrievable via API responses and portal views.
+    - Dependencies: E1-F3-I1
+    - Milestone: Week 2
+#### Feature E1-F4: Configurable custom statuses & workflows
+- **Issues**
+  - **E1-F4-I1 – Design workflow configuration model**
+    - Labels: {E1, design, high, ticketing}
+    - Acceptance Criteria:
+      - Workflow state machine documented with allowed transitions and guard hooks.
+      - Data model for custom statuses and transitions defined and peer reviewed.
+      - Configuration storage strategy (DB vs. config files) approved.
+    - Dependencies: E1-F3-I1
+    - Milestone: Week 2
+  - **E1-F4-I2 – Build admin UI for status/workflow management**
+    - Labels: {E1, frontend, medium, ticketing}
+    - Acceptance Criteria:
+      - Filament admin forms create/update/delete statuses and transition rules per tenant.
+      - UI enforces unique status names and valid transition targets.
+      - Success/error messages localized and follow design system.
+    - Dependencies: E1-F4-I1
+    - Milestone: Week 3
+  - **E1-F4-I3 – Enforce workflow transitions in ticket service**
+    - Labels: {E1, backend, high, ticketing}
+    - Acceptance Criteria:
+      - Service layer prevents illegal status changes and logs transition events.
+      - Automated tests cover allowed/denied transitions and custom workflow hooks.
+      - SLA timers triggered on entry to configured statuses.
+    - Dependencies: E1-F4-I2
+    - Milestone: Week 3
+
+#### Feature E1-F5: Internal notes vs. public replies
+- **Issues**
+  - **E1-F5-I1 – Extend ticket messages schema for visibility**
+    - Labels: {E1, backend, high, ticketing}
+    - Acceptance Criteria:
+      - Messages table differentiates internal notes and public replies with visibility flag and author role.
+      - Migration preserves existing data with default visibility of public.
+      - Repository filters exclude internal notes from customer portal queries.
+    - Dependencies: E1-F3-I1
+    - Milestone: Week 2
+  - **E1-F5-I2 – Implement agent UI toggle for note visibility**
+    - Labels: {E1, frontend, medium, ticketing}
+    - Acceptance Criteria:
+      - Agent composer provides explicit toggle between internal note and public reply.
+      - UI clearly labels internal notes and prevents accidental public posting.
+      - Front-end tests cover toggle state persistence on draft replies.
+    - Dependencies: E1-F5-I1
+    - Milestone: Week 3
+  - **E1-F5-I3 – Scope notifications by message visibility**
+    - Labels: {E1, backend, medium, ticketing}
+    - Acceptance Criteria:
+      - Notification dispatch excludes internal notes from requester emails.
+      - Audit log records visibility for each message event.
+      - Integration test verifies watchers receive only permitted updates.
+    - Dependencies: E1-F5-I1
+    - Milestone: Week 3
+
+#### Feature E1-F6: Ticket merge, split, and link/duplicate handling
+- **Issues**
+  - **E1-F6-I1 – Model ticket relationship metadata**
+    - Labels: {E1, backend, high, ticketing}
+    - Acceptance Criteria:
+      - Schema introduces linkage table capturing merge, split, and duplicate relationships with audit columns.
+      - API representation exposes linked ticket references and relation type.
+      - Data integrity rules prevent circular merges.
+    - Dependencies: E1-F3-I1
+    - Milestone: Week 2
+  - **E1-F6-I2 – Implement ticket merge service workflow**
+    - Labels: {E1, backend, high, ticketing}
+    - Acceptance Criteria:
+      - Service merges conversations, tags, and assignee history into target ticket with transaction safety.
+      - Notifications emitted to involved agents describing merge outcome.
+      - Tests cover merge success and invalid merge attempts.
+    - Dependencies: E1-F6-I1
+    - Milestone: Week 3
+  - **E1-F6-I3 – Implement ticket split operation**
+    - Labels: {E1, backend, medium, ticketing}
+    - Acceptance Criteria:
+      - Split command clones ticket core data and transfers selected messages to new ticket.
+      - Original ticket retains reference to split child with audit entries.
+      - Validation prevents splitting when criteria not met (e.g., insufficient messages).
+    - Dependencies: E1-F6-I1
+    - Milestone: Week 3
+  - **E1-F6-I4 – Provide UI for linking and duplicate management**
+    - Labels: {E1, frontend, medium, ticketing}
+    - Acceptance Criteria:
+      - Agent console surfaces linked ticket list with relation type badges.
+      - UI supports unlinking duplicates with confirmation prompts.
+      - Activity log entries generated when links are created or removed.
+    - Dependencies: E1-F6-I2, E1-F6-I3
+    - Milestone: Week 4
+
+#### Feature E1-F7: Bulk ticket actions (assign, close, tag, SLA updates)
+- **Issues**
+  - **E1-F7-I1 – Build bulk selection and action UI**
+    - Labels: {E1, frontend, medium, ticketing}
+    - Acceptance Criteria:
+      - Ticket list allows multi-select with persistent selection state across pagination.
+      - Bulk action drawer exposes assign, close, tag, and SLA update options.
+      - Accessibility review confirms keyboard navigation for selection/actions.
+    - Dependencies: E1-F3-I2
+    - Milestone: Week 3
+  - **E1-F7-I2 – Implement bulk action job handlers**
+    - Labels: {E1, backend, high, ticketing}
+    - Acceptance Criteria:
+      - Queue jobs process bulk assignments, closures, tags, and SLA rule recalculations with progress tracking.
+      - Failure handling rolls back partial updates and records error context.
+      - Metrics emitted for bulk job throughput and failures.
+    - Dependencies: E1-F7-I1
+    - Milestone: Week 3
+  - **E1-F7-I3 – Support SLA adjustments in bulk updates**
+    - Labels: {E1, backend, medium, ticketing}
+    - Acceptance Criteria:
+      - Bulk SLA updates recalculate timers respecting workflow status rules.
+      - Confirmation summary displays before execution with SLA impact preview.
+      - Automated tests ensure SLA changes apply per tenant configuration.
+    - Dependencies: E1-F7-I2
+    - Milestone: Week 4
+
+#### Feature E1-F8: Real-time updates via Echo (Pusher-compatible)
+- **Issues**
+  - **E1-F8-I1 – Configure Echo broadcasting stack**
+    - Labels: {E1, devops, high, ticketing}
+    - Acceptance Criteria:
+      - Broadcasting config supports Pusher-compatible drivers with environment toggles.
+      - Auth endpoints secured for private and presence channels with tenant scoping.
+      - Connection health monitoring documented for Horizon metrics.
+    - Dependencies: None
+    - Milestone: Week 2
+  - **E1-F8-I2 – Broadcast ticket lifecycle events**
+    - Labels: {E1, backend, high, ticketing}
+    - Acceptance Criteria:
+      - Events emitted for ticket creation, updates, merges, and assignments with payload normalization.
+      - Listeners queue broadcasts without blocking core request cycle.
+      - Tests verify event payloads contain tenant and visibility data.
+    - Dependencies: E1-F8-I1, E1-F4-I3
+    - Milestone: Week 3
+  - **E1-F8-I3 – Implement real-time agent console subscriptions**
+    - Labels: {E1, frontend, medium, ticketing}
+    - Acceptance Criteria:
+      - Agent UI subscribes to relevant channels and updates ticket lists and detail views in real time.
+      - Offline/reconnect states handled gracefully with toast notifications.
+      - Performance budget met (<200ms UI update after event received).
+    - Dependencies: E1-F8-I2
+    - Milestone: Week 4
+
+### Epic E2: Contacts & Users Management
+
+#### Feature E2-F1: Contact directory (companies + individuals)
+- **Issues**
+  - **E2-F1-I1 – Define contact and company schema**
+    - Labels: {E2, design, high, contacts}
+    - Acceptance Criteria:
+      - Data model captures companies, individuals, primary contacts, and tenant associations.
+      - Migration scripts prepared with indexes for email, domain, and external IDs.
+      - Documentation outlines lifecycle hooks for syncing contacts from tickets.
+    - Dependencies: None
+    - Milestone: Week 1
+  - **E2-F1-I2 – Build admin CRUD for contacts and companies**
+    - Labels: {E2, frontend, high, contacts}
+    - Acceptance Criteria:
+      - Filament admin pages support create/edit/search with company linkage and tags.
+      - Validation ensures unique email per tenant and required GDPR consent flags.
+      - Feature tests cover create/update/delete paths.
+    - Dependencies: E2-F1-I1
+    - Milestone: Week 2
+  - **E2-F1-I3 – Expose contact directory in customer portal**
+    - Labels: {E2, frontend, medium, contacts}
+    - Acceptance Criteria:
+      - Portal shows requester’s company roster with search and filtering.
+      - Access restricted to authenticated users scoped to their organization.
+      - UI displays ticket counts and last activity for each contact.
+    - Dependencies: E2-F1-I2
+    - Milestone: Week 3
+
+#### Feature E2-F2: User roles – Admin, Agent, Viewer
+- **Issues**
+  - **E2-F2-I1 – Seed core user roles**
+    - Labels: {E2, backend, high, contacts}
+    - Acceptance Criteria:
+      - Database seeds create Admin, Agent, and Viewer roles per tenant.
+      - Role descriptions documented with high-level responsibilities.
+      - Migration script idempotent to avoid duplicate role entries.
+    - Dependencies: None
+    - Milestone: Week 1
+  - **E2-F2-I2 – Configure onboarding role assignment**
+    - Labels: {E2, backend, medium, contacts}
+    - Acceptance Criteria:
+      - User registration/onboarding flow assigns default roles based on invitation type.
+      - Admins can adjust roles via Filament UI with audit entry.
+      - Tests ensure unauthorized role elevation attempts are blocked.
+    - Dependencies: E2-F2-I1
+    - Milestone: Week 2
+
+#### Feature E2-F3: RBAC via Spatie permissions
+- **Issues**
+  - **E2-F3-I1 – Integrate Spatie permissions package**
+    - Labels: {E2, backend, high, contacts}
+    - Acceptance Criteria:
+      - Package installed and configured with cache store and guard settings per tenant.
+      - Permission syncing respects queued jobs and avoids N+1 queries.
+      - Documentation added for artisan commands to manage roles/permissions.
+    - Dependencies: E2-F2-I1
+    - Milestone: Week 2
+  - **E2-F3-I2 – Define permission matrix for core modules**
+    - Labels: {E2, design, medium, contacts}
+    - Acceptance Criteria:
+      - Matrix lists CRUD and workflow permissions for tickets, contacts, knowledge base, and reports per role.
+      - Approval recorded from security and compliance stakeholders.
+      - Permissions seeded with translation keys for UI display.
+    - Dependencies: E2-F3-I1
+    - Milestone: Week 2
+  - **E2-F3-I3 – Enforce RBAC middleware across portals**
+    - Labels: {E2, backend, high, contacts}
+    - Acceptance Criteria:
+      - Middleware gates admin and customer routes using Spatie abilities with tenant awareness.
+      - Unauthorized access returns standardized JSON and view responses.
+      - Automated tests verify role-based access for representative endpoints.
+    - Dependencies: E2-F3-I2
+    - Milestone: Week 3
+
+#### Feature E2-F4: Teams & team assignments
+- **Issues**
+  - **E2-F4-I1 – Model teams and membership relations**
+    - Labels: {E2, backend, high, contacts}
+    - Acceptance Criteria:
+      - Schema captures teams, memberships, default queues, and tenant ownership.
+      - Pivot table enforces unique user-team pairs with role metadata.
+      - Seeder creates sample tiered teams for testing.
+    - Dependencies: E2-F2-I1
+    - Milestone: Week 2
+  - **E2-F4-I2 – Build team assignment UI for tickets**
+    - Labels: {E2, frontend, medium, contacts}
+    - Acceptance Criteria:
+      - Agent console provides dropdown to assign tickets to teams with search.
+      - Assignment updates trigger audit log entries and notifications.
+      - Validation ensures user belongs to assigned team before self-assignment.
+    - Dependencies: E2-F4-I1
+    - Milestone: Week 3
+  - **E2-F4-I3 – Implement auto-assignment rules engine**
+    - Labels: {E2, backend, medium, contacts}
+    - Acceptance Criteria:
+      - Rules assign incoming tickets to teams based on department, category, or channel.
+      - Admin UI allows enabling/disabling rules per tenant with priority ordering.
+      - Tests verify deterministic assignment results for sample scenarios.
+    - Dependencies: E2-F4-I2
+    - Milestone: Week 4
+
+#### Feature E2-F5: Watchers/observers on tickets
+- **Issues**
+  - **E2-F5-I1 – Create watcher relationship model**
+    - Labels: {E2, backend, medium, contacts}
+    - Acceptance Criteria:
+      - Watcher pivot table links users/contacts to tickets with notification preferences.
+      - APIs to add/remove watchers respect RBAC and tenant boundaries.
+      - Migration ensures historical watchers preserved during schema changes.
+    - Dependencies: E2-F1-I1
+    - Milestone: Week 2
+  - **E2-F5-I2 – Manage watcher notification preferences**
+    - Labels: {E2, frontend, medium, contacts}
+    - Acceptance Criteria:
+      - User settings page toggles email, portal, and real-time alerts per ticket.
+      - Preference changes persist and display confirmation state.
+      - Tests ensure internal notes respect watcher opt-in rules.
+    - Dependencies: E2-F5-I1
+    - Milestone: Week 3
+  - **E2-F5-I3 – Display watchers in ticket detail views**
+    - Labels: {E2, frontend, low, contacts}
+    - Acceptance Criteria:
+      - Agent and portal ticket views show watcher list with avatars and roles.
+      - UI permits quick add/remove for users with permissions.
+      - Visibility limited to authorized viewers per RBAC rules.
+    - Dependencies: E2-F5-I1
+    - Milestone: Week 4
+
+#### Feature E2-F6: Activity/audit logs per organization
+- **Issues**
+  - **E2-F6-I1 – Select audit logging framework**
+    - Labels: {E2, design, medium, contacts}
+    - Acceptance Criteria:
+      - Decision document compares Laravel Auditing vs. custom implementation with pros/cons.
+      - Chosen approach includes retention policy and storage sizing estimates.
+      - Security review signs off on log data elements.
+    - Dependencies: None
+    - Milestone: Week 2
+  - **E2-F6-I2 – Implement ticket and contact audit writers**
+    - Labels: {E2, backend, high, contacts}
+    - Acceptance Criteria:
+      - Create/update/delete actions for tickets and contacts emit audit entries with actor, tenant, and diff.
+      - Sensitive field changes masked according to compliance policy.
+      - Unit tests cover logging for representative models.
+    - Dependencies: E2-F6-I1
+    - Milestone: Week 3
+  - **E2-F6-I3 – Build audit log viewer per organization**
+    - Labels: {E2, frontend, medium, contacts}
+    - Acceptance Criteria:
+      - Admin portal page lists audit events with filters by actor, object, and date range.
+      - Export button provides CSV of filtered results respecting permissions.
+      - Pagination and search meet performance thresholds on seeded dataset.
+    - Dependencies: E2-F6-I2
+    - Milestone: Week 4
+
+#### Feature E2-F7: GDPR compliance – anonymize/delete contact & ticket data
+- **Issues**
+  - **E2-F7-I1 – Document GDPR anonymization policy**
+    - Labels: {E2, design, high, compliance}
+    - Acceptance Criteria:
+      - Policy defines fields to anonymize vs. delete for contacts and tickets.
+      - Legal/compliance stakeholders approve documented retention timelines.
+      - Procedures for handling subject access requests outlined and stored centrally.
+    - Dependencies: E2-F1-I1
+    - Milestone: Week 2
+  - **E2-F7-I2 – Implement contact anonymization job**
+    - Labels: {E2, backend, high, compliance}
+    - Acceptance Criteria:
+      - Queue job scrubs personal identifiers, replaces with pseudonyms, and updates linked tickets.
+      - Job records audit entry with reason and requester details.
+      - Tests confirm anonymization respects tenant boundaries and retains metrics.
+    - Dependencies: E2-F7-I1
+    - Milestone: Week 3
+  - **E2-F7-I3 – Build ticket deletion and redaction workflow**
+    - Labels: {E2, backend, high, compliance}
+    - Acceptance Criteria:
+      - Workflow queues purge of ticket content while preserving statistical aggregates.
+      - Approval step required before final deletion with reversible hold period.
+      - Integration tests simulate request lifecycle from initiation to completion.
+    - Dependencies: E2-F7-I2
+    - Milestone: Week 3
+  - **E2-F7-I4 – Log and report GDPR actions**
+    - Labels: {E2, backend, medium, compliance}
+    - Acceptance Criteria:
+      - GDPR operations recorded in dedicated log with actor, timestamp, and scope.
+      - Monthly export command generates compliance report CSV per tenant.
+      - Alerts raised on failed anonymization/deletion attempts via monitoring channel.
+    - Dependencies: E2-F7-I3, E2-F6-I2
+    - Milestone: Week 4
+
+### Epic E3: Knowledge Base Experience
+
+#### Feature E3-F1: Category → Article hierarchy
+- **Issues**
+  - **E3-F1-I1 – Design hierarchical knowledge base schema**
+    - Labels: {E3, design, high, knowledge-base}
+    - Acceptance Criteria:
+      - ERD documents category tree, article relations, and tenant scoping fields.
+      - Review sign-off recorded from product and backend leads.
+      - Versioned design artifact stored in shared repository.
+    - Dependencies: None
+    - Milestone: Week 1
+  - **E3-F1-I2 – Implement category and article migrations**
+    - Labels: {E3, backend, high, knowledge-base}
+    - Acceptance Criteria:
+      - Migrations create categories, articles, and pivot tables with nested set or adjacency metadata.
+      - Seeder provisions sample hierarchy per tenant for QA.
+      - Automated tests cover parent/child integrity and cascading deletes.
+    - Dependencies: E3-F1-I1
+    - Milestone: Week 1
+  - **E3-F1-I3 – Build admin tree management UI**
+    - Labels: {E3, frontend, medium, knowledge-base}
+    - Acceptance Criteria:
+      - Filament UI lists categories with drag-and-drop reordering and depth indicators.
+      - Create/edit forms validate unique names per level and slug placeholders.
+      - Permission checks ensure only authorized roles modify hierarchy.
+    - Dependencies: E3-F1-I2
+    - Milestone: Week 2
+
+#### Feature E3-F2: WYSIWYG editor for KB articles
+- **Issues**
+  - **E3-F2-I1 – Evaluate and select WYSIWYG component**
+    - Labels: {E3, design, medium, knowledge-base}
+    - Acceptance Criteria:
+      - Comparison matrix covers Tiptap, CKEditor, and Quill with accessibility and licensing notes.
+      - Decision recorded with required plugins/extensions list.
+      - Security review confirms HTML sanitization strategy.
+    - Dependencies: None
+    - Milestone: Week 1
+  - **E3-F2-I2 – Integrate editor into article authoring UI**
+    - Labels: {E3, frontend, high, knowledge-base}
+    - Acceptance Criteria:
+      - Admin article form renders rich text editor with image/file upload controls.
+      - Draft autosave implemented using existing Filament patterns.
+      - Cypress/UI tests validate formatting toolbar behaviors.
+    - Dependencies: E3-F2-I1, E3-F1-I2
+    - Milestone: Week 2
+  - **E3-F2-I3 – Harden article content sanitization pipeline**
+    - Labels: {E3, backend, high, knowledge-base}
+    - Acceptance Criteria:
+      - Backend sanitizes submitted HTML against configured allowlist before persistence.
+      - Stored content passes security regression suite for XSS injection attempts.
+      - Sanitization failures emit audit log entries with redacted payload excerpts.
+    - Dependencies: E3-F2-I1
+    - Milestone: Week 2
+
+#### Feature E3-F3: SEO-friendly slugs
+- **Issues**
+  - **E3-F3-I1 – Define slug generation and routing strategy**
+    - Labels: {E3, design, medium, knowledge-base}
+    - Acceptance Criteria:
+      - Specification covers slug format, uniqueness per locale, and redirect handling.
+      - Route blueprint includes tenant-aware prefixes and cache keys.
+      - Approval captured from marketing stakeholder.
+    - Dependencies: E3-F1-I1
+    - Milestone: Week 1
+  - **E3-F3-I2 – Implement slug generation services**
+    - Labels: {E3, backend, medium, knowledge-base}
+    - Acceptance Criteria:
+      - Slugs auto-generate on create/update with manual override capability.
+      - Slug history table maintains redirects for changed titles.
+      - Unit tests cover collision resolution and locale-specific characters.
+    - Dependencies: E3-F3-I1, E3-F1-I2
+    - Milestone: Week 2
+  - **E3-F3-I3 – Expose SEO metadata controls**
+    - Labels: {E3, frontend, low, knowledge-base}
+    - Acceptance Criteria:
+      - Admin UI captures meta title, description, and canonical URL per article.
+      - Portal head tags render stored metadata with default fallbacks.
+      - Preview panel shows SERP-style snippet for editors.
+    - Dependencies: E3-F3-I2
+    - Milestone: Week 3
+
+#### Feature E3-F4: Feedback voting (“Was this helpful?”)
+- **Issues**
+  - **E3-F4-I1 – Model feedback vote storage**
+    - Labels: {E3, backend, medium, knowledge-base}
+    - Acceptance Criteria:
+      - Table stores tenant, article, user/contact, vote value, and timestamp.
+      - Rate limiting prevents duplicate votes within configurable window.
+      - Migration includes backfill script for legacy feedback if present.
+    - Dependencies: E3-F1-I2
+    - Milestone: Week 2
+  - **E3-F4-I2 – Implement feedback API endpoints**
+    - Labels: {E3, backend, medium, knowledge-base}
+    - Acceptance Criteria:
+      - Public endpoints accept vote submissions with CSRF protection and auth fallback.
+      - Response payload returns updated helpfulness counts and status.
+      - Feature tests cover anonymous vs. authenticated submissions.
+    - Dependencies: E3-F4-I1
+    - Milestone: Week 2
+  - **E3-F4-I3 – Add portal voting UI and analytics widget**
+    - Labels: {E3, frontend, medium, knowledge-base}
+    - Acceptance Criteria:
+      - Article page shows “Helpful / Not Helpful” buttons with instant feedback states.
+      - Admin dashboard widget visualizes vote trends per article.
+      - Accessibility review confirms keyboard and screen reader support.
+    - Dependencies: E3-F4-I2
+    - Milestone: Week 3
+
+#### Feature E3-F5: Multilingual articles
+- **Issues**
+  - **E3-F5-I1 – Decide localization model and fallback policy**
+    - Labels: {E3, design, high, knowledge-base}
+    - Acceptance Criteria:
+      - Document compares single-table JSON translations vs. per-locale tables.
+      - Fallback resolution order agreed with product and localization teams.
+      - Glossary of supported locales and locale codes published.
+    - Dependencies: E3-F1-I1
+    - Milestone: Week 1
+  - **E3-F5-I2 – Implement multilingual storage layer**
+    - Labels: {E3, backend, high, knowledge-base}
+    - Acceptance Criteria:
+      - Schema persists article translations with language codes and status flags.
+      - Repository returns localized content with fallback per policy.
+      - Tests cover creation, update, and deletion of localized variants.
+    - Dependencies: E3-F5-I1, E3-F1-I2
+    - Milestone: Week 2
+  - **E3-F5-I3 – Provide translation workflow UI**
+    - Labels: {E3, frontend, medium, knowledge-base}
+    - Acceptance Criteria:
+      - Admin interface lists locales with status chips and translation progress.
+      - Editors can duplicate base language into target locale for editing.
+      - Notification sent to assigned translators when new locale requested.
+    - Dependencies: E3-F5-I2
+    - Milestone: Week 3
+
+#### Feature E3-F6: Searchable knowledge base (Scout + Meilisearch)
+- **Issues**
+  - **E3-F6-I1 – Configure Meilisearch infrastructure**
+    - Labels: {E3, devops, high, knowledge-base}
+    - Acceptance Criteria:
+      - Environment configuration templates include Meilisearch host, keys, and health checks.
+      - Deployment runbook documents provisioning and backup strategy.
+      - Monitoring alerts defined for index sync lag and uptime.
+    - Dependencies: None
+    - Milestone: Week 2
+  - **E3-F6-I2 – Implement Scout indexing pipeline**
+    - Labels: {E3, backend, high, knowledge-base}
+    - Acceptance Criteria:
+      - Articles indexed with locale, category, and tenant filters.
+      - Queue worker handles incremental updates and deletions with retry policy.
+      - Automated tests verify index documents for translated content.
+    - Dependencies: E3-F6-I1, E3-F5-I2
+    - Milestone: Week 3
+  - **E3-F6-I3 – Deliver portal search UI and autosuggest**
+    - Labels: {E3, frontend, medium, knowledge-base}
+    - Acceptance Criteria:
+      - Portal search bar provides instant results with highlighted snippets.
+      - Filters support locale, category, and article type selections.
+      - Analytics event logged for search queries and zero-result cases.
+    - Dependencies: E3-F6-I2
+    - Milestone: Week 3
+
+### Epic E4: Automation & SLA Engine
+
+#### Feature E4-F1: Event-based automation rules (ticket.created, message.sent)
+- **Issues**
+  - **E4-F1-I1 – Author automation DSL specification**
+    - Labels: {E4, design, high, automation}
+    - Acceptance Criteria:
+      - Specification defines triggers, conditions, and actions with JSON schema.
+      - Sample rules documented for ticket.created and message.sent events.
+      - Governance checklist covers performance limits and recursion prevention.
+    - Dependencies: None
+    - Milestone: Week 1
+  - **E4-F1-I2 – Implement automation rule executor**
+    - Labels: {E4, backend, high, automation}
+    - Acceptance Criteria:
+      - Engine processes queued events and evaluates rules with tenant isolation.
+      - Actions support notifications, field updates, and macro invocation hooks.
+      - Unit tests cover rule evaluation order and error handling.
+    - Dependencies: E4-F1-I1, E1-F8-I2
+    - Milestone: Week 2
+  - **E4-F1-I3 – Build rule management UI**
+    - Labels: {E4, frontend, medium, automation}
+    - Acceptance Criteria:
+      - Admin UI lists rules with enable/disable toggles and execution counters.
+      - Rule editor provides trigger/condition/action pickers with validation.
+      - Activity log entries generated on rule creation or change.
+    - Dependencies: E4-F1-I2
+    - Milestone: Week 3
+  - **E4-F1-I4 – Instrument automation execution logging**
+    - Labels: {E4, backend, medium, automation}
+    - Acceptance Criteria:
+      - Execution logs store rule ID, event payload snapshot, and outcome status.
+      - Monitoring dashboard charts throughput and failures per tenant.
+      - Alerting integrates with on-call channel for repeated failures.
+    - Dependencies: E4-F1-I2
+    - Milestone: Week 3
+
+#### Feature E4-F2: Macros & canned responses
+- **Issues**
+  - **E4-F2-I1 – Model macros and canned responses**
+    - Labels: {E4, backend, medium, automation}
+    - Acceptance Criteria:
+      - Schema stores macro name, content, visibility scope, and placeholder metadata.
+      - Seeder loads sample macros per tenant with localization slots.
+      - Repository exposes search and category filters for macros.
+    - Dependencies: E1-F3-I2
+    - Milestone: Week 1
+  - **E4-F2-I2 – Create admin management interface for macros**
+    - Labels: {E4, frontend, medium, automation}
+    - Acceptance Criteria:
+      - Admin pages support CRUD with preview of placeholder substitutions.
+      - Role checks limit macro visibility editing to admins.
+      - Form validation enforces unique names per tenant.
+    - Dependencies: E4-F2-I1
+    - Milestone: Week 2
+  - **E4-F2-I3 – Integrate macros into agent composer**
+    - Labels: {E4, frontend, high, automation}
+    - Acceptance Criteria:
+      - Agent reply UI exposes searchable macro picker with keyboard shortcuts.
+      - Applying macro fills editor with merged content without overwriting attachments.
+      - Analytics event tracks macro usage for reporting.
+    - Dependencies: E4-F2-I2, E1-F5-I2
+    - Milestone: Week 3
+
+#### Feature E4-F3: SLA definitions (first response, resolution times)
+- **Issues**
+  - **E4-F3-I1 – Document SLA policy configuration**
+    - Labels: {E4, design, high, sla}
+    - Acceptance Criteria:
+      - Policy blueprint defines metrics, calendars, and business hour handling.
+      - Approval captured from support leadership on default targets.
+      - Data contract specifies storage for thresholds and grace periods.
+    - Dependencies: E1-F4-I1
+    - Milestone: Week 1
+  - **E4-F3-I2 – Implement SLA configuration models and timers**
+    - Labels: {E4, backend, high, sla}
+    - Acceptance Criteria:
+      - Models persist SLA policies per tenant with channel/priority overrides.
+      - Timer service calculates first response/resolution deadlines on ticket events.
+      - Test suite validates calculations across timezone and holiday scenarios.
+    - Dependencies: E4-F3-I1, E1-F3-I2
+    - Milestone: Week 2
+  - **E4-F3-I3 – Provide SLA admin UI**
+    - Labels: {E4, frontend, medium, sla}
+    - Acceptance Criteria:
+      - Admin form manages SLA calendars, targets, and escalation contacts.
+      - Preview panel shows sample ticket deadlines before saving.
+      - Change history captured with user and timestamp metadata.
+    - Dependencies: E4-F3-I2
+    - Milestone: Week 3
+
+#### Feature E4-F4: SLA breach detection & alerts
+- **Issues**
+  - **E4-F4-I1 – Schedule SLA breach evaluation worker**
+    - Labels: {E4, backend, high, sla}
+    - Acceptance Criteria:
+      - Horizon job scans upcoming deadlines and flags breaches with configurable cadence.
+      - Job skips paused tickets and workflow statuses marked as stopped.
+      - Metrics emitted for processed vs. breached counts.
+    - Dependencies: E4-F3-I2, E1-F7-I2
+    - Milestone: Week 3
+  - **E4-F4-I2 – Dispatch breach notifications**
+    - Labels: {E4, backend, medium, sla}
+    - Acceptance Criteria:
+      - Notifications route to assigned agents, teams, and escalation contacts per SLA.
+      - Templates include ticket details, deadline delta, and action links.
+      - Tests verify notifications suppressed for tickets already resolved.
+    - Dependencies: E4-F4-I1
+    - Milestone: Week 3
+  - **E4-F4-I3 – Surface SLA breach dashboards**
+    - Labels: {E4, frontend, medium, sla}
+    - Acceptance Criteria:
+      - Admin dashboard widget charts breaches by queue and priority.
+      - Filters allow date range and tenant scoping with export to CSV.
+      - Dashboard auto-refreshes using Echo channel for new breaches.
+    - Dependencies: E4-F4-I2, E1-F8-I2
+    - Milestone: Week 4
+
+#### Feature E4-F5: Escalation rules
+- **Issues**
+  - **E4-F5-I1 – Design escalation workflow schema**
+    - Labels: {E4, design, medium, sla}
+    - Acceptance Criteria:
+      - Workflow diagram maps multi-step escalations, triggers, and cooldowns.
+      - Data model proposal covers escalation targets, channels, and conditions.
+      - Compliance review confirms audit requirements for escalations.
+    - Dependencies: E4-F1-I1, E4-F3-I1
+    - Milestone: Week 2
+  - **E4-F5-I2 – Implement escalation engine**
+    - Labels: {E4, backend, high, sla}
+    - Acceptance Criteria:
+      - Engine listens to SLA breach and automation events to enqueue escalations.
+      - Supports sequential steps with configurable delays and reassignment actions.
+      - Tests validate escalation cancellation when tickets resolved.
+    - Dependencies: E4-F5-I1, E4-F4-I1
+    - Milestone: Week 3
+  - **E4-F5-I3 – Build escalation configuration UI**
+    - Labels: {E4, frontend, medium, sla}
+    - Acceptance Criteria:
+      - Admin UI allows defining multi-step escalation paths with preview timeline.
+      - Validation ensures no circular escalation targets and SLA alignment.
+      - Change confirmation modal summarizes impacts before activation.
+    - Dependencies: E4-F5-I2
+    - Milestone: Week 4
+
+### Epic E5: AI Augmentation
+
+#### Feature E5-F1: AI-powered ticket summarization
+- **Issues**
+  - **E5-F1-I1 – Evaluate summarization provider and privacy controls**
+    - Labels: {E5, design, medium, ai}
+    - Acceptance Criteria:
+      - Comparison of OpenAI, Azure, and on-prem LLM options with latency/cost.
+      - Data handling assessment documents PII redaction and retention policies.
+      - Decision log approved by security and legal stakeholders.
+    - Dependencies: E1-F5-I1
+    - Milestone: Week 2
+  - **E5-F1-I2 – Implement summarization job pipeline**
+    - Labels: {E5, backend, high, ai}
+    - Acceptance Criteria:
+      - Queue worker assembles conversation context and submits to chosen provider.
+      - Summaries cached per ticket with invalidation on new public replies.
+      - Error handling retries transient failures and records fallbacks.
+    - Dependencies: E5-F1-I1, E1-F8-I2
+    - Milestone: Week 3
+  - **E5-F1-I3 – Display summaries in agent interface**
+    - Labels: {E5, frontend, medium, ai}
+    - Acceptance Criteria:
+      - Agent ticket view shows latest summary with timestamp and refresh action.
+      - Loading/error states surfaced with inline toasts.
+      - Usage analytics event logged when agents copy or refresh summary.
+    - Dependencies: E5-F1-I2
+    - Milestone: Week 3
+
+#### Feature E5-F2: Suggested replies (NLP)
+- **Issues**
+  - **E5-F2-I1 – Define suggested reply prompt templates**
+    - Labels: {E5, design, medium, ai}
+    - Acceptance Criteria:
+      - Prompt library includes tone options and supported languages.
+      - Guardrails documented for sensitive content filtering.
+      - Stakeholder review confirms default tone per brand.
+    - Dependencies: E5-F1-I1
+    - Milestone: Week 2
+  - **E5-F2-I2 – Develop reply suggestion service**
+    - Labels: {E5, backend, high, ai}
+    - Acceptance Criteria:
+      - Service generates top-three reply options with confidence scores.
+      - Responses cached per ticket message for configurable duration.
+      - Unit tests mock provider responses and validate fallback messaging.
+    - Dependencies: E5-F2-I1, E5-F1-I2
+    - Milestone: Week 3
+  - **E5-F2-I3 – Integrate suggestions into composer UI**
+    - Labels: {E5, frontend, high, ai}
+    - Acceptance Criteria:
+      - Agent composer displays suggestions with insert/apply buttons.
+      - Feedback buttons collect agent ratings to improve prompts.
+      - Accessibility testing ensures screen reader labels for suggestion controls.
+    - Dependencies: E5-F2-I2, E1-F5-I2
+    - Milestone: Week 3
+
+#### Feature E5-F3: Sentiment detection
+- **Issues**
+  - **E5-F3-I1 – Select sentiment analysis approach**
+    - Labels: {E5, design, medium, ai}
+    - Acceptance Criteria:
+      - Vendor evaluation covers API accuracy, latency, and cost.
+      - Threshold definitions for positive/neutral/negative documented.
+      - Compliance review ensures data residency obligations satisfied.
+    - Dependencies: None
+    - Milestone: Week 2
+  - **E5-F3-I2 – Process ticket messages for sentiment scores**
+    - Labels: {E5, backend, high, ai}
+    - Acceptance Criteria:
+      - Ingestion pipeline annotates incoming/outgoing messages with sentiment metadata.
+      - Scores stored with historical trend for each ticket.
+      - Tests confirm handling of multilingual content and provider fallbacks.
+    - Dependencies: E5-F3-I1, E1-F5-I1
+    - Milestone: Week 3
+  - **E5-F3-I3 – Visualize sentiment in agent views**
+    - Labels: {E5, frontend, medium, ai}
+    - Acceptance Criteria:
+      - Ticket list shows sentiment badges with tooltips explaining score.
+      - Detail view charts sentiment trend over conversation timeline.
+      - Real-time updates refresh sentiment when new messages arrive.
+    - Dependencies: E5-F3-I2, E1-F8-I3
+    - Milestone: Week 4
+
+#### Feature E5-F4: Auto-tagging & classification
+- **Issues**
+  - **E5-F4-I1 – Define classification taxonomy and training dataset**
+    - Labels: {E5, design, medium, ai}
+    - Acceptance Criteria:
+      - Taxonomy aligns with departments, categories, and SLA priorities.
+      - Labeling guide created for human feedback loop with sample tickets.
+      - Dataset sourcing plan documented with anonymization steps.
+    - Dependencies: E1-F3-I1, E5-F3-I1
+    - Milestone: Week 2
+  - **E5-F4-I2 – Implement classification engine**
+    - Labels: {E5, backend, high, ai}
+    - Acceptance Criteria:
+      - Engine assigns tags on ticket creation and message updates with confidence scoring.
+      - Low-confidence outputs queued for manual review workflow.
+      - Tests validate mapping updates without duplicate tags.
+    - Dependencies: E5-F4-I1, E5-F1-I2
+    - Milestone: Week 3
+  - **E5-F4-I3 – Build feedback and retraining loop**
+    - Labels: {E5, backend, medium, ai}
+    - Acceptance Criteria:
+      - Agents can approve or reject AI-assigned tags with reason codes.
+      - Feedback stored for periodic retraining exports.
+      - Monitoring dashboard tracks precision/recall metrics over time.
+    - Dependencies: E5-F4-I2, E4-F2-I3
+    - Milestone: Week 4
+
+### Epic E6: Email Infrastructure
+
+#### Feature E6-F1: IMAP email ingestion
+- **Issues**
+  - **E6-F1-I1 – Document tenant mailbox intake settings**
+    - Labels: {E6, design, high, email}
+    - Acceptance Criteria:
+      - Configuration guide captures per-tenant IMAP host, credential storage, and encryption requirements.
+      - Intake limits and polling intervals approved by operations and compliance stakeholders.
+      - Runbook stored with escalation contacts for mailbox connection failures.
+    - Dependencies: None
+    - Milestone: Week 1
+  - **E6-F1-I2 – Implement IMAP polling daemon**
+    - Labels: {E6, backend, high, email}
+    - Acceptance Criteria:
+      - Scheduled command authenticates to tenant mailboxes and enqueues raw messages with tenant context.
+      - Idempotency safeguards prevent duplicate ticket drafts for the same Message-ID.
+      - Happy-path integration test confirms ingestion to ticket creation pipeline.
+    - Dependencies: E6-F1-I1, E1-F1-I1
+    - Milestone: Week 2
+  - **E6-F1-I3 – Add attachment and inline image handling**
+    - Labels: {E6, backend, medium, email}
+    - Acceptance Criteria:
+      - Attachments stored in secure disk with size/type validation and virus scan hook.
+      - Inline images rewritten to CDN-safe URLs while preserving original formatting.
+      - Error handling logs rejected assets with correlation IDs for support follow-up.
+    - Dependencies: E6-F1-I2
+    - Milestone: Week 3
+
+#### Feature E6-F2: SMTP outbound sending
+- **Issues**
+  - **E6-F2-I1 – Set up outbound SMTP provider profiles**
+    - Labels: {E6, devops, high, email}
+    - Acceptance Criteria:
+      - Environment templates capture SMTP host, port, encryption, and credential rotation process.
+      - Tenant overrides documented for dedicated IP pools or branded sender domains.
+      - Health checks verify connectivity and authentication for staging and production.
+    - Dependencies: None
+    - Milestone: Week 1
+  - **E6-F2-I2 – Implement queued SMTP dispatcher**
+    - Labels: {E6, backend, high, email}
+    - Acceptance Criteria:
+      - Queue job sends messages via configured SMTP transport with retry/backoff strategy.
+      - Outbound payload supports attachments, CC/BCC, and reply-to headers mapped from ticket data.
+      - Unit tests cover success, transient failure, and permanent failure scenarios.
+    - Dependencies: E6-F2-I1
+    - Milestone: Week 2
+  - **E6-F2-I3 – Build bounce and delivery status tracking**
+    - Labels: {E6, backend, medium, email}
+    - Acceptance Criteria:
+      - Delivery receipts update ticket timeline with status, timestamp, and diagnostic codes.
+      - Bounce classification triggers automation hooks for agent notification.
+      - Monitoring panel exposes bounce rates per tenant with alert thresholds.
+    - Dependencies: E6-F2-I2
+    - Milestone: Week 3
+
+#### Feature E6-F3: Threaded email ↔ ticket sync
+- **Issues**
+  - **E6-F3-I1 – Define threading correlation rules**
+    - Labels: {E6, design, high, email}
+    - Acceptance Criteria:
+      - Specification covers Message-ID, References, and ticket token fallback matching.
+      - Edge cases for forwarded/replied messages reviewed with support operations.
+      - Documented safeguards prevent cross-tenant thread collisions.
+    - Dependencies: E6-F1-I1
+    - Milestone: Week 1
+  - **E6-F3-I2 – Implement message threading logic**
+    - Labels: {E6, backend, high, email}
+    - Acceptance Criteria:
+      - Incoming emails map to existing tickets using correlation rules with logging for mismatches.
+      - Outbound replies append proper headers for downstream threading.
+      - Automated tests simulate multi-recipient and CC reply flows.
+    - Dependencies: E6-F3-I1, E6-F1-I2, E6-F2-I2
+    - Milestone: Week 3
+  - **E6-F3-I3 – Sync outbound replies into ticket history**
+    - Labels: {E6, backend, medium, email}
+    - Acceptance Criteria:
+      - Outbound messages persisted with author, visibility, and delivery metadata.
+      - Customer replies consolidate into chronological timeline without duplication.
+      - Audit trail records threading adjustments with actor attribution.
+    - Dependencies: E6-F3-I2
+    - Milestone: Week 3
+
+#### Feature E6-F4: Email templates with placeholders
+- **Issues**
+  - **E6-F4-I1 – Draft email template component library**
+    - Labels: {E6, design, medium, email}
+    - Acceptance Criteria:
+      - Template inventory lists mandatory transactional messages with branding regions.
+      - Placeholder catalogue references ticket, contact, and organization fields with descriptions.
+      - Accessibility review ensures default templates meet WCAG email guidance.
+    - Dependencies: None
+    - Milestone: Week 2
+  - **E6-F4-I2 – Implement template rendering engine**
+    - Labels: {E6, backend, high, email}
+    - Acceptance Criteria:
+      - Rendering service merges placeholders with localization support and HTML/text variants.
+      - Preview endpoint returns rendered output with sample data per tenant.
+      - Regression tests cover placeholder validation and missing data fallbacks.
+    - Dependencies: E6-F4-I1
+    - Milestone: Week 3
+  - **E6-F4-I3 – Build template management UI**
+    - Labels: {E6, frontend, medium, email}
+    - Acceptance Criteria:
+      - Admin UI supports create, clone, edit, and version history for templates.
+      - Validation prevents deletion of templates linked to active automations.
+      - Change log entries generated for template publish events.
+    - Dependencies: E6-F4-I2
+    - Milestone: Week 4
+
+### Epic E7: Reporting & Analytics
+
+#### Feature E7-F1: Ticket volume reports
+- **Issues**
+  - **E7-F1-I1 – Define reporting metrics specification**
+    - Labels: {E7, design, high, analytics}
+    - Acceptance Criteria:
+      - Metrics spec outlines ticket counts by channel, priority, status, and tenant.
+      - Data freshness targets and aggregation windows agreed with stakeholders.
+      - Documentation stored with governance notes on retention and privacy.
+    - Dependencies: None
+    - Milestone: Week 1
+  - **E7-F1-I2 – Implement volume aggregation jobs**
+    - Labels: {E7, backend, high, analytics}
+    - Acceptance Criteria:
+      - Nightly and hourly jobs populate summary tables with incremental updates.
+      - Failed aggregations retry with alerting on repeated errors.
+      - Tests verify counts across sample dataset and tenant isolation.
+    - Dependencies: E7-F1-I1
+    - Milestone: Week 2
+  - **E7-F1-I3 – Build ticket volume dashboards**
+    - Labels: {E7, frontend, medium, analytics}
+    - Acceptance Criteria:
+      - Admin dashboard visualizes trends with filters for channel, priority, and timeframe.
+      - Widgets support export to CSV and shareable links respecting permissions.
+      - Real-time refresh leverages broadcasting events for new ticket counts.
+    - Dependencies: E7-F1-I2, E1-F8-I2
+    - Milestone: Week 3
+
+#### Feature E7-F2: SLA compliance dashboards
+- **Issues**
+  - **E7-F2-I1 – Model SLA metrics warehouse tables**
+    - Labels: {E7, backend, medium, analytics}
+    - Acceptance Criteria:
+      - Fact tables store first response and resolution durations keyed by tenant and policy.
+      - Historical breaches and acknowledgements preserved for trending.
+      - Data dictionary published with column descriptions and calculation notes.
+    - Dependencies: E4-F3-I2
+    - Milestone: Week 2
+  - **E7-F2-I2 – Create SLA compliance dashboard widgets**
+    - Labels: {E7, frontend, medium, analytics}
+    - Acceptance Criteria:
+      - Visualizations display compliance %, breach counts, and aging buckets.
+      - Filters allow segmentation by team, priority, and workflow status.
+      - Widgets integrate with alert banner when breach rate exceeds threshold.
+    - Dependencies: E7-F2-I1, E4-F4-I1
+    - Milestone: Week 3
+  - **E7-F2-I3 – Schedule SLA compliance exports**
+    - Labels: {E7, backend, low, analytics}
+    - Acceptance Criteria:
+      - Scheduled tasks generate weekly CSV summaries emailed to configured recipients.
+      - Export respects tenant branding for headers and footers.
+      - Audit log captures export trigger, recipient list, and completion status.
+    - Dependencies: E7-F2-I1
+    - Milestone: Week 4
+
+#### Feature E7-F3: Agent productivity metrics
+- **Issues**
+  - **E7-F3-I1 – Define productivity KPI catalog**
+    - Labels: {E7, design, medium, analytics}
+    - Acceptance Criteria:
+      - KPI list covers handle time, replies per ticket, backlog ownership, and CSAT linkage.
+      - Stakeholders approve calculation formulas and acceptable ranges.
+      - Documentation notes data sources and refresh cadence for each KPI.
+    - Dependencies: None
+    - Milestone: Week 1
+  - **E7-F3-I2 – Build agent performance fact table**
+    - Labels: {E7, backend, medium, analytics}
+    - Acceptance Criteria:
+      - ETL aggregates per-agent metrics with calendar-aware working hours.
+      - Table indexes optimized for dashboard queries and exports.
+      - Tests validate calculations against seeded scenarios for different roles.
+    - Dependencies: E7-F3-I1, E1-F7-I2
+    - Milestone: Week 2
+  - **E7-F3-I3 – Deliver agent scorecard UI**
+    - Labels: {E7, frontend, medium, analytics}
+    - Acceptance Criteria:
+      - Scorecard presents KPIs with trend indicators and peer benchmarking.
+      - Agents can drill down to ticket lists for each metric with RBAC enforcement.
+      - Notifications trigger when KPI thresholds fall below configured targets.
+    - Dependencies: E7-F3-I2
+    - Milestone: Week 3
+
+#### Feature E7-F4: Exportable reports (CSV, XLSX, PDF)
+- **Issues**
+  - **E7-F4-I1 – Standardize export schema definitions**
+    - Labels: {E7, design, medium, analytics}
+    - Acceptance Criteria:
+      - Schema catalog lists column order, types, and localization rules per report.
+      - Data masking requirements approved for sensitive fields.
+      - Versioning strategy documented for future schema changes.
+    - Dependencies: E7-F1-I1, E7-F3-I1
+    - Milestone: Week 2
+  - **E7-F4-I2 – Implement CSV/XLSX generators**
+    - Labels: {E7, backend, high, analytics}
+    - Acceptance Criteria:
+      - Export service streams large datasets with pagination and memory limits.
+      - XLSX outputs include formatting, totals, and tenant branding.
+      - Automated tests compare generated files against golden samples.
+    - Dependencies: E7-F4-I1
+    - Milestone: Week 3
+  - **E7-F4-I3 – Integrate PDF rendering pipeline**
+    - Labels: {E7, backend, medium, analytics}
+    - Acceptance Criteria:
+      - PDF generation supports scheduled and on-demand exports with queue processing.
+      - Layout templates match design system and support localization.
+      - Failure cases log diagnostic context and trigger alert notifications.
+    - Dependencies: E7-F4-I2
+    - Milestone: Week 4
+
+### Epic E8: Integrations Hub
+
+#### Feature E8-F1: Slack/MS Teams notifications
+- **Issues**
+  - **E8-F1-I1 – Draft messaging integration blueprint**
+    - Labels: {E8, design, medium, integrations}
+    - Acceptance Criteria:
+      - Blueprint lists notification triggers, payload schemas, and throttling policy.
+      - Security review confirms token storage and rotation approach.
+      - Tenant configuration UI requirements captured for downstream implementation.
+    - Dependencies: None
+    - Milestone: Week 1
+  - **E8-F1-I2 – Implement Slack webhook dispatcher**
+    - Labels: {E8, backend, medium, integrations}
+    - Acceptance Criteria:
+      - Service posts structured messages with deep links for ticket actions.
+      - Retry/backoff handles rate limits and network failures gracefully.
+      - Tests validate channel-specific formatting and mention handling.
+    - Dependencies: E8-F1-I1, E1-F8-I2
+    - Milestone: Week 2
+  - **E8-F1-I3 – Deliver Teams connector support**
+    - Labels: {E8, backend, medium, integrations}
+    - Acceptance Criteria:
+      - Microsoft Teams adapter leverages Graph API for adaptive cards.
+      - Tenant-level toggles manage Slack vs. Teams routing preferences.
+      - Monitoring captures delivery status and errors per platform.
+    - Dependencies: E8-F1-I2
+    - Milestone: Week 3
+
+#### Feature E8-F2: Webhooks (ticket created, status changed)
+- **Issues**
+  - **E8-F2-I1 – Define webhook event contract**
+    - Labels: {E8, design, high, integrations}
+    - Acceptance Criteria:
+      - Contract documents payload schema, headers, retry logic, and security signatures.
+      - Event catalogue covers ticket lifecycle, SLA changes, and automation triggers.
+      - Stakeholder sign-off recorded with versioning plan.
+    - Dependencies: None
+    - Milestone: Week 1
+  - **E8-F2-I2 – Build webhook delivery service**
+    - Labels: {E8, backend, high, integrations}
+    - Acceptance Criteria:
+      - Service queues deliveries with exponential backoff and dead-letter handling.
+      - HMAC signature validation configurable per tenant secret.
+      - Integration tests simulate success, timeout, and 4xx rejection flows.
+    - Dependencies: E8-F2-I1, E1-F8-I2
+    - Milestone: Week 2
+  - **E8-F2-I3 – Provide webhook management UI**
+    - Labels: {E8, frontend, medium, integrations}
+    - Acceptance Criteria:
+      - Admin interface allows registering endpoints, selecting events, and viewing logs.
+      - Test payload feature sends sample events with real signing.
+      - RBAC limits access to tenants with integration permissions.
+    - Dependencies: E8-F2-I2
+    - Milestone: Week 3
+
+#### Feature E8-F3: External identity provider (SSO)
+- **Issues**
+  - **E8-F3-I1 – Evaluate SSO protocols and vendors**
+    - Labels: {E8, design, medium, identity}
+    - Acceptance Criteria:
+      - Assessment compares SAML, OIDC, and SCIM capabilities with cost and support.
+      - Compliance checklist covers data residency, provisioning, and deprovisioning needs.
+      - Recommendation approved by security architecture board.
+    - Dependencies: None
+    - Milestone: Week 1
+  - **E8-F3-I2 – Implement SAML/OIDC authentication broker**
+    - Labels: {E8, backend, high, identity}
+    - Acceptance Criteria:
+      - Broker supports tenant-specific metadata, ACS endpoints, and Just-In-Time provisioning.
+      - Session handling integrates with existing RBAC middleware.
+      - Automated tests cover assertion validation, error states, and logout flows.
+    - Dependencies: E8-F3-I1, E2-F3-I3
+    - Milestone: Week 3
+  - **E8-F3-I3 – Configure tenant SSO onboarding UI**
+    - Labels: {E8, frontend, medium, identity}
+    - Acceptance Criteria:
+      - Admin UI guides setup with metadata upload, attribute mapping, and test login.
+      - Validation prevents enabling SSO without default fallback admins.
+      - Audit log records configuration changes with before/after snapshots.
+    - Dependencies: E8-F3-I2
+    - Milestone: Week 4
+
+#### Feature E8-F4: Calendar integration for SLA deadlines
+- **Issues**
+  - **E8-F4-I1 – Define calendar sync requirements**
+    - Labels: {E8, design, medium, integrations}
+    - Acceptance Criteria:
+      - Requirements outline supported providers (Google, Outlook) and sync frequency.
+      - Mapping of SLA milestones to calendar events reviewed with support leadership.
+      - Security evaluation covers token scopes and revocation handling.
+    - Dependencies: E4-F3-I1
+    - Milestone: Week 2
+  - **E8-F4-I2 – Implement calendar sync adapters**
+    - Labels: {E8, backend, medium, integrations}
+    - Acceptance Criteria:
+      - Adapter creates/updates events for upcoming SLA deadlines with reminders.
+      - Sync respects tenant business hours and escalation overrides.
+      - Integration tests simulate token refresh, conflict resolution, and cancellation.
+    - Dependencies: E8-F4-I1, E4-F3-I2
+    - Milestone: Week 3
+  - **E8-F4-I3 – Surface SLA calendar overlays in UI**
+    - Labels: {E8, frontend, medium, integrations}
+    - Acceptance Criteria:
+      - UI displays linked calendar events on SLA dashboards with status indicators.
+      - Agents can open calendar event from ticket detail with permission checks.
+      - Refresh mechanism updates overlays when sync events complete.
+    - Dependencies: E8-F4-I2, E4-F3-I3
+    - Milestone: Week 4
+
+### Epic E9: Admin & Portal Experience
+
+#### Feature E9-F1: Admin portal (Filament-based)
+- **Issues**
+  - **E9-F1-I1 – Establish Filament theming baseline**
+    - Labels: {E9, frontend, high, portal}
+    - Acceptance Criteria:
+      - Base theme configured with typography, spacing, and color tokens per design system.
+      - Dark mode and accessibility settings verified against WCAG AA.
+      - Style guide published for reuse across admin modules.
+    - Dependencies: None
+    - Milestone: Week 1
+  - **E9-F1-I2 – Implement admin navigation shell**
+    - Labels: {E9, frontend, medium, portal}
+    - Acceptance Criteria:
+      - Global navigation includes dashboard, tickets, contacts, knowledge base, and settings.
+      - Responsive layout validated for desktop and tablet breakpoints.
+      - Breadcrumbs and contextual help panels wired to knowledge base articles.
+    - Dependencies: E9-F1-I1
+    - Milestone: Week 2
+  - **E9-F1-I3 – Integrate module dashboards**
+    - Labels: {E9, frontend, medium, portal}
+    - Acceptance Criteria:
+      - Admin shell loads feature-specific widgets (tickets, automation, reporting) via lazy modules.
+      - Permission checks hide modules lacking user access.
+      - Performance budget met (<2s initial paint on reference dataset).
+    - Dependencies: E9-F1-I2
+    - Milestone: Week 3
+
+#### Feature E9-F2: Customer portal (ticket view & submit)
+- **Issues**
+  - **E9-F2-I1 – Define customer portal IA and UX**
+    - Labels: {E9, design, high, portal}
+    - Acceptance Criteria:
+      - UX flows cover login, ticket list, detail view, creation, and knowledge base linkage.
+      - Content strategy documented for empty states and success/error messaging.
+      - Stakeholder sign-off recorded from customer experience team.
+    - Dependencies: E1-F1-I1
+    - Milestone: Week 1
+  - **E9-F2-I2 – Implement ticket list and detail views**
+    - Labels: {E9, frontend, high, portal}
+    - Acceptance Criteria:
+      - Authenticated users view ticket summaries with filters and search scoped to their organization.
+      - Detail view displays message history respecting visibility rules.
+      - Accessibility tests confirm keyboard navigation and screen reader support.
+    - Dependencies: E9-F2-I1, E1-F5-I1
+    - Milestone: Week 2
+  - **E9-F2-I3 – Add portal ticket update flows**
+    - Labels: {E9, frontend, medium, portal}
+    - Acceptance Criteria:
+      - Customers can post public replies, add attachments, and close tickets when permitted.
+      - Confirmation toasts and email notifications triggered on updates.
+      - Rate limiting prevents spam submissions while providing friendly messaging.
+    - Dependencies: E9-F2-I2
+    - Milestone: Week 3
+
+#### Feature E9-F3: Portal authentication (JWT, SSO, social login)
+- **Issues**
+  - **E9-F3-I1 – Document portal authentication flows**
+    - Labels: {E9, design, medium, portal}
+    - Acceptance Criteria:
+      - Flow diagrams cover email/password, JWT refresh, SSO handoff, and social login fallback.
+      - Security review approves token lifetimes and storage (cookies vs. local storage).
+      - Risk assessment addresses account linking and deactivation scenarios.
+    - Dependencies: E8-F3-I1
+    - Milestone: Week 1
+  - **E9-F3-I2 – Implement JWT-based session API**
+    - Labels: {E9, backend, high, portal}
+    - Acceptance Criteria:
+      - Authentication endpoints issue and refresh JWTs with tenant-aware claims.
+      - Middleware validates tokens and enforces RBAC for portal routes.
+      - Automated tests cover login, refresh, revoke, and expired token cases.
+    - Dependencies: E9-F3-I1, E2-F3-I3
+    - Milestone: Week 2
+  - **E9-F3-I3 – Integrate social login providers**
+    - Labels: {E9, backend, medium, portal}
+    - Acceptance Criteria:
+      - OAuth integrations for Google and Microsoft configured with tenant branding.
+      - Account linking flow handles existing contacts and new invitations.
+      - Audit log records social login enablement and login events with provider info.
+    - Dependencies: E9-F3-I2
+    - Milestone: Week 3
+
+#### Feature E9-F4: Brand customization (logos, themes, domains)
+- **Issues**
+  - **E9-F4-I1 – Capture brand customization requirements**
+    - Labels: {E9, design, medium, portal}
+    - Acceptance Criteria:
+      - Requirements doc details tenant-specific logo formats, color tokens, typography, and favicon expectations for admin and customer portals.
+      - Custom domain onboarding checklist covers DNS, SSL/TLS automation, and fallback behaviors.
+      - Stakeholder approvals (design, marketing, compliance) captured with storage link in shared repository.
+    - Dependencies: E9-F1-I1
+    - Milestone: Week 1
+  - **E9-F4-I2 – Implement brand asset storage and delivery services**
+    - Labels: {E9, backend, high, portal}
+    - Acceptance Criteria:
+      - Service persists tenant brand assets with validation, versioning, and CDN caching headers.
+      - Theme configuration API exposes tenant color/typography tokens to portals with cache busting.
+      - Automated tests verify fallback to system defaults when tenant assets missing or invalid.
+    - Dependencies: E9-F4-I1, E9-F1-I2
+    - Milestone: Week 2
+  - **E9-F4-I3 – Launch brand configuration UI and domain management**
+    - Labels: {E9, frontend, high, portal}
+    - Acceptance Criteria:
+      - Admin UI supports uploading logos, editing theme colors with previews, and configuring custom domains with verification status.
+      - Domain setup wizard validates DNS records and SSL provisioning, showing progress and error guidance.
+      - Audit log records brand changes with before/after snapshots and actor metadata.
+    - Dependencies: E9-F4-I2
+    - Milestone: Week 3
+
+### Epic E10: Security & Trust
+
+#### Feature E10-F1: Two-factor authentication
+- **Issues**
+  - **E10-F1-I1 – Evaluate two-factor authentication methods**
+    - Labels: {E10, design, medium, security}
+    - Acceptance Criteria:
+      - Analysis compares TOTP, WebAuthn, and SMS with usability, cost, and compliance considerations.
+      - Recommendation includes backup code policy, recovery flows, and enforcement tiers per role.
+      - Security and product sign-offs documented with decision log location.
+    - Dependencies: None
+    - Milestone: Week 1
+  - **E10-F1-I2 – Implement backend support for 2FA enrollment and enforcement**
+    - Labels: {E10, backend, high, security}
+    - Acceptance Criteria:
+      - Users can enroll TOTP devices, regenerate backup codes, and enforce 2FA at login for Admin/Agent roles.
+      - Middleware enforces 2FA completion before accessing protected routes, respecting tenant policies.
+      - Tests cover enrollment, verification, backup code usage, and lockout handling.
+    - Dependencies: E10-F1-I1, E2-F3-I3
+    - Milestone: Week 2
+  - **E10-F1-I3 – Provide user interfaces for 2FA setup and recovery**
+    - Labels: {E10, frontend, medium, security}
+    - Acceptance Criteria:
+      - Settings page guides enrollment with QR code, code verification, and backup code download.
+      - Login flow handles 2FA prompts, remember-device options, and fallback to backup codes.
+      - Accessibility review ensures screen reader labels and keyboard navigation across steps.
+    - Dependencies: E10-F1-I2, E9-F1-I2
+    - Milestone: Week 3
+
+#### Feature E10-F2: Security posture and RBAC enforcement audits
+- **Issues**
+  - **E10-F2-I1 – Conduct RBAC enforcement gap analysis**
+    - Labels: {E10, design, high, security}
+    - Acceptance Criteria:
+      - Audit matrix maps all critical routes, commands, and queues to required permissions per role.
+      - Findings include prioritized remediation list with estimated effort and owners.
+      - Review meeting minutes captured with agreed remediation timeline.
+    - Dependencies: E2-F3-I3
+    - Milestone: Week 2
+  - **E10-F2-I2 – Expand automated permission coverage tests**
+    - Labels: {E10, backend, high, security}
+    - Acceptance Criteria:
+      - Test suite asserts RBAC middleware coverage for representative admin, portal, and API endpoints.
+      - Builds fail when new routes lack explicit permission annotations.
+      - Report generated for CI summarizing guarded vs. unguarded routes per module.
+    - Dependencies: E10-F2-I1
+    - Milestone: Week 3
+  - **E10-F2-I3 – Configure security monitoring and alerting**
+    - Labels: {E10, devops, medium, security}
+    - Acceptance Criteria:
+      - Centralized logs capture authorization failures and suspicious access patterns with tenant metadata.
+      - Alert rules notify security channel on repeated RBAC violations or 2FA failures beyond thresholds.
+      - Runbook documents response steps and escalation paths for detected incidents.
+    - Dependencies: E10-F2-I2, E11-F4-I2
+    - Milestone: Week 4
+
+### Epic E11: DevOps & Infrastructure Enablement
+
+#### Feature E11-F1: Dockerized multi-stage build
+- **Issues**
+  - **E11-F1-I1 – Define container build specification**
+    - Labels: {E11, design, medium, devops}
+    - Acceptance Criteria:
+      - Document outlines base images, build arguments, caching strategy, and secrets handling.
+      - Local development parity requirements captured with volume mounts and override patterns.
+      - Security review confirms minimum supported OS versions and vulnerability scanning cadence.
+    - Dependencies: None
+    - Milestone: Week 1
+  - **E11-F1-I2 – Implement multi-stage Dockerfile and build pipeline**
+    - Labels: {E11, devops, high, devops}
+    - Acceptance Criteria:
+      - Dockerfile includes separate stages for dependencies, tests, and production runtime with size benchmarks.
+      - CI build validates image creation, runs application tests inside container, and publishes artifact.
+      - Documentation explains how to run and debug containers locally.
+    - Dependencies: E11-F1-I1
+    - Milestone: Week 2
+  - **E11-F1-I3 – Configure container registry publishing and scanning**
+    - Labels: {E11, devops, medium, devops}
+    - Acceptance Criteria:
+      - Images push to secured registry with tenant-aware tagging conventions (dev/stage/prod).
+      - Automated vulnerability scans execute post-push with alerting on critical findings.
+      - Access controls and retention policies documented for registry management.
+    - Dependencies: E11-F1-I2
+    - Milestone: Week 3
+
+#### Feature E11-F2: Horizon dashboard for queues
+- **Issues**
+  - **E11-F2-I1 – Document queue monitoring requirements**
+    - Labels: {E11, design, medium, devops}
+    - Acceptance Criteria:
+      - Requirements list tracked queues, metrics (wait time, throughput), and alert thresholds.
+      - Security assessment covers Horizon authentication, authorization, and multi-tenant visibility.
+      - Approval recorded from support operations and SRE stakeholders.
+    - Dependencies: None
+    - Milestone: Week 1
+  - **E11-F2-I2 – Deploy Horizon dashboard infrastructure**
+    - Labels: {E11, devops, high, devops}
+    - Acceptance Criteria:
+      - Horizon configured with supervisor definitions, authentication guards, and SSL termination.
+      - Dashboard accessible via secured route with role-based access enforced.
+      - Health checks integrated with existing monitoring to ensure worker availability.
+    - Dependencies: E11-F2-I1, E11-F3-I2
+    - Milestone: Week 2
+  - **E11-F2-I3 – Integrate queue alerting and SLO reporting**
+    - Labels: {E11, devops, medium, devops}
+    - Acceptance Criteria:
+      - Alert rules trigger on backlog thresholds, failed jobs, and stalled workers with escalation policy.
+      - Weekly report summarizes queue performance against documented SLOs.
+      - Runbook updated with remediation steps for common Horizon incidents.
+    - Dependencies: E11-F2-I2, E11-F4-I3
+    - Milestone: Week 3
+
+#### Feature E11-F3: Redis caching + session storage
+- **Issues**
+  - **E11-F3-I1 – Plan Redis topology and sizing**
+    - Labels: {E11, design, medium, devops}
+    - Acceptance Criteria:
+      - Architecture doc specifies high-availability setup, persistence strategy, and tenant isolation.
+      - Capacity planning estimates memory requirements for cache, sessions, and queues.
+      - Security checklist covers encryption in transit, authentication, and maintenance windows.
+    - Dependencies: None
+    - Milestone: Week 1
+  - **E11-F3-I2 – Implement Redis configuration for cache and sessions**
+    - Labels: {E11, backend, high, devops}
+    - Acceptance Criteria:
+      - Application configuration switches cache and session drivers to Redis with environment overrides.
+      - Graceful fallback implemented for Redis outages with warning telemetry.
+      - Automated tests verify cache tagging, session persistence, and TTL behaviors.
+    - Dependencies: E11-F3-I1
+    - Milestone: Week 2
+  - **E11-F3-I3 – Document cache warming and failover procedures**
+    - Labels: {E11, devops, medium, devops}
+    - Acceptance Criteria:
+      - Runbook outlines cache warming scripts, sentinel/failover steps, and validation checks.
+      - Incident simulation exercises executed with results logged and improvements captured.
+      - Monitoring hooks confirm successful failover with alert suppression controls.
+    - Dependencies: E11-F3-I2
+    - Milestone: Week 3
+
+#### Feature E11-F4: Observability – logs, metrics, alerts
+- **Issues**
+  - **E11-F4-I1 – Select observability stack and tooling**
+    - Labels: {E11, design, high, devops}
+    - Acceptance Criteria:
+      - Comparative analysis of ELK, OpenSearch, and Loki/Grafana stacks with cost and scalability metrics.
+      - Decision records log retention policies, metrics storage, and trace sampling strategy.
+      - Security review signs off on data handling and access controls.
+    - Dependencies: None
+    - Milestone: Week 1
+  - **E11-F4-I2 – Implement centralized logging and metrics pipelines**
+    - Labels: {E11, devops, high, devops}
+    - Acceptance Criteria:
+      - Application emits structured logs and Prometheus-compatible metrics with tenant/context tags.
+      - Pipelines aggregate logs/metrics into chosen stack with buffering and retry safeguards.
+      - Smoke tests verify log ingestion, metrics scraping, and trace collection across environments.
+    - Dependencies: E11-F4-I1
+    - Milestone: Week 2
+  - **E11-F4-I3 – Configure alerting and dashboards**
+    - Labels: {E11, devops, medium, devops}
+    - Acceptance Criteria:
+      - Dashboards visualize key KPIs (request latency, error rate, job throughput) with shared templates.
+      - Alert policies notify appropriate teams with escalation chains and maintenance windows.
+      - On-call runbook updated with dashboard links and troubleshooting checklists.
+    - Dependencies: E11-F4-I2
+    - Milestone: Week 3
+
+#### Feature E11-F5: CI/CD pipeline setup
+- **Issues**
+  - **E11-F5-I1 – Document CI/CD workflow requirements**
+    - Labels: {E11, design, medium, devops}
+    - Acceptance Criteria:
+      - Workflow spec defines stages (lint, tests, build, security scan, deploy) with success criteria.
+      - Approval matrix lists required reviewers and manual gates per environment.
+      - Compliance review confirms artifact retention and audit logging needs.
+    - Dependencies: None
+    - Milestone: Week 1
+  - **E11-F5-I2 – Implement CI pipelines with quality gates**
+    - Labels: {E11, devops, high, devops}
+    - Acceptance Criteria:
+      - CI platform executes linting, unit/integration tests, and builds Docker images with caching.
+      - Pipeline publishes test reports, coverage, and vulnerability scan results.
+      - Failures surface actionable logs with notification to engineering channel.
+    - Dependencies: E11-F5-I1, E11-F1-I2
+    - Milestone: Week 2
+  - **E11-F5-I3 – Automate CD with environment promotions and rollbacks**
+    - Labels: {E11, devops, medium, devops}
+    - Acceptance Criteria:
+      - Deployment pipeline promotes artifacts through staging to production with approval gates.
+      - Rollback procedures automated with verification checks and alerting.
+      - Post-deploy health checks integrate with observability stack for go/no-go decisions.
+    - Dependencies: E11-F5-I2, E11-F1-I3
+    - Milestone: Week 3
