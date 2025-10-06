@@ -5,6 +5,7 @@ use App\Models\Message;
 use App\Models\Ticket;
 use App\Models\User;
 use Illuminate\Support\Str;
+
 use function Pest\Laravel\actingAs;
 
 function actingHeadersFor(Ticket $ticket): array
