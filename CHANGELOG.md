@@ -3,6 +3,7 @@
 ## [Unreleased]
 ### Added
 - Ticket message visibility controls with API, policy, Filament resource, and observability for internal notes. (E1-F5-I1)
+- Knowledge base categories and articles with migrations, RBAC-enforced APIs, Filament management, observability, and documentation updates. (E3-F1-I2)
 - Ticket lifecycle broadcasting stack with REST + Filament management, queued broadcasts, audit logging, and OpenAPI coverage. (E1-F8-I2)
 ### Fixed
 - Restore Pint compatibility and database credentials so CI linting and migrations succeed on MySQL and PostgreSQL.

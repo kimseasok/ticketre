@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Api\HealthcheckController;
+use App\Http\Controllers\Api\KbArticleController;
+use App\Http\Controllers\Api\KbCategoryController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\TicketController;
 use Illuminate\Support\Facades\Route;
@@ -19,4 +21,7 @@ Route::middleware(['auth', 'tenant'])->prefix('v1')->name('api.')->group(functio
             'messages' => 'message',
         ]);
     });
+
+    Route::apiResource('kb-categories', KbCategoryController::class)->except(['create', 'edit']);
+    Route::apiResource('kb-articles', KbArticleController::class)->except(['create', 'edit']);
 });

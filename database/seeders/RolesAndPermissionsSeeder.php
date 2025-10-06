@@ -15,6 +15,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'tickets.manage',
             'contacts.manage',
             'knowledge.manage',
+            'knowledge.view',
             'reports.view',
             'integrations.manage',
         ];
@@ -26,8 +27,8 @@ class RolesAndPermissionsSeeder extends Seeder
         $roleDefinitions = [
             'SuperAdmin' => $permissions,
             'Admin' => $permissions,
-            'Agent' => ['tickets.view', 'tickets.manage', 'contacts.manage'],
-            'Viewer' => ['tickets.view', 'reports.view'],
+            'Agent' => ['tickets.view', 'tickets.manage', 'contacts.manage', 'knowledge.view'],
+            'Viewer' => ['tickets.view', 'reports.view', 'knowledge.view'],
         ];
 
         foreach ($roleDefinitions as $roleName => $rolePermissions) {
