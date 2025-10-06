@@ -10,8 +10,10 @@ use Illuminate\Support\Facades\Log;
 
 class TicketService
 {
-    public function __construct(private readonly TicketLifecycleBroadcaster $broadcaster)
-    {
+    public function __construct(
+        private readonly TicketLifecycleBroadcaster $broadcaster,
+        private readonly TicketAuditLogger $auditLogger,
+    ) {
     }
 
     /**
@@ -19,9 +21,14 @@ class TicketService
      */
     public function create(array $data, User $actor): Ticket
     {
-        $ticket = Ticket::create($data);
+        $startedAt = microtime(true);
 
-        $this->broadcaster->record($ticket->refresh(), TicketEvent::TYPE_CREATED, [
+        $ticket = Ticket::create($data);
+        $ticket->refresh();
+
+        $this->auditLogger->created($ticket, $actor, $startedAt);
+
+        $this->broadcaster->record($ticket, TicketEvent::TYPE_CREATED, [
             'changes' => $data,
         ], $actor);
 
@@ -33,35 +40,58 @@ class TicketService
      */
     public function update(Ticket $ticket, array $data, User $actor): Ticket
     {
+        $startedAt = microtime(true);
+
         $ticket->fill($data);
-        $changes = Arr::except($ticket->getDirty(), ['updated_at']);
+        $dirty = Arr::except($ticket->getDirty(), ['updated_at']);
+        $original = Arr::only($ticket->getOriginal(), array_keys($dirty));
         $ticket->save();
 
-        if (! empty($changes)) {
-            $this->broadcaster->record($ticket->fresh(['assignee']), TicketEvent::TYPE_UPDATED, [
-                'changes' => $changes,
+        $ticket = $ticket->fresh(['assignee']);
+
+        if (! empty($dirty)) {
+            $this->auditLogger->updated($ticket, $actor, $dirty, $original, $startedAt);
+
+            $this->broadcaster->record($ticket, TicketEvent::TYPE_UPDATED, [
+                'changes' => $dirty,
             ], $actor);
 
-            if (array_key_exists('assignee_id', $changes)) {
-                $this->broadcaster->record($ticket->fresh(['assignee']), TicketEvent::TYPE_ASSIGNED, [
+            if (array_key_exists('assignee_id', $dirty)) {
+                $this->broadcaster->record($ticket, TicketEvent::TYPE_ASSIGNED, [
                     'assignee_id' => $ticket->assignee_id,
                 ], $actor);
             }
         }
 
-        return $ticket->fresh(['assignee']);
+        return $ticket;
     }
 
     public function assign(Ticket $ticket, ?User $assignee, User $actor): Ticket
     {
+        $startedAt = microtime(true);
+        $original = ['assignee_id' => $ticket->assignee_id];
+
         $ticket->assignee()->associate($assignee);
         $ticket->save();
 
-        $this->broadcaster->record($ticket->fresh(['assignee']), TicketEvent::TYPE_ASSIGNED, [
+        $ticket = $ticket->fresh(['assignee']);
+
+        $this->auditLogger->updated($ticket, $actor, ['assignee_id' => $ticket->assignee_id], $original, $startedAt);
+
+        $this->broadcaster->record($ticket, TicketEvent::TYPE_ASSIGNED, [
             'assignee_id' => $ticket->assignee_id,
         ], $actor);
 
-        return $ticket->fresh(['assignee']);
+        return $ticket;
+    }
+
+    public function delete(Ticket $ticket, User $actor): void
+    {
+        $startedAt = microtime(true);
+
+        $ticket->delete();
+
+        $this->auditLogger->deleted($ticket, $actor, $startedAt);
     }
 
     public function merge(Ticket $primary, Ticket $secondary, User $actor): Ticket

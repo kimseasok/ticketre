@@ -110,5 +110,4 @@ class TicketEventResource extends Resource
 
         return $query;
     }
-
 }

@@ -5,6 +5,8 @@
 - Ticket message visibility controls with API, policy, Filament resource, and observability for internal notes. (E1-F5-I1)
 - Knowledge base categories and articles with migrations, RBAC-enforced APIs, Filament management, observability, and documentation updates. (E3-F1-I2)
 - Ticket lifecycle broadcasting stack with REST + Filament management, queued broadcasts, audit logging, and OpenAPI coverage. (E1-F8-I2)
+- Tenant-scoped audit log writers for tickets and contacts with masked diffs, a Filament audit viewer, and an authenticated API endpoint. (E2-F6-I2)
+- Tenant role provisioning with per-tenant RBAC APIs, Filament administration, audit logging, and OpenAPI/README documentation. (E2-F2-I1)
 ### Fixed
 - Restore Pint compatibility and database credentials so CI linting and migrations succeed on MySQL and PostgreSQL.
 - Declare the application as an ES module so Vite can import `laravel-vite-plugin` during CI builds without require() failures.

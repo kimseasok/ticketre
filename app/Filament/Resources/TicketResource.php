@@ -4,12 +4,15 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\TicketResource\Pages;
 use App\Models\Ticket;
+use App\Services\TicketService;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 
 class TicketResource extends Resource
@@ -66,10 +69,13 @@ class TicketResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->action(fn (Ticket $record) => static::deleteTicket($record)),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->action(fn (Collection $records) => $records->each(fn (Ticket $ticket) => static::deleteTicket($ticket))),
                 ]),
             ])
             ->defaultSort('created_at', 'desc');
@@ -93,5 +99,18 @@ class TicketResource extends Resource
         }
 
         return $query;
+    }
+
+    protected static function deleteTicket(Ticket $ticket): void
+    {
+        $user = Auth::user();
+
+        if (! $user) {
+            abort(401, 'Authentication required.');
+        }
+
+        /** @var TicketService $service */
+        $service = App::make(TicketService::class);
+        $service->delete($ticket, $user);
     }
 }

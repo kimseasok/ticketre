@@ -32,4 +32,9 @@ class Tenant extends Model
     {
         return $this->hasMany(User::class);
     }
+
+    public function roles()
+    {
+        return $this->hasMany(Role::class);
+    }
 }

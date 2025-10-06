@@ -87,6 +87,7 @@ class KbArticleService
     {
         AuditLog::create([
             'tenant_id' => $article->tenant_id,
+            'brand_id' => $article->brand_id,
             'user_id' => $user->getKey(),
             'action' => $action,
             'auditable_type' => KbArticle::class,

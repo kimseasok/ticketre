@@ -74,6 +74,7 @@ class KbCategoryService
     {
         AuditLog::create([
             'tenant_id' => $category->tenant_id,
+            'brand_id' => $category->brand_id,
             'user_id' => $user->getKey(),
             'action' => $action,
             'auditable_type' => KbCategory::class,
