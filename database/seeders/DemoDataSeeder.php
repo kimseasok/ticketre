@@ -10,6 +10,7 @@ use App\Models\KbCategory;
 use App\Models\Message;
 use App\Models\Tenant;
 use App\Models\Ticket;
+use App\Models\TicketEvent;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -66,9 +67,8 @@ class DemoDataSeeder extends Seeder
             'name' => 'Demo Company',
         ]);
 
-        $contact = Contact::factory()->create([
+        $contact = Contact::factory()->for($company)->create([
             'tenant_id' => $tenant->id,
-            'company_id' => $company->id,
             'name' => 'Demo Contact',
             'email' => 'contact@example.com',
         ]);
@@ -88,6 +88,9 @@ class DemoDataSeeder extends Seeder
             'status' => 'published',
         ]);
 
+        app()->instance('currentTenant', $tenant);
+        app()->instance('currentBrand', $brand);
+
         $ticket = Ticket::factory()->create([
             'tenant_id' => $tenant->id,
             'brand_id' => $brand->id,
@@ -98,8 +101,7 @@ class DemoDataSeeder extends Seeder
             'status' => 'open',
         ]);
 
-        Message::factory()->create([
-            'ticket_id' => $ticket->id,
+        Message::factory()->for($ticket)->create([
             'tenant_id' => $tenant->id,
             'brand_id' => $brand->id,
             'user_id' => $agent->id,
@@ -108,8 +110,7 @@ class DemoDataSeeder extends Seeder
             'body' => 'Internal note seeded for demo. DO NOT USE IN PRODUCTION.',
         ]);
 
-        Message::factory()->create([
-            'ticket_id' => $ticket->id,
+        Message::factory()->for($ticket)->create([
             'tenant_id' => $tenant->id,
             'brand_id' => $brand->id,
             'user_id' => $agent->id,
@@ -117,5 +118,14 @@ class DemoDataSeeder extends Seeder
             'visibility' => Message::VISIBILITY_PUBLIC,
             'body' => 'Public reply seeded for demo. DO NOT USE IN PRODUCTION.',
         ]);
+
+        app(\App\Services\TicketLifecycleBroadcaster::class)->record(
+            $ticket->fresh(),
+            TicketEvent::TYPE_CREATED,
+            ['seed_source' => 'demo'],
+            $admin,
+            TicketEvent::VISIBILITY_INTERNAL,
+            false
+        );
     }
 }

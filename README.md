@@ -45,3 +45,14 @@ X-Brand: <brand-slug>
 API responses follow the `{ "data": { ... } }` envelope, while errors follow `{ "error": { "code", "message" } }`.
 
 Filament administrators can manage the same records via `/admin/messages`, with filters for tenant, brand, and visibility pre-configured.
+
+## Ticket Lifecycle Broadcasting
+
+Ticket lifecycle events are persisted, audited, and broadcast over Echo-compatible websockets so agent consoles can react in real time.
+
+- `GET /api/v1/tickets` – list tenant-scoped tickets (requires `tickets.view`).
+- `POST /api/v1/tickets` – create a ticket and emit a `ticket.created` event (requires `tickets.manage`).
+- `GET /api/v1/tickets/{ticket}/events` – retrieve the lifecycle event history for a ticket.
+- `POST /api/v1/tickets/{ticket}/events` – manually broadcast a lifecycle event with a custom payload (agents only).
+
+All responses include `correlation_id` metadata and redact PII in logs via hashed digests. Manual testing is available via Filament at `/admin/ticket-events`, which respects tenant and brand scopes.

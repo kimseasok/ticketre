@@ -166,3 +166,4 @@
 | Issue ID | Files touched | Tests added | Endpoints | Migrations | Notes |
 | --- | --- | --- | --- | --- | --- |
 | E1-F5-I1 | MessagePolicy, MessageResource (API & Filament), MessageService, logging config | tests/Feature/MessageVisibilityTest.php | /api/v1/tickets/{ticket}/messages | 2025_01_01_000100_update_messages_visibility_and_author_role.php | Internal/public visibility with audit logging and structured JSON logs |
+| E1-F8-I2 | TicketLifecycleBroadcaster service, TicketEvent model + migration, API + Filament resources | tests/Feature/TicketLifecycleBroadcastTest.php | /api/v1/tickets, /api/v1/tickets/{ticket}/events | 2025_10_06_090233_create_ticket_events_table.php | Lifecycle events broadcast with tenant/brand isolation, queue job, and OpenAPI updates |

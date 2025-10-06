@@ -10,10 +10,15 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 class TicketResource extends Resource
 {
     protected static ?string $model = Ticket::class;
+
+    protected static ?string $navigationGroup = 'Ticketing';
+
+    protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
     {
@@ -30,6 +35,11 @@ class TicketResource extends Resource
                     'medium' => 'Medium',
                     'high' => 'High',
                 ])->required(),
+                Forms\Components\Select::make('assignee_id')
+                    ->label('Assignee')
+                    ->searchable()
+                    ->relationship('assignee', 'name')
+                    ->nullable(),
                 Forms\Components\Textarea::make('metadata')->columnSpanFull(),
             ]);
     }
@@ -50,6 +60,9 @@ class TicketResource extends Resource
                     'pending' => 'Pending',
                     'closed' => 'Closed',
                 ]),
+                Tables\Filters\SelectFilter::make('brand_id')
+                    ->label('Brand')
+                    ->relationship('brand', 'name'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -58,7 +71,8 @@ class TicketResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->defaultSort('created_at', 'desc');
     }
 
     public static function getPages(): array
