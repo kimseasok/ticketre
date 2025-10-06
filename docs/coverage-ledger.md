@@ -1,6 +1,6 @@
 | Feature | Models / Endpoints | Tests |
 | --- | --- | --- |
-| Ticketing | Ticket, Message, Attachment models; /api/v1/health (for platform), Filament TicketResource | TicketCrudTest.php, FactoryTest.php, RbacPolicyTest.php, HealthcheckTest.php |
+| Ticketing | Ticket & Message models; /api/v1/health, /api/v1/tickets/{ticket}/messages; Filament TicketResource & MessageResource | TicketCrudTest.php, FactoryTest.php, RbacPolicyTest.php, HealthcheckTest.php, MessageVisibilityTest.php |
 | Contacts & Users | Contact, Company, User models; Filament ContactResource | ContactCrudTest.php, RbacPolicyTest.php, AuthTest.php |
 | Knowledge Base | KbCategory, KbArticle models; Filament KbArticleResource | KbCrudTest.php |
 | Automation & SLA | Queue config, jobs migration (scaffolding) | RbacPolicyTest.php (permissions groundwork) |

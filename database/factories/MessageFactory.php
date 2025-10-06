@@ -20,7 +20,14 @@ class MessageFactory extends Factory
             'brand_id' => $ticket->brand_id,
             'ticket_id' => $ticketId,
             'user_id' => $ticket->assignee_id,
-            'visibility' => $this->faker->randomElement(['public', 'internal']),
+            'author_role' => $this->faker->randomElement([
+                Message::ROLE_AGENT,
+                Message::ROLE_CONTACT,
+            ]),
+            'visibility' => $this->faker->randomElement([
+                Message::VISIBILITY_PUBLIC,
+                Message::VISIBILITY_INTERNAL,
+            ]),
             'body' => $this->faker->paragraph(),
             'sent_at' => now(),
         ];

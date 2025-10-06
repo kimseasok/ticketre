@@ -2,6 +2,7 @@
 
 namespace App\Exceptions;
 
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
@@ -17,6 +18,22 @@ class Handler extends ExceptionHandler
         'password',
         'password_confirmation',
     ];
+
+    public function register(): void
+    {
+        $this->renderable(function (AuthorizationException $e, Request $request) {
+            if ($this->shouldReturnJson($request, $e)) {
+                return response()->json([
+                    'error' => [
+                        'code' => 'ERR_HTTP_403',
+                        'message' => $this->resolveErrorMessage($e),
+                    ],
+                ], 403);
+            }
+
+            return null;
+        });
+    }
 
     public function render($request, Throwable $e)
     {
@@ -48,6 +65,10 @@ class Handler extends ExceptionHandler
             return 401;
         }
 
+        if ($e instanceof AuthorizationException) {
+            return 403;
+        }
+
         if ($e instanceof ThrottleRequestsException) {
             return 429;
         }
@@ -73,6 +94,10 @@ class Handler extends ExceptionHandler
             return 'ERR_TOO_MANY_REQUESTS';
         }
 
+        if ($e instanceof AuthorizationException) {
+            return 'ERR_HTTP_403';
+        }
+
         if ($e instanceof HttpExceptionInterface) {
             return 'ERR_HTTP_'.
                 $e->getStatusCode();
@@ -89,6 +114,10 @@ class Handler extends ExceptionHandler
 
         if ($e instanceof AuthenticationException) {
             return $e->getMessage() ?: 'Authentication required.';
+        }
+
+        if ($e instanceof AuthorizationException) {
+            return $e->getMessage() ?: 'This action is unauthorized.';
         }
 
         if ($e instanceof ThrottleRequestsException) {

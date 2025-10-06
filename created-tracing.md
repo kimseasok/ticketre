@@ -162,3 +162,7 @@
 | E11-F5-I1 | E11-F5-I1: Document CI/CD workflow requirements | epic:E11,type:Design,priority:P1,area:Devops | Week 1 | #437 | open | 2025-10-03T07:44:50Z |
 | E11-F5-I2 | E11-F5-I2: Implement CI pipelines with quality gates | epic:E11,type:DevOps,priority:P0,area:Devops | Week 2 | #438 | open | 2025-10-03T07:44:51Z |
 | E11-F5-I3 | E11-F5-I3: Automate CD with environment promotions and rollbacks | epic:E11,type:DevOps,priority:P1,area:Devops | Week 3 | #439 | open | 2025-10-03T07:44:53Z |
+
+| Issue ID | Files touched | Tests added | Endpoints | Migrations | Notes |
+| --- | --- | --- | --- | --- | --- |
+| E1-F5-I1 | MessagePolicy, MessageResource (API & Filament), MessageService, logging config | tests/Feature/MessageVisibilityTest.php | /api/v1/tickets/{ticket}/messages | 2025_01_01_000100_update_messages_visibility_and_author_role.php | Internal/public visibility with audit logging and structured JSON logs |

@@ -1,0 +1,297 @@
+openapi: 3.1.0
+description: Ticketre Service Desk API
+info:
+  title: Ticketre Service Desk API
+  version: "1.0.0"
+servers:
+  - url: https://{host}
+    variables:
+      host:
+        default: localhost
+paths:
+  /api/v1/health:
+    get:
+      summary: Application healthcheck
+      tags: [System]
+      responses:
+        '200':
+          description: Successful health response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  db:
+                    type: string
+                    example: ok
+                  redis:
+                    type: string
+                    example: skipped
+        '503':
+          description: Dependency failure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/tickets/{ticket}/messages:
+    get:
+      summary: List ticket messages
+      tags: [Ticket Messages]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: ticket
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: visibility
+          in: query
+          description: Optional visibility filter (agents only).
+          schema:
+            type: string
+            enum: [public, internal]
+      responses:
+        '200':
+          description: Collection of messages
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Message'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Create ticket message
+      tags: [Ticket Messages]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: ticket
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [body, visibility]
+              properties:
+                body:
+                  type: string
+                  description: Message content.
+                visibility:
+                  type: string
+                  enum: [public, internal]
+                sent_at:
+                  type: string
+                  format: date-time
+      responses:
+        '201':
+          description: Message created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Message'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/tickets/{ticket}/messages/{message}:
+    get:
+      summary: Retrieve a single ticket message
+      tags: [Ticket Messages]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - $ref: '#/components/parameters/TicketId'
+        - $ref: '#/components/parameters/MessageId'
+      responses:
+        '200':
+          description: Message detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Message'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      summary: Update ticket message
+      tags: [Ticket Messages]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - $ref: '#/components/parameters/TicketId'
+        - $ref: '#/components/parameters/MessageId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                body:
+                  type: string
+                visibility:
+                  type: string
+                  enum: [public, internal]
+                sent_at:
+                  type: string
+                  format: date-time
+      responses:
+        '200':
+          description: Updated message
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Message'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete ticket message
+      tags: [Ticket Messages]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - $ref: '#/components/parameters/TicketId'
+        - $ref: '#/components/parameters/MessageId'
+      responses:
+        '204':
+          description: Message deleted
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: laravel_session
+  parameters:
+    TenantHeader:
+      name: X-Tenant
+      in: header
+      required: true
+      schema:
+        type: string
+    BrandHeader:
+      name: X-Brand
+      in: header
+      required: false
+      schema:
+        type: string
+    TicketId:
+      name: ticket
+      in: path
+      required: true
+      schema:
+        type: integer
+    MessageId:
+      name: message
+      in: path
+      required: true
+      schema:
+        type: integer
+  schemas:
+    Message:
+      type: object
+      properties:
+        id:
+          type: integer
+        ticket_id:
+          type: integer
+        tenant_id:
+          type: integer
+        brand_id:
+          type: integer
+          nullable: true
+        visibility:
+          type: string
+          enum: [public, internal]
+        author_role:
+          type: string
+          enum: [agent, contact, system]
+        body:
+          type: string
+        sent_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        author:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              example: ERR_VALIDATION
+            message:
+              type: string
