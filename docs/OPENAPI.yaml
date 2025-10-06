@@ -212,7 +212,178 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'  /api/v1/tickets:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/tickets/{ticket}/relationships:
+    get:
+      summary: List ticket relationships
+      tags: [Ticket Relationships]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - $ref: '#/components/parameters/TicketId'
+      responses:
+        '200':
+          description: Collection of ticket relationships
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TicketRelationship'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Create ticket relationship
+      tags: [Ticket Relationships]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - $ref: '#/components/parameters/TicketId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [related_ticket_id, relationship_type]
+              properties:
+                related_ticket_id:
+                  type: integer
+                relationship_type:
+                  type: string
+                  enum: [merged, split, duplicate]
+                context:
+                  type: object
+      responses:
+        '201':
+          description: Relationship created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/TicketRelationship'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/tickets/{ticket}/relationships/{relationship}:
+    get:
+      summary: Retrieve ticket relationship
+      tags: [Ticket Relationships]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - $ref: '#/components/parameters/TicketId'
+        - $ref: '#/components/parameters/RelationshipId'
+      responses:
+        '200':
+          description: Relationship detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/TicketRelationship'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      summary: Update ticket relationship
+      tags: [Ticket Relationships]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - $ref: '#/components/parameters/TicketId'
+        - $ref: '#/components/parameters/RelationshipId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                relationship_type:
+                  type: string
+                  enum: [merged, split, duplicate]
+                context:
+                  type: object
+      responses:
+        '200':
+          description: Relationship updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/TicketRelationship'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete ticket relationship
+      tags: [Ticket Relationships]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - $ref: '#/components/parameters/TicketId'
+        - $ref: '#/components/parameters/RelationshipId'
+      responses:
+        '204':
+          description: Relationship deleted
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/tickets:
     get:
       summary: List tickets
       tags: [Tickets]
@@ -463,6 +634,12 @@ components:
       required: true
       schema:
         type: integer
+    RelationshipId:
+      name: relationship
+      in: path
+      required: true
+      schema:
+        type: integer
   schemas:
     Message:
       type: object
@@ -520,6 +697,62 @@ components:
             id:
               type: integer
             name:
+              type: string
+        relationships:
+          type: array
+          items:
+            $ref: '#/components/schemas/TicketRelationship'
+        incoming_relationships:
+          type: array
+          items:
+            $ref: '#/components/schemas/TicketRelationship'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    TicketRelationship:
+      type: object
+      properties:
+        id:
+          type: integer
+        primary_ticket_id:
+          type: integer
+        related_ticket_id:
+          type: integer
+        relationship_type:
+          type: string
+          enum: [merged, split, duplicate]
+        context:
+          type: object
+          nullable: true
+          additionalProperties: {}
+        created_by_id:
+          type: integer
+          nullable: true
+        updated_by_id:
+          type: integer
+          nullable: true
+        primary_ticket:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            subject:
+              type: string
+            status:
+              type: string
+        related_ticket:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            subject:
+              type: string
+            status:
               type: string
         created_at:
           type: string

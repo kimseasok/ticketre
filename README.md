@@ -56,3 +56,15 @@ Ticket lifecycle events are persisted, audited, and broadcast over Echo-compatib
 - `POST /api/v1/tickets/{ticket}/events` – manually broadcast a lifecycle event with a custom payload (agents only).
 
 All responses include `correlation_id` metadata and redact PII in logs via hashed digests. Manual testing is available via Filament at `/admin/ticket-events`, which respects tenant and brand scopes.
+
+## Ticket Relationship Metadata
+
+Model merge, split, and duplicate relationships with full auditing:
+
+- `GET /api/v1/tickets/{ticket}/relationships` – list linked tickets for the given ticket (requires `tickets.view`).
+- `POST /api/v1/tickets/{ticket}/relationships` – create a relationship; prevents circular merges and enforces tenant/brand scope (requires `tickets.manage`).
+- `GET /api/v1/tickets/{ticket}/relationships/{relationship}` – retrieve a single relationship document.
+- `PATCH /api/v1/tickets/{ticket}/relationships/{relationship}` – update the relationship type or context (requires `tickets.manage`).
+- `DELETE /api/v1/tickets/{ticket}/relationships/{relationship}` – remove the link (requires `tickets.manage`).
+
+Relationships emit structured JSON logs with correlation IDs, hash relationship context payloads to avoid leaking PII, and append audit log entries for every change. Manage the same data via Filament at `/admin/ticket-relationships`, where tenant and brand filters are applied automatically.

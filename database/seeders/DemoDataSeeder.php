@@ -11,6 +11,7 @@ use App\Models\Message;
 use App\Models\Tenant;
 use App\Models\Ticket;
 use App\Models\TicketEvent;
+use App\Models\TicketRelationship;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -99,6 +100,27 @@ class DemoDataSeeder extends Seeder
             'assignee_id' => $agent->id,
             'subject' => 'Demo ticket',
             'status' => 'open',
+        ]);
+
+        $duplicateTicket = Ticket::factory()->create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'company_id' => $company->id,
+            'contact_id' => $contact->id,
+            'assignee_id' => $agent->id,
+            'subject' => 'Demo duplicate ticket',
+            'status' => 'open',
+        ]);
+
+        TicketRelationship::factory()->create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'primary_ticket_id' => $ticket->id,
+            'related_ticket_id' => $duplicateTicket->id,
+            'relationship_type' => TicketRelationship::TYPE_DUPLICATE,
+            'context' => ['notes' => 'Demo data only. DO NOT USE IN PRODUCTION.'],
+            'created_by_id' => $admin->id,
+            'updated_by_id' => $admin->id,
         ]);
 
         Message::factory()->for($ticket)->create([

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\TicketEvent;
+use App\Models\TicketRelationship;
 use App\Traits\BelongsToBrand;
 use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -67,6 +68,16 @@ class Ticket extends Model
     public function events()
     {
         return $this->hasMany(TicketEvent::class);
+    }
+
+    public function relationships()
+    {
+        return $this->hasMany(TicketRelationship::class, 'primary_ticket_id');
+    }
+
+    public function inverseRelationships()
+    {
+        return $this->hasMany(TicketRelationship::class, 'related_ticket_id');
     }
 
     public function toSearchableArray(): array

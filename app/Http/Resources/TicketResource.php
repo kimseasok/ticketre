@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Http\Resources\TicketRelationshipResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -30,6 +31,8 @@ class TicketResource extends JsonResource
                 'id' => $this->assignee?->getKey(),
                 'name' => $this->assignee?->name,
             ]),
+            'relationships' => TicketRelationshipResource::collection($this->whenLoaded('relationships')),
+            'incoming_relationships' => TicketRelationshipResource::collection($this->whenLoaded('inverseRelationships')),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];
