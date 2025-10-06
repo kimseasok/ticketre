@@ -72,6 +72,7 @@ class MessageService
     {
         AuditLog::create([
             'tenant_id' => $message->tenant_id,
+            'brand_id' => $message->brand_id,
             'user_id' => $user->getKey(),
             'action' => $action,
             'auditable_type' => Message::class,

@@ -72,6 +72,48 @@ X-Brand: <brand-slug>
 - `DELETE /api/v1/kb-articles/{id}` – soft delete the article while retaining audit history.
 
 Audit logs capture every create, update, and delete operation with hashed payload digests for observability, and structured JSON logs include correlation IDs by default. Filament exposes the same functionality via `/admin/kb-categories` and `/admin/kb-articles`, featuring tenant/brand scoped queries, validation rules, and soft-delete management. Demo data is seeded through `DemoDataSeeder` for NON-PRODUCTION environments only.
+
+## Tenant Role Management
+
+Every tenant receives a protected trio of roles—`Admin`, `Agent`, and `Viewer`—seeded automatically whenever a tenant is created. Each role is backed by Spatie permissions and logged through the shared audit log pipeline:
+
+- `GET /api/v1/roles` – list roles for the authenticated tenant (requires `roles.view`). Supports optional `search` query for name/slug.
+- `POST /api/v1/roles` – create a custom tenant role with an optional description and permission set (requires `roles.manage`).
+- `PATCH /api/v1/roles/{role}` – update role metadata or synced permissions. System roles retain their slug and cannot be downgraded.
+- `DELETE /api/v1/roles/{role}` – remove custom roles. System roles return `ERR_ROLE_PROTECTED` with status `422`.
+
+All endpoints follow the `{ "data": { ... } }` success envelope and `{ "error": { "code", "message" } }` error contract. Tenant headers are required:
+
+```http
+X-Tenant: <tenant-slug>
+```
+
+Filament administrators can manage the same data under `/admin/roles`. The resource respects tenant scoping automatically, disables destructive actions for system roles, and surfaces permission counts to help audit access. Each create/update/delete call emits a structured JSON log with correlation IDs and writes a `role.*` audit entry for traceability.
+## Audit Log Writers & Viewer
+
+Every ticket and contact create, update, and delete action now produces an audit trail entry with tenant, optional brand, actor, and a redacted change set:
+
+- Ticket subjects are hashed and metadata is reduced to key lists so no raw PII is persisted.
+- Contact emails and phone numbers are stored as SHA-256 digests alongside sanitized field diffs.
+- Structured JSON logs include the correlation ID and timing metadata for observability.
+
+### Audit Log API
+
+- `GET /api/v1/audit-logs` – list audit events for the authenticated tenant (requires `audit_logs.view`).
+  - Optional query parameters: `action`, `auditable_type` (`ticket`, `contact`, `message`, `kb_article`, `kb_category`), `auditable_id`, `user_id`, `from`, `to`, `per_page`.
+  - Responses use the standard `{ "data": [...] }` envelope with pagination metadata; errors follow `{ "error": { "code", "message" } }`.
+
+All requests must include tenant and optional brand headers:
+
+```http
+X-Tenant: <tenant-slug>
+X-Brand: <brand-slug>
+```
+
+Filament administrators can review the same history via `/admin/audit-logs`, which provides action, actor, and date filters scoped to the active tenant and brand.
+
+> **Tenant + Brand assumption:** contact audit entries inherit the initiating user's brand to maintain consistent brand scoping during review. Mixed-brand tenants should authenticate with the relevant brand header when querying the API or Filament.
+
 ## Ticket Lifecycle Broadcasting
 
 Ticket lifecycle events are persisted, audited, and broadcast over Echo-compatible websockets so agent consoles can react in real time.

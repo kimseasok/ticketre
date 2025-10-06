@@ -4,12 +4,16 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ContactResource\Pages;
 use App\Models\Contact;
+use App\Services\ContactService;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Auth;
 
 class ContactResource extends Resource
 {
@@ -39,10 +43,12 @@ class ContactResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make()->action(fn (Contact $record) => static::deleteContact($record)),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->action(fn (Collection $records) => $records->each(fn (Contact $contact) => static::deleteContact($contact))),
                     Tables\Actions\ForceDeleteBulkAction::make(),
                     Tables\Actions\RestoreBulkAction::make(),
                 ]),
@@ -67,5 +73,18 @@ class ContactResource extends Resource
         }
 
         return $query;
+    }
+
+    protected static function deleteContact(Contact $contact): void
+    {
+        $user = Auth::user();
+
+        if (! $user) {
+            abort(401, 'Authentication required.');
+        }
+
+        /** @var ContactService $service */
+        $service = App::make(ContactService::class);
+        $service->delete($contact, $user);
     }
 }

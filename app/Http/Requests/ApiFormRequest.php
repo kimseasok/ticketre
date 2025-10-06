@@ -8,6 +8,16 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 
 abstract class ApiFormRequest extends FormRequest
 {
+    protected function failedAuthorization(): void
+    {
+        throw new HttpResponseException(response()->json([
+            'error' => [
+                'code' => 'ERR_HTTP_403',
+                'message' => 'This action is unauthorized.',
+            ],
+        ], 403));
+    }
+
     protected function failedValidation(Validator $validator): void
     {
         throw new HttpResponseException(response()->json([

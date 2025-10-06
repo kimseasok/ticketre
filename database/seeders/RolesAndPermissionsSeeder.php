@@ -2,9 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Models\Tenant;
+use App\Services\TenantRoleProvisioner;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
+use App\Models\Role;
 
 class RolesAndPermissionsSeeder extends Seeder
 {
@@ -18,22 +20,32 @@ class RolesAndPermissionsSeeder extends Seeder
             'knowledge.view',
             'reports.view',
             'integrations.manage',
+            'audit_logs.view',
+            'roles.view',
+            'roles.manage',
         ];
 
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
         }
 
-        $roleDefinitions = [
-            'SuperAdmin' => $permissions,
-            'Admin' => $permissions,
-            'Agent' => ['tickets.view', 'tickets.manage', 'contacts.manage', 'knowledge.view'],
-            'Viewer' => ['tickets.view', 'reports.view', 'knowledge.view'],
-        ];
+        $superAdmin = Role::withoutGlobalScopes()->firstOrCreate([
+            'name' => 'SuperAdmin',
+            'slug' => 'super-admin',
+            'guard_name' => 'web',
+            'tenant_id' => null,
+        ], [
+            'description' => 'Global super administrator with unrestricted access across tenants.',
+            'is_system' => true,
+        ]);
 
-        foreach ($roleDefinitions as $roleName => $rolePermissions) {
-            $role = Role::firstOrCreate(['name' => $roleName, 'guard_name' => 'web']);
-            $role->syncPermissions($rolePermissions);
-        }
+        $superAdmin->syncPermissions($permissions);
+
+        /** @var TenantRoleProvisioner $provisioner */
+        $provisioner = app(TenantRoleProvisioner::class);
+
+        Tenant::query()->each(function (Tenant $tenant) use ($provisioner): void {
+            $provisioner->syncSystemRoles($tenant);
+        });
     }
 }

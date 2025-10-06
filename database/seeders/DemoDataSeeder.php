@@ -12,6 +12,10 @@ use App\Models\Tenant;
 use App\Models\Ticket;
 use App\Models\TicketEvent;
 use App\Models\User;
+use App\Services\ContactService;
+use App\Services\TenantRoleProvisioner;
+use App\Services\TicketLifecycleBroadcaster;
+use App\Services\TicketService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -28,12 +32,18 @@ class DemoDataSeeder extends Seeder
             'domain' => 'demo.localhost',
         ]);
 
+        app()->instance('currentTenant', $tenant);
+
+        app(TenantRoleProvisioner::class)->syncSystemRoles($tenant);
+
         $brand = Brand::factory()->create([
             'tenant_id' => $tenant->id,
             'name' => 'Demo Brand',
             'slug' => 'demo-brand',
             'domain' => 'brand.demo.localhost',
         ]);
+
+        app()->instance('currentBrand', $brand);
 
         $admin = User::factory()->create([
             'tenant_id' => $tenant->id,
@@ -116,9 +126,6 @@ class DemoDataSeeder extends Seeder
             'metadata' => ['tags' => ['credentials', 'internal']],
         ]);
 
-        app()->instance('currentTenant', $tenant);
-        app()->instance('currentBrand', $brand);
-
         $ticket = Ticket::factory()->create([
             'tenant_id' => $tenant->id,
             'brand_id' => $brand->id,
@@ -147,7 +154,12 @@ class DemoDataSeeder extends Seeder
             'body' => 'Public reply seeded for demo. DO NOT USE IN PRODUCTION.',
         ]);
 
-        app(\App\Services\TicketLifecycleBroadcaster::class)->record(
+        $ticketService = app(TicketService::class);
+        $contactService = app(ContactService::class);
+        $ticketService->update($ticket, ['priority' => 'high', 'workflow_state' => 'triage'], $admin);
+        $contactService->update($contact, ['phone' => '+15550000000'], $admin);
+
+        app(TicketLifecycleBroadcaster::class)->record(
             $ticket->fresh(),
             TicketEvent::TYPE_CREATED,
             ['seed_source' => 'demo'],

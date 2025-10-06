@@ -12,6 +12,11 @@ class ContactPolicy
         return $user->can('contacts.manage');
     }
 
+    public function viewAny(User $user): bool
+    {
+        return $user->can('contacts.manage');
+    }
+
     public function create(User $user): bool
     {
         return $user->can('contacts.manage');

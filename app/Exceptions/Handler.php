@@ -4,11 +4,13 @@ namespace App\Exceptions;
 
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -33,6 +35,32 @@ class Handler extends ExceptionHandler
 
             return null;
         });
+
+        $this->renderable(function (ModelNotFoundException $e, Request $request) {
+            if ($this->shouldReturnJson($request, $e)) {
+                return response()->json([
+                    'error' => [
+                        'code' => 'ERR_HTTP_404',
+                        'message' => 'Resource not found.',
+                    ],
+                ], 404);
+            }
+
+            return null;
+        });
+
+        $this->renderable(function (NotFoundHttpException $e, Request $request) {
+            if ($this->shouldReturnJson($request, $e)) {
+                return response()->json([
+                    'error' => [
+                        'code' => 'ERR_HTTP_404',
+                        'message' => 'Resource not found.',
+                    ],
+                ], 404);
+            }
+
+            return null;
+        });
     }
 
     public function render($request, Throwable $e)
@@ -51,8 +79,17 @@ class Handler extends ExceptionHandler
 
     protected function shouldReturnJson($request, Throwable $e): bool
     {
-        return $request instanceof Request
-            && ($request->expectsJson() || str_starts_with($request->path(), 'api/'));
+        if (method_exists($request, 'expectsJson') && $request->expectsJson()) {
+            return true;
+        }
+
+        if (method_exists($request, 'getPathInfo')) {
+            $path = ltrim((string) $request->getPathInfo(), '/');
+
+            return str_starts_with($path, 'api/');
+        }
+
+        return false;
     }
 
     protected function resolveStatusCode(Throwable $e): int
@@ -71,6 +108,10 @@ class Handler extends ExceptionHandler
 
         if ($e instanceof ThrottleRequestsException) {
             return 429;
+        }
+
+        if ($e instanceof ModelNotFoundException || $e instanceof NotFoundHttpException) {
+            return 404;
         }
 
         if ($e instanceof HttpExceptionInterface) {
@@ -101,6 +142,10 @@ class Handler extends ExceptionHandler
         if ($e instanceof HttpExceptionInterface) {
             return 'ERR_HTTP_'.
                 $e->getStatusCode();
+        }
+
+        if ($e instanceof ModelNotFoundException || $e instanceof NotFoundHttpException) {
+            return 'ERR_HTTP_404';
         }
 
         return 'ERR_INTERNAL_SERVER_ERROR';

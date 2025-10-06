@@ -2,10 +2,10 @@
 
 use App\Models\Ticket;
 use App\Models\User;
-use Spatie\Permission\Models\Role;
 
 it('allows admin to update ticket', function () {
     $ticket = Ticket::factory()->create();
+    app()->instance('currentTenant', $ticket->tenant);
     $user = User::factory()->create([
         'tenant_id' => $ticket->tenant_id,
         'brand_id' => $ticket->brand_id,
@@ -17,6 +17,7 @@ it('allows admin to update ticket', function () {
 
 it('prevents viewer from managing ticket', function () {
     $ticket = Ticket::factory()->create();
+    app()->instance('currentTenant', $ticket->tenant);
     $user = User::factory()->create([
         'tenant_id' => $ticket->tenant_id,
         'brand_id' => $ticket->brand_id,

@@ -26,4 +26,18 @@ class EditTicket extends EditRecord
 
         return $service->update($record, $data, $user);
     }
+
+    protected function handleRecordDeletion(Model $record): void
+    {
+        $user = Auth::user();
+
+        if (! $user) {
+            abort(401, 'Authentication required.');
+        }
+
+        /** @var TicketService $service */
+        $service = App::make(TicketService::class);
+
+        $service->delete($record, $user);
+    }
 }

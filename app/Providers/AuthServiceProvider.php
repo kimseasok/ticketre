@@ -2,16 +2,20 @@
 
 namespace App\Providers;
 
+use App\Models\AuditLog;
 use App\Models\Contact;
 use App\Models\KbArticle;
 use App\Models\KbCategory;
 use App\Models\Message;
+use App\Models\Role;
 use App\Models\Ticket;
 use App\Models\TicketEvent;
+use App\Policies\AuditLogPolicy;
 use App\Policies\ContactPolicy;
 use App\Policies\KbArticlePolicy;
 use App\Policies\KbCategoryPolicy;
 use App\Policies\MessagePolicy;
+use App\Policies\RolePolicy;
 use App\Policies\TicketEventPolicy;
 use App\Policies\TicketPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
@@ -26,6 +30,8 @@ class AuthServiceProvider extends ServiceProvider
         KbArticle::class => KbArticlePolicy::class,
         KbCategory::class => KbCategoryPolicy::class,
         Message::class => MessagePolicy::class,
+        AuditLog::class => AuditLogPolicy::class,
+        Role::class => RolePolicy::class,
     ];
 
     public function boot(): void

@@ -23,7 +23,9 @@ it('E1-F8-I2 records and queues broadcast when ticket created via api', function
     Bus::fake();
 
     $tenant = Tenant::factory()->create();
+    app()->instance('currentTenant', $tenant);
     $brand = Brand::factory()->create(['tenant_id' => $tenant->id]);
+    app()->instance('currentBrand', $brand);
     $user = User::factory()->create([
         'tenant_id' => $tenant->id,
         'brand_id' => $brand->id,
@@ -60,7 +62,9 @@ dataset('ticket-event-view-roles', [
 
 it('E1-F8-I2 enforces policy for viewing ticket events', function (string $role) {
     $tenant = Tenant::factory()->create();
+    app()->instance('currentTenant', $tenant);
     $brand = Brand::factory()->create(['tenant_id' => $tenant->id]);
+    app()->instance('currentBrand', $brand);
     $user = User::factory()->create([
         'tenant_id' => $tenant->id,
         'brand_id' => $brand->id,
@@ -84,7 +88,9 @@ it('E1-F8-I2 enforces policy for viewing ticket events', function (string $role)
 
 it('E1-F8-I2 prevents users without manage permission from creating ticket events', function () {
     $tenant = Tenant::factory()->create();
+    app()->instance('currentTenant', $tenant);
     $brand = Brand::factory()->create(['tenant_id' => $tenant->id]);
+    app()->instance('currentBrand', $brand);
     $viewer = User::factory()->create([
         'tenant_id' => $tenant->id,
         'brand_id' => $brand->id,
@@ -108,9 +114,13 @@ it('E1-F8-I2 prevents users without manage permission from creating ticket event
 
 it('E1-F8-I2 isolates ticket events by tenant', function () {
     $tenantA = Tenant::factory()->create();
+    app()->instance('currentTenant', $tenantA);
     $brandA = Brand::factory()->create(['tenant_id' => $tenantA->id]);
+    app()->instance('currentBrand', $brandA);
     $tenantB = Tenant::factory()->create();
+    app()->instance('currentTenant', $tenantB);
     $brandB = Brand::factory()->create(['tenant_id' => $tenantB->id]);
+    app()->instance('currentBrand', $brandB);
 
     $adminA = User::factory()->create([
         'tenant_id' => $tenantA->id,
@@ -140,7 +150,9 @@ it('E1-F8-I2 isolates ticket events by tenant', function () {
 
 it('E1-F8-I2 validates ticket event store payload type', function () {
     $tenant = Tenant::factory()->create();
+    app()->instance('currentTenant', $tenant);
     $brand = Brand::factory()->create(['tenant_id' => $tenant->id]);
+    app()->instance('currentBrand', $brand);
     $user = User::factory()->create([
         'tenant_id' => $tenant->id,
         'brand_id' => $brand->id,
