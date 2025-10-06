@@ -7,6 +7,7 @@ use App\Models\Company;
 use App\Models\Contact;
 use App\Models\KbArticle;
 use App\Models\KbCategory;
+use App\Models\Message;
 use App\Models\Tenant;
 use App\Models\Ticket;
 use App\Models\User;
@@ -87,7 +88,7 @@ class DemoDataSeeder extends Seeder
             'status' => 'published',
         ]);
 
-        Ticket::factory()->create([
+        $ticket = Ticket::factory()->create([
             'tenant_id' => $tenant->id,
             'brand_id' => $brand->id,
             'company_id' => $company->id,
@@ -95,6 +96,26 @@ class DemoDataSeeder extends Seeder
             'assignee_id' => $agent->id,
             'subject' => 'Demo ticket',
             'status' => 'open',
+        ]);
+
+        Message::factory()->create([
+            'ticket_id' => $ticket->id,
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'user_id' => $agent->id,
+            'author_role' => Message::ROLE_AGENT,
+            'visibility' => Message::VISIBILITY_INTERNAL,
+            'body' => 'Internal note seeded for demo. DO NOT USE IN PRODUCTION.',
+        ]);
+
+        Message::factory()->create([
+            'ticket_id' => $ticket->id,
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'user_id' => $agent->id,
+            'author_role' => Message::ROLE_AGENT,
+            'visibility' => Message::VISIBILITY_PUBLIC,
+            'body' => 'Public reply seeded for demo. DO NOT USE IN PRODUCTION.',
         ]);
     }
 }

@@ -25,3 +25,23 @@
 - `make ci-check` to run lint, static analysis, and tests
 
 > PHPUnit loads `.env.testing` to exercise the suite against in-memory SQLite, so `php artisan test` runs without external services.
+
+## Ticket Message Visibility API
+
+Extend ticket conversations with explicit visibility controls:
+
+- `POST /api/v1/tickets/{ticket}/messages` – create an internal note or public reply (requires `tickets.manage`).
+- `GET /api/v1/tickets/{ticket}/messages` – returns all messages for agents; viewers automatically receive only public messages.
+- `PATCH /api/v1/tickets/{ticket}/messages/{message}` – update visibility or content (agents only).
+- `DELETE /api/v1/tickets/{ticket}/messages/{message}` – soft delete a message (agents only).
+
+All requests must include the multi-tenant headers:
+
+```http
+X-Tenant: <tenant-slug>
+X-Brand: <brand-slug>
+```
+
+API responses follow the `{ "data": { ... } }` envelope, while errors follow `{ "error": { "code", "message" } }`.
+
+Filament administrators can manage the same records via `/admin/messages`, with filters for tenant, brand, and visibility pre-configured.

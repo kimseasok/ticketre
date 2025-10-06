@@ -55,7 +55,7 @@ class Ticket extends Model
 
     public function messages()
     {
-        return $this->hasMany(Message::class);
+        return $this->hasMany(Message::class)->orderBy('sent_at')->orderBy('id');
     }
 
     public function attachments()

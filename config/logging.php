@@ -18,6 +18,7 @@ return [
             'level' => env('LOG_LEVEL', 'debug'),
             'tap' => [
                 App\Logging\CorrelationIdProcessor::class,
+                App\Logging\StructuredLoggingTap::class,
             ],
         ],
         'daily' => [
@@ -27,6 +28,7 @@ return [
             'days' => 14,
             'tap' => [
                 App\Logging\CorrelationIdProcessor::class,
+                App\Logging\StructuredLoggingTap::class,
             ],
         ],
         'stderr' => [

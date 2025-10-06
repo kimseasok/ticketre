@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Traits\BelongsToBrand;
 use App\Traits\BelongsToTenant;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -20,6 +21,7 @@ class Message extends Model
         'brand_id',
         'ticket_id',
         'user_id',
+        'author_role',
         'visibility',
         'body',
         'sent_at',
@@ -28,6 +30,18 @@ class Message extends Model
     protected $casts = [
         'sent_at' => 'datetime',
     ];
+
+    public const VISIBILITY_PUBLIC = 'public';
+    public const VISIBILITY_INTERNAL = 'internal';
+
+    public const ROLE_AGENT = 'agent';
+    public const ROLE_CONTACT = 'contact';
+    public const ROLE_SYSTEM = 'system';
+
+    public function scopePublic(Builder $query): Builder
+    {
+        return $query->where('visibility', self::VISIBILITY_PUBLIC);
+    }
 
     public function ticket()
     {
