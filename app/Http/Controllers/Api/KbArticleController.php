@@ -28,14 +28,18 @@ class KbArticleController extends Controller
 
         $this->validateQuery($request);
 
-        $query = KbArticle::query()->with(['category', 'author']);
+        $query = KbArticle::query()->with(['category', 'author', 'translations']);
 
         if ($status = $request->query('status')) {
-            $query->where('status', $status);
-        }
+            $query->whereHas('translations', function ($builder) use ($status, $request) {
+                $builder->where('status', $status);
 
-        if ($locale = $request->query('locale')) {
-            $query->where('locale', $locale);
+                if ($request->query('locale')) {
+                    $builder->where('locale', $request->query('locale'));
+                } else {
+                    $builder->whereColumn('locale', 'kb_articles.default_locale');
+                }
+            });
         }
 
         if ($categoryId = $request->query('category_id')) {
@@ -62,7 +66,7 @@ class KbArticleController extends Controller
     {
         $this->authorizeForRequest($request, 'view', $kbArticle);
 
-        return KbArticleResource::make($kbArticle->load(['category', 'author']));
+        return KbArticleResource::make($kbArticle->load(['category', 'author', 'translations']));
     }
 
     public function update(UpdateKbArticleRequest $request, KbArticle $kbArticle): KbArticleResource

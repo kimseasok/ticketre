@@ -65,11 +65,11 @@ X-Brand: <brand-slug>
 
 ### Article API
 
-- `GET /api/v1/kb-articles` – list articles with optional `status`, `locale`, or `category_id` filters.
-- `POST /api/v1/kb-articles` – create a draft or published article tied to a category; the authenticated user becomes the author unless overridden.
-- `GET /api/v1/kb-articles/{id}` – retrieve an article with category and author context.
-- `PATCH /api/v1/kb-articles/{id}` – update metadata, status, or category assignments.
-- `DELETE /api/v1/kb-articles/{id}` – soft delete the article while retaining audit history.
+- `GET /api/v1/kb-articles` – list articles with optional `status`, `locale`, or `category_id` filters. When a locale is supplied the response selects that translation if it exists, otherwise it falls back to the article’s `default_locale`.
+- `POST /api/v1/kb-articles` – create a multilingual article tied to a category (requires `knowledge.manage`). Requests accept `brand_id`, `category_id`, `slug`, `default_locale`, and a `translations` array where each entry defines `locale`, `title`, `status`, `content`, optional `excerpt`, `metadata`, and `published_at`.
+- `GET /api/v1/kb-articles/{id}` – retrieve an article with category and author context. The response includes the selected translation alongside a `translations` collection containing every locale and a digest-friendly metadata payload.
+- `PATCH /api/v1/kb-articles/{id}` – update base metadata or synchronise translations. Passing `translations` replaces/updates locales, while including `delete: true` on an entry softly removes that locale. The `default_locale` must always resolve to an active translation.
+- `DELETE /api/v1/kb-articles/{id}` – soft delete the article and its translations while retaining audit history.
 
 Audit logs capture every create, update, and delete operation with hashed payload digests for observability, and structured JSON logs include correlation IDs by default. Filament exposes the same functionality via `/admin/kb-categories` and `/admin/kb-articles`, featuring tenant/brand scoped queries, validation rules, and soft-delete management. Demo data is seeded through `DemoDataSeeder` for NON-PRODUCTION environments only.
 

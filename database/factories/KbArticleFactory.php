@@ -16,7 +16,6 @@ class KbArticleFactory extends Factory
     {
         $categoryId = $this->attributes['category_id'] ?? KbCategory::factory()->create()->id;
         $category = KbCategory::query()->withTrashed()->findOrFail($categoryId);
-        $title = $this->faker->sentence();
         $author = isset($this->attributes['author_id'])
             ? User::query()->findOrFail($this->attributes['author_id'])
             : User::factory()->create([
@@ -29,14 +28,27 @@ class KbArticleFactory extends Factory
             'brand_id' => $category->brand_id,
             'category_id' => $categoryId,
             'author_id' => $author->getKey(),
-            'title' => $title,
-            'slug' => Str::slug($title.'-'.$category->brand_id),
-            'content' => $this->faker->paragraphs(3, true),
-            'locale' => 'en',
-            'status' => 'published',
-            'metadata' => ['keywords' => $this->faker->words(4)],
-            'published_at' => now(),
-            'excerpt' => $this->faker->sentences(2, true),
+            'slug' => Str::slug($this->faker->unique()->sentence().' '.$category->brand_id),
+            'default_locale' => 'en',
         ];
+    }
+
+    public function configure()
+    {
+        return $this->afterCreating(function (KbArticle $article) {
+            $title = $this->faker->sentence();
+
+            $article->translations()->create([
+                'tenant_id' => $article->tenant_id,
+                'brand_id' => $article->brand_id,
+                'locale' => $article->default_locale,
+                'title' => $title,
+                'content' => $this->faker->paragraphs(3, true),
+                'status' => 'published',
+                'excerpt' => $this->faker->sentences(2, true),
+                'metadata' => ['keywords' => $this->faker->words(4)],
+                'published_at' => now(),
+            ]);
+        });
     }
 }

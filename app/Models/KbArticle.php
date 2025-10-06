@@ -22,37 +22,57 @@ class KbArticle extends Model
         'brand_id',
         'category_id',
         'author_id',
-        'title',
         'slug',
-        'content',
-        'locale',
-        'status',
-        'metadata',
-        'published_at',
-        'excerpt',
+        'default_locale',
     ];
 
-    protected $casts = [
-        'metadata' => 'array',
-        'published_at' => 'datetime',
-    ];
+    protected $with = ['translations'];
 
     protected static function booted(): void
     {
-        static::saving(function (self $article): void {
-            if ($article->status === 'published' && ! $article->published_at) {
-                $article->published_at = now();
+        static::deleting(function (self $article): void {
+            if ($article->isForceDeleting()) {
+                $article->translations()->forceDelete();
+            } else {
+                $article->translations()->delete();
             }
+        });
 
-            if ($article->status !== 'published') {
-                $article->published_at = null;
-            }
+        static::restoring(function (self $article): void {
+            $article->translations()->withTrashed()->restore();
         });
     }
 
     public function category()
     {
         return $this->belongsTo(KbCategory::class, 'category_id');
+    }
+
+    public function translations()
+    {
+        return $this->hasMany(KbArticleTranslation::class, 'kb_article_id');
+    }
+
+    public function translationForLocale(?string $locale = null): ?KbArticleTranslation
+    {
+        $translations = $this->relationLoaded('translations') ? $this->translations : $this->translations()->get();
+
+        if ($locale) {
+            $match = $translations->firstWhere('locale', $locale);
+
+            if ($match) {
+                return $match;
+            }
+        }
+
+        $default = $translations->firstWhere('locale', $this->default_locale);
+
+        return $default ?: $translations->first();
+    }
+
+    public function getDefaultTranslationAttribute(): ?KbArticleTranslation
+    {
+        return $this->translationForLocale($this->default_locale);
     }
 
     public function author()
@@ -67,10 +87,12 @@ class KbArticle extends Model
 
     public function toSearchableArray(): array
     {
+        $translation = $this->translationForLocale();
+
         return [
-            'title' => $this->title,
-            'content' => strip_tags($this->content),
-            'locale' => $this->locale,
+            'title' => $translation?->title,
+            'content' => strip_tags((string) $translation?->content),
+            'locale' => $translation?->locale,
             'brand_id' => $this->brand_id,
             'tenant_id' => $this->tenant_id,
         ];
