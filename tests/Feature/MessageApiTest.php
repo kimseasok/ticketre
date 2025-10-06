@@ -5,6 +5,7 @@ use App\Models\Message;
 use App\Models\Ticket;
 use App\Models\User;
 use Laravel\Sanctum\Sanctum;
+
 use function Pest\Laravel\getJson;
 use function Pest\Laravel\postJson;
 
@@ -150,6 +151,52 @@ it('E1-F5-I1 enforces tenant isolation when listing messages', function () {
     getJson(route('api.tickets.messages.index', ['ticket' => $ticket]))
         ->assertStatus(404)
         ->assertJsonPath('error.code', 'ERR_NOT_FOUND');
+})->group('E1-F5-I1');
+
+it('E1-F5-I1 allows agent to override sent_at when creating a message', function () {
+    $ticket = Ticket::factory()->create();
+    $user = User::factory()->create([
+        'tenant_id' => $ticket->tenant_id,
+        'brand_id' => $ticket->brand_id,
+    ]);
+    $user->assignRole('Agent');
+
+    Sanctum::actingAs($user, ['*'], 'sanctum');
+
+    $timestamp = now()->subMinutes(5)->setSecond(0)->setMicrosecond(0)->toIso8601String();
+
+    postJson(route('api.tickets.messages.store', ['ticket' => $ticket]), [
+        'body' => 'Time travel note',
+        'visibility' => Message::VISIBILITY_PUBLIC,
+        'sent_at' => $timestamp,
+    ])
+        ->assertCreated()
+        ->assertJsonPath('data.sent_at', $timestamp);
+
+    $message = Message::query()->latest()->first();
+
+    expect($message)
+        ->not->toBeNull()
+        ->and($message->sent_at?->toIso8601String())->toBe($timestamp);
+})->group('E1-F5-I1');
+
+it('E1-F5-I1 rejects invalid visibility values', function () {
+    $ticket = Ticket::factory()->create();
+    $user = User::factory()->create([
+        'tenant_id' => $ticket->tenant_id,
+        'brand_id' => $ticket->brand_id,
+    ]);
+    $user->assignRole('Agent');
+
+    Sanctum::actingAs($user, ['*'], 'sanctum');
+
+    postJson(route('api.tickets.messages.store', ['ticket' => $ticket]), [
+        'body' => 'Visibility rules',
+        'visibility' => 'secret',
+    ])
+        ->assertStatus(422)
+        ->assertJsonPath('error.code', 'ERR_VALIDATION')
+        ->assertJsonPath('error.details.visibility.0', 'The selected visibility is invalid.');
 })->group('E1-F5-I1');
 
 it('E1-F5-I1 applies message policy matrix across roles', function () {
