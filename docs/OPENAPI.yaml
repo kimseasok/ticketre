@@ -1,0 +1,172 @@
+openapi: 3.0.3
+info:
+  title: Ticketre Service Desk API
+  version: '1.0.0'
+servers:
+  - url: https://api.ticketre.local
+    description: Local development placeholder
+paths:
+  /api/v1/tickets/{ticket}/messages:
+    get:
+      summary: List messages for a ticket
+      operationId: listTicketMessages
+      security:
+        - SanctumToken: []
+      parameters:
+        - $ref: '#/components/parameters/TicketId'
+        - name: audience
+          in: query
+          description: Audience context for visibility filtering.
+          schema:
+            type: string
+            enum: [agent, portal]
+            default: agent
+      responses:
+        '200':
+          description: Ticket messages collection
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Message'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      summary: Create a ticket message
+      operationId: createTicketMessage
+      security:
+        - SanctumToken: []
+      parameters:
+        - $ref: '#/components/parameters/TicketId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [body]
+              properties:
+                body:
+                  type: string
+                  description: Message body rendered as Markdown or HTML depending on channel.
+                visibility:
+                  type: string
+                  description: Controls whether the message is customer-facing or internal.
+                  enum: [public, internal]
+                  default: public
+                sent_at:
+                  type: string
+                  format: date-time
+                  description: Optional override for when the message was sent.
+      responses:
+        '201':
+          description: Message created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Message'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+components:
+  schemas:
+    Message:
+      type: object
+      properties:
+        id:
+          type: integer
+        ticket_id:
+          type: integer
+        visibility:
+          type: string
+          enum: [public, internal]
+        author_role:
+          type: string
+          nullable: true
+        body:
+          type: string
+        sent_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        author:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+              description: Optional validation error details keyed by attribute.
+  parameters:
+    TicketId:
+      name: ticket
+      in: path
+      required: true
+      schema:
+        type: integer
+      description: Identifier of the ticket.
+  responses:
+    Unauthenticated:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Action is not permitted
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ValidationError:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  securitySchemes:
+    SanctumToken:
+      type: http
+      scheme: bearer
+      bearerFormat: Sanctum Personal Access Token

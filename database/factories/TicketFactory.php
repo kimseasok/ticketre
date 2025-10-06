@@ -23,10 +23,13 @@ class TicketFactory extends Factory
             'tenant_id' => $tenant,
             'company_id' => $company,
         ])->id;
-        $assignee = $this->attributes['assignee_id'] ?? User::factory()->create([
-            'tenant_id' => $tenant,
-            'brand_id' => $brand,
-        ])->id;
+        $assignee = $this->attributes['assignee_id'] ?? tap(
+            User::factory()->create([
+                'tenant_id' => $tenant,
+                'brand_id' => $brand,
+            ]),
+            fn ($user) => $user->assignRole('Agent')
+        )->id;
 
         return [
             'tenant_id' => $tenant,

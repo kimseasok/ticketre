@@ -16,6 +16,14 @@
 
 > Note: requires Docker stack (db, redis, meilisearch) or compatible local services.
 
+## Ticket Message Visibility & API
+
+- Internal notes use the `visibility` flag on `messages` records. Agents and admins can create internal notes by sending `visibility="internal"`.
+- Customer portal integrations should request `GET /api/v1/tickets/{ticket}/messages?audience=portal` to automatically filter out internal notes.
+- Authenticated operators can create messages with `POST /api/v1/tickets/{ticket}/messages` using Sanctum tokens. Provide an optional `X-Correlation-ID` header for traceable JSON logs.
+- Filament admin users can manage ticket messages under **Ticketing → Messages**, with tenant and brand scoping applied automatically.
+- The REST contract for these endpoints is documented in `docs/OPENAPI.yaml`.
+
 ## Docker
 - `make up` to start services (db, redis, meilisearch, queue, app, nginx)
 - `make down` to stop

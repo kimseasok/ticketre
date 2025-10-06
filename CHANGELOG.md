@@ -1,6 +1,9 @@
 # Changelog
 
 ## [Unreleased]
+### Added
+- Ticket message visibility controls with RBAC-enforced Filament CRUD and REST API endpoints for agents and portal integrations.
+
 ### Fixed
 - Restore Pint compatibility and database credentials so CI linting and migrations succeed on MySQL and PostgreSQL.
 - Declare the application as an ES module so Vite can import `laravel-vite-plugin` during CI builds without require() failures.
