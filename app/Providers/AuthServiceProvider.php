@@ -4,11 +4,13 @@ namespace App\Providers;
 
 use App\Models\Contact;
 use App\Models\KbArticle;
+use App\Models\KbCategory;
 use App\Models\Message;
 use App\Models\Ticket;
 use App\Models\TicketEvent;
 use App\Policies\ContactPolicy;
 use App\Policies\KbArticlePolicy;
+use App\Policies\KbCategoryPolicy;
 use App\Policies\MessagePolicy;
 use App\Policies\TicketEventPolicy;
 use App\Policies\TicketPolicy;
@@ -22,6 +24,7 @@ class AuthServiceProvider extends ServiceProvider
         TicketEvent::class => TicketEventPolicy::class,
         Contact::class => ContactPolicy::class,
         KbArticle::class => KbArticlePolicy::class,
+        KbCategory::class => KbCategoryPolicy::class,
         Message::class => MessagePolicy::class,
     ];
 

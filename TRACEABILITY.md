@@ -6,4 +6,19 @@
 | local-php-artisan-test | .env.testing; phpunit.xml.dist; CHANGELOG.md; TRACEABILITY.md | Existing suite (`php artisan test`) | Missing `.env` forced the test runner to read MySQL secrets that are absent in CI. | Added a committed `.env.testing` profile and forced SQLite in PHPUnit to eliminate external dependencies. |
 | 18252432946 | phpstan.neon; tests/Unit/StaticAnalysisConfigTest.php; CHANGELOG.md; TRACEABILITY.md | `tests/Unit/StaticAnalysisConfigTest.php` (2 tests) | Larastan v2 removed rules.neon, so PHPStan aborted when the config referenced a missing include. | Removed the obsolete include and added tests to ensure PHPStan includes map to real files. |
 | E1-F5-I1 | app/Models/Message.php; app/Http/Controllers/Api/MessageController.php; app/Filament/Resources/MessageResource.php; config/logging.php; docs/OPENAPI.yaml | tests/Feature/MessageVisibilityTest.php (6 tests) | Messages lacked visibility separation, RBAC, and observability, so internal notes were indistinguishable from public replies. | Added author_role column, policies, API + Filament CRUD, structured logging, and OpenAPI/README docs for ticket message visibility. |
+| E3-F1-I2 | app/Models/KbCategory.php; app/Http/Controllers/Api/KbArticleController.php; app/Services/KbArticleService.php; routes/api.php; docs/OPENAPI.yaml | tests/Feature/KnowledgeBaseApiTest.php (7 tests) | /api/v1/kb-categories; /api/v1/kb-articles | 2024_01_01_001100_create_kb_category_closure_table.php | Implemented brand-scoped knowledge base categories/articles with closure hierarchy, RBAC policies, Filament resources, audit logging, and updated docs. |
 | E1-F8-I2 | app/Broadcasting/Events/TicketLifecycleBroadcast.php; app/Http/Controllers/Api/TicketController.php; app/Jobs/BroadcastTicketEventJob.php; app/Models/TicketEvent.php; tests/Feature/TicketLifecycleBroadcastTest.php; composer.json | tests/Feature/TicketLifecycleBroadcastTest.php (9 tests) | Ticket lifecycle events lacked tenant isolation, broadcast wiring, and API coverage. | Added lifecycle event model + job broadcasting stack, enforced tenant-aware guard on ticket routes, registered factories, and codified API/resource tests. |
+
+## Merge Conflict Resolution — PR #448
+
+* Base: main
+* Head: implement-p0-issue-in-laravel
+* Strategy: merge
+* Commit: 3b1929abdfd4dc954c39c182023d96d1a9dee24f
+* Files Resolved:
+
+  * none (branch already up to date)
+* Notes:
+
+  * No conflicts were detected; base was already merged.
+  * FIXME markers left: none
