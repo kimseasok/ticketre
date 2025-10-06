@@ -63,6 +63,31 @@ class TicketAuditLogger
     }
 
     /**
+     * @param  array<string, mixed>  $aggregate
+     */
+    public function redacted(Ticket $ticket, ?User $actor, array $aggregate, float $startedAt, string $correlationId): void
+    {
+        $payload = [
+            'aggregate_snapshot' => $aggregate,
+        ];
+
+        $this->persist($ticket, $actor, 'ticket.redacted', $payload);
+
+        $durationMs = (microtime(true) - $startedAt) * 1000;
+
+        Log::channel(config('logging.default'))->info('ticket.redacted', [
+            'ticket_id' => $ticket->getKey(),
+            'tenant_id' => $ticket->tenant_id,
+            'brand_id' => $ticket->brand_id,
+            'user_id' => $actor?->getKey(),
+            'aggregate_keys' => array_keys($aggregate),
+            'duration_ms' => round($durationMs, 2),
+            'correlation_id' => $correlationId,
+            'context' => 'ticket_audit',
+        ]);
+    }
+
+    /**
      * @param  array<string, mixed>  $payload
      */
     protected function persist(Ticket $ticket, ?User $actor, string $action, array $payload): void

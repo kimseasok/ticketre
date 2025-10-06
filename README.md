@@ -114,6 +114,41 @@ Filament administrators can review the same history via `/admin/audit-logs`, whi
 
 > **Tenant + Brand assumption:** contact audit entries inherit the initiating user's brand to maintain consistent brand scoping during review. Mixed-brand tenants should authenticate with the relevant brand header when querying the API or Filament.
 
+## Contact Anonymization Workflow
+
+Data-subject requests can now be fulfilled without purging analytics by queuing a tenant-scoped anonymization job. Only users with the new `contacts.anonymize` permission (seeded for tenant Admins) may initiate the flow.
+
+- `GET /api/v1/contact-anonymization-requests` – list pending/processed requests with optional `status`, `contact_id`, and `brand_id` filters. Responses include the sanitized contact snapshot and requester details.
+- `POST /api/v1/contact-anonymization-requests` – enqueue anonymization for a contact, capturing the reason and correlation ID. The background job replaces the contact’s PII with a pseudonym, updates linked ticket metadata, and writes `contact.anonymized` audit entries.
+- `GET /api/v1/contact-anonymization-requests/{id}` – retrieve a single request to review status, pseudonym, and processing timestamps.
+
+All endpoints require the standard multi-tenant headers:
+
+```http
+X-Tenant: <tenant-slug>
+X-Brand: <brand-slug>
+```
+
+Errors use the `{ "error": { "code", "message" } }` schema. Successful responses include the `correlation_id` used for structured JSON logging so investigations can stitch audit trails across services.
+
+Filament exposes the same functionality at `/admin/contact-anonymization-requests`, complete with tenant/brand filters and request detail modals. Creating a request through Filament dispatches the same queue job and logs the action with hashed reason metadata.
+
+> The demo seeder provisions a NON-PRODUCTION example request showing the post-anonymization state. Run `php artisan queue:work` locally to process new requests automatically.
+
+## Ticket Deletion & Redaction Workflow
+
+Tickets that contain personal data can be purged while preserving operational analytics via the queued deletion workflow. The new `tickets.redact` permission is provisioned for tenant Admins and governs both the API and Filament surfaces.
+
+- `GET /api/v1/ticket-deletion-requests` – list requests scoped to the active tenant/brand with optional `status`, `ticket_id`, and `brand_id` filters.
+- `POST /api/v1/ticket-deletion-requests` – register a deletion request, capture the legal reason, and assign a correlation ID for observability.
+- `POST /api/v1/ticket-deletion-requests/{id}/approve` – approve a request with a reversible hold window (0–168 hours). Approval enqueues the background processor.
+- `POST /api/v1/ticket-deletion-requests/{id}/cancel` – cancel a pending or approved request before the hold expires.
+- `GET /api/v1/ticket-deletion-requests/{id}` – inspect status, hold timers, aggregate metrics, and requester/approver metadata.
+
+Processing replaces the ticket subject with a pseudonymous label, clears associations to contacts/companies, soft deletes ticket and message records, and redacts attachments. A sanitized aggregate snapshot (message counts, attachment totals, hashed subject) is persisted on the request for reporting, and `ticket.redacted` audit events/logs capture the correlation ID.
+
+Filament exposes the workflow at `/admin/ticket-deletion-requests`, including approve/cancel actions with hold configuration, tenant/brand filters, and read-only detail views. Run `php artisan queue:work` to process approved requests asynchronously; tests process jobs synchronously for determinism.
+
 ## Ticket Lifecycle Broadcasting
 
 Ticket lifecycle events are persisted, audited, and broadcast over Echo-compatible websockets so agent consoles can react in real time.

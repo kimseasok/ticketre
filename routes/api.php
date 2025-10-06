@@ -1,12 +1,14 @@
 <?php
 
 use App\Http\Controllers\Api\AuditLogController;
+use App\Http\Controllers\Api\ContactAnonymizationRequestController;
 use App\Http\Controllers\Api\HealthcheckController;
 use App\Http\Controllers\Api\KbArticleController;
 use App\Http\Controllers\Api\KbCategoryController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\TicketController;
+use App\Http\Controllers\Api\TicketDeletionRequestController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/v1/health', [HealthcheckController::class, 'show'])->name('api.health');
@@ -25,6 +27,22 @@ Route::middleware(['auth', 'tenant'])->prefix('v1')->name('api.')->group(functio
     });
 
     Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+
+    Route::apiResource('contact-anonymization-requests', ContactAnonymizationRequestController::class)
+        ->only(['index', 'store', 'show']);
+
+    Route::apiResource('ticket-deletion-requests', TicketDeletionRequestController::class)
+        ->only(['index', 'store', 'show']);
+
+    Route::post('ticket-deletion-requests/{ticketDeletionRequest}/approve', [
+        TicketDeletionRequestController::class,
+        'approve',
+    ])->name('ticket-deletion-requests.approve');
+
+    Route::post('ticket-deletion-requests/{ticketDeletionRequest}/cancel', [
+        TicketDeletionRequestController::class,
+        'cancel',
+    ])->name('ticket-deletion-requests.cancel');
 
     Route::apiResource('kb-categories', KbCategoryController::class)->except(['create', 'edit']);
     Route::apiResource('kb-articles', KbArticleController::class)->except(['create', 'edit']);

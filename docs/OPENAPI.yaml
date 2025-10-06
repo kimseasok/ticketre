@@ -457,6 +457,319 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/contact-anonymization-requests:
+    get:
+      summary: List contact anonymization requests
+      tags: [Compliance]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, processing, completed, failed]
+        - name: contact_id
+          in: query
+          schema:
+            type: integer
+        - name: brand_id
+          in: query
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Paginated anonymization requests
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ContactAnonymizationRequest'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Queue contact anonymization
+      tags: [Compliance]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [contact_id, reason]
+              properties:
+                contact_id:
+                  type: integer
+                reason:
+                  type: string
+                  maxLength: 500
+                correlation_id:
+                  type: string
+                  maxLength: 64
+                  nullable: true
+      responses:
+        '201':
+          description: Anonymization request created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/ContactAnonymizationRequest'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/contact-anonymization-requests/{request}:
+    get:
+      summary: Show contact anonymization request
+      tags: [Compliance]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - $ref: '#/components/parameters/ContactAnonymizationRequestId'
+      responses:
+        '200':
+          description: Request detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/ContactAnonymizationRequest'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/ticket-deletion-requests:
+    get:
+      summary: List ticket deletion requests
+      tags: [Compliance]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, approved, processing, completed, failed, cancelled]
+        - name: ticket_id
+          in: query
+          schema:
+            type: integer
+        - name: brand_id
+          in: query
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Paginated deletion requests
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TicketDeletionRequest'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Register ticket deletion request
+      tags: [Compliance]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ticket_id, reason]
+              properties:
+                ticket_id:
+                  type: integer
+                reason:
+                  type: string
+                  maxLength: 500
+                correlation_id:
+                  type: string
+                  maxLength: 64
+                  nullable: true
+      responses:
+        '201':
+          description: Deletion request created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/TicketDeletionRequest'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/ticket-deletion-requests/{ticketDeletionRequest}:
+    get:
+      summary: Show ticket deletion request
+      tags: [Compliance]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - $ref: '#/components/parameters/TicketDeletionRequestId'
+      responses:
+        '200':
+          description: Request detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/TicketDeletionRequest'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/ticket-deletion-requests/{ticketDeletionRequest}/approve:
+    post:
+      summary: Approve ticket deletion request
+      tags: [Compliance]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - $ref: '#/components/parameters/TicketDeletionRequestId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                hold_hours:
+                  type: integer
+                  minimum: 0
+                  maximum: 168
+      responses:
+        '200':
+          description: Updated request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/TicketDeletionRequest'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/ticket-deletion-requests/{ticketDeletionRequest}/cancel:
+    post:
+      summary: Cancel ticket deletion request
+      tags: [Compliance]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - $ref: '#/components/parameters/TicketDeletionRequestId'
+      responses:
+        '200':
+          description: Updated request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/TicketDeletionRequest'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /api/v1/roles:
     get:
       summary: List tenant roles
@@ -1062,6 +1375,18 @@ components:
       required: true
       schema:
         type: integer
+    ContactAnonymizationRequestId:
+      name: request
+      in: path
+      required: true
+      schema:
+        type: integer
+    TicketDeletionRequestId:
+      name: ticketDeletionRequest
+      in: path
+      required: true
+      schema:
+        type: integer
   schemas:
     Message:
       type: object
@@ -1311,6 +1636,160 @@ components:
         created_at:
           type: string
           format: date-time
+    ContactAnonymizationRequest:
+      type: object
+      properties:
+        id:
+          type: integer
+        tenant_id:
+          type: integer
+        brand_id:
+          type: integer
+          nullable: true
+        contact_id:
+          type: integer
+        requested_by:
+          type: integer
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]
+        reason:
+          type: string
+        correlation_id:
+          type: string
+        pseudonym:
+          type: string
+          nullable: true
+        processed_at:
+          type: string
+          format: date-time
+          nullable: true
+        failed_at:
+          type: string
+          format: date-time
+          nullable: true
+        failure_reason:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        contact:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+            email:
+              type: string
+              nullable: true
+        requester:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+    TicketDeletionRequest:
+      type: object
+      properties:
+        id:
+          type: integer
+        tenant_id:
+          type: integer
+        brand_id:
+          type: integer
+          nullable: true
+        ticket_id:
+          type: integer
+        requested_by:
+          type: integer
+        approved_by:
+          type: integer
+          nullable: true
+        cancelled_by:
+          type: integer
+          nullable: true
+        status:
+          type: string
+          enum: [pending, approved, processing, completed, failed, cancelled]
+        reason:
+          type: string
+        aggregate_snapshot:
+          type: object
+          nullable: true
+          additionalProperties: true
+        correlation_id:
+          type: string
+        approved_at:
+          type: string
+          format: date-time
+          nullable: true
+        hold_expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        cancelled_at:
+          type: string
+          format: date-time
+          nullable: true
+        processed_at:
+          type: string
+          format: date-time
+          nullable: true
+        failed_at:
+          type: string
+          format: date-time
+          nullable: true
+        failure_reason:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        ticket:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            status:
+              type: string
+            priority:
+              type: string
+        requester:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+        approver:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+        canceller:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
     ErrorResponse:
       type: object
       properties:

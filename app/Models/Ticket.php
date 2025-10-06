@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\TicketDeletionRequest;
 use App\Models\TicketEvent;
 use App\Traits\BelongsToBrand;
 use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravel\Scout\Searchable;
 
 class Ticket extends Model
@@ -67,6 +69,11 @@ class Ticket extends Model
     public function events()
     {
         return $this->hasMany(TicketEvent::class);
+    }
+
+    public function deletionRequests(): HasMany
+    {
+        return $this->hasMany(TicketDeletionRequest::class);
     }
 
     public function toSearchableArray(): array
