@@ -12,13 +12,12 @@ class MessageFactory extends Factory
 
     public function definition(): array
     {
-        $ticketId = $this->attributes['ticket_id'] ?? Ticket::factory()->create()->id;
-        $ticket = Ticket::query()->findOrFail($ticketId);
+        $ticket = Ticket::factory()->create();
 
         return [
             'tenant_id' => $ticket->tenant_id,
             'brand_id' => $ticket->brand_id,
-            'ticket_id' => $ticketId,
+            'ticket_id' => $ticket->id,
             'user_id' => $ticket->assignee_id,
             'author_role' => $this->faker->randomElement([
                 Message::ROLE_AGENT,

@@ -212,7 +212,226 @@ paths:
           content:
             application/json:
               schema:
+                $ref: '#/components/schemas/ErrorResponse'  /api/v1/tickets:
+    get:
+      summary: List tickets
+      tags: [Tickets]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+      responses:
+        '200':
+          description: Collection of tickets
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Ticket'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
                 $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Create ticket
+      tags: [Tickets]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [subject, status, priority]
+              properties:
+                subject:
+                  type: string
+                status:
+                  type: string
+                  enum: [open, pending, closed]
+                priority:
+                  type: string
+                  enum: [low, medium, high]
+                assignee_id:
+                  type: integer
+                  nullable: true
+                contact_id:
+                  type: integer
+                  nullable: true
+                company_id:
+                  type: integer
+                  nullable: true
+                metadata:
+                  type: object
+      responses:
+        '201':
+          description: Ticket created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Ticket'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/tickets/{ticket}:
+    get:
+      summary: Retrieve ticket
+      tags: [Tickets]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - $ref: '#/components/parameters/TicketId'
+      responses:
+        '200':
+          description: Ticket detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Ticket'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      summary: Update ticket
+      tags: [Tickets]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - $ref: '#/components/parameters/TicketId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subject:
+                  type: string
+                status:
+                  type: string
+                  enum: [open, pending, closed]
+                priority:
+                  type: string
+                  enum: [low, medium, high]
+                assignee_id:
+                  type: integer
+                  nullable: true
+                metadata:
+                  type: object
+      responses:
+        '200':
+          description: Ticket updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Ticket'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/tickets/{ticket}/events:
+    get:
+      summary: List ticket lifecycle events
+      tags: [Ticket Events]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - $ref: '#/components/parameters/TicketId'
+      responses:
+        '200':
+          description: Collection of lifecycle events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TicketEvent'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Manually record and broadcast a lifecycle event
+      tags: [Ticket Events]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - $ref: '#/components/parameters/TicketId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type]
+              properties:
+                type:
+                  type: string
+                  enum: [ticket.created, ticket.updated, ticket.assigned, ticket.merged]
+                visibility:
+                  type: string
+                  enum: [internal, public]
+                payload:
+                  type: object
+                  description: Additional attributes to merge into the broadcast payload.
+      responses:
+        '201':
+          description: Lifecycle event recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/TicketEvent'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 components:
   securitySchemes:
     cookieAuth:
@@ -275,6 +494,65 @@ components:
         updated_at:
           type: string
           format: date-time
+    Ticket:
+      type: object
+      properties:
+        id:
+          type: integer
+        tenant_id:
+          type: integer
+        brand_id:
+          type: integer
+          nullable: true
+        subject:
+          type: string
+        status:
+          type: string
+        priority:
+          type: string
+        workflow_state:
+          type: string
+          nullable: true
+        assignee:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    TicketEvent:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+        visibility:
+          type: string
+        correlation_id:
+          type: string
+        payload:
+          type: object
+        broadcasted_at:
+          type: string
+          format: date-time
+        ticket:
+          $ref: '#/components/schemas/Ticket'
+        initiator:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
         author:
           type: object
           nullable: true

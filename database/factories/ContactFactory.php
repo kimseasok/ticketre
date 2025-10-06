@@ -12,12 +12,11 @@ class ContactFactory extends Factory
 
     public function definition(): array
     {
-        $companyId = $this->attributes['company_id'] ?? Company::factory()->create()->id;
-        $company = Company::query()->findOrFail($companyId);
+        $company = Company::factory()->create();
 
         return [
             'tenant_id' => $company->tenant_id,
-            'company_id' => $companyId,
+            'company_id' => $company->id,
             'name' => $this->faker->name(),
             'email' => $this->faker->unique()->safeEmail(),
             'phone' => $this->faker->phoneNumber(),

@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Database\ConnectionInterface;
-use Mockery;
 
 it('returns healthy response', function () {
     config(['cache.stores.redis' => null]);
@@ -19,7 +18,7 @@ it('returns healthy response', function () {
 it('handles dependency failure gracefully', function () {
     config(['cache.stores.redis' => ['driver' => 'redis', 'connection' => 'cache']]);
 
-    $failingConnection = Mockery::mock(ConnectionInterface::class)->shouldIgnoreMissing();
+    $failingConnection = \Mockery::mock(ConnectionInterface::class)->shouldIgnoreMissing();
     $failingConnection->shouldReceive('select')->andThrow(new RuntimeException('DB down'));
 
     app()->instance(ConnectionInterface::class, $failingConnection);

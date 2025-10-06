@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\TicketEvent;
 use App\Traits\BelongsToBrand;
 use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -61,6 +62,11 @@ class Ticket extends Model
     public function attachments()
     {
         return $this->morphMany(Attachment::class, 'attachable');
+    }
+
+    public function events()
+    {
+        return $this->hasMany(TicketEvent::class);
     }
 
     public function toSearchableArray(): array
