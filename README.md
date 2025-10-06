@@ -72,3 +72,13 @@ X-Brand: <brand-slug>
 - `DELETE /api/v1/kb-articles/{id}` – soft delete the article while retaining audit history.
 
 Audit logs capture every create, update, and delete operation with hashed payload digests for observability, and structured JSON logs include correlation IDs by default. Filament exposes the same functionality via `/admin/kb-categories` and `/admin/kb-articles`, featuring tenant/brand scoped queries, validation rules, and soft-delete management. Demo data is seeded through `DemoDataSeeder` for NON-PRODUCTION environments only.
+## Ticket Lifecycle Broadcasting
+
+Ticket lifecycle events are persisted, audited, and broadcast over Echo-compatible websockets so agent consoles can react in real time.
+
+- `GET /api/v1/tickets` – list tenant-scoped tickets (requires `tickets.view`).
+- `POST /api/v1/tickets` – create a ticket and emit a `ticket.created` event (requires `tickets.manage`).
+- `GET /api/v1/tickets/{ticket}/events` – retrieve the lifecycle event history for a ticket.
+- `POST /api/v1/tickets/{ticket}/events` – manually broadcast a lifecycle event with a custom payload (agents only).
+
+All responses include `correlation_id` metadata and redact PII in logs via hashed digests. Manual testing is available via Filament at `/admin/ticket-events`, which respects tenant and brand scopes.
