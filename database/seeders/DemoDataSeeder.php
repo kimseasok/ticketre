@@ -6,7 +6,6 @@ use App\Models\Brand;
 use App\Models\Company;
 use App\Models\Contact;
 use App\Models\ContactAnonymizationRequest;
-use App\Models\KbArticle;
 use App\Models\KbCategory;
 use App\Models\Message;
 use App\Models\Tenant;
@@ -15,6 +14,7 @@ use App\Models\TicketDeletionRequest;
 use App\Models\TicketEvent;
 use App\Models\User;
 use App\Services\ContactService;
+use App\Services\KbArticleService;
 use App\Services\TenantRoleProvisioner;
 use App\Services\TicketLifecycleBroadcaster;
 use App\Services\TicketService;
@@ -103,31 +103,51 @@ class DemoDataSeeder extends Seeder
             'order' => 2,
         ]);
 
-        KbArticle::factory()->create([
-            'tenant_id' => $tenant->id,
+        $articleService = app(KbArticleService::class);
+
+        $articleService->create([
             'brand_id' => $brand->id,
             'category_id' => $rootCategory->id,
-            'author_id' => $agent->id,
-            'title' => 'Welcome to the Service Desk',
             'slug' => 'welcome',
-            'content' => '<p>This is demo content. DO NOT USE IN PRODUCTION.</p>',
-            'status' => 'published',
-            'excerpt' => 'Orientation article for the NON-PRODUCTION demo knowledge base.',
-            'metadata' => ['tags' => ['welcome', 'demo']],
-        ]);
+            'default_locale' => 'en',
+            'author_id' => $agent->id,
+            'translations' => [
+                [
+                    'locale' => 'en',
+                    'title' => 'Welcome to the Service Desk',
+                    'status' => 'published',
+                    'content' => '<p>This is demo content. DO NOT USE IN PRODUCTION.</p>',
+                    'excerpt' => 'Orientation article for the NON-PRODUCTION demo knowledge base.',
+                    'metadata' => ['tags' => ['welcome', 'demo']],
+                ],
+                [
+                    'locale' => 'es',
+                    'title' => 'Bienvenido al Service Desk',
+                    'status' => 'published',
+                    'content' => '<p>Contenido de demostración. NO USAR EN PRODUCCIÓN.</p>',
+                    'excerpt' => 'Artículo de orientación para la demostración (SOLO NO PRODUCCIÓN).',
+                    'metadata' => ['tags' => ['bienvenida', 'demo']],
+                ],
+            ],
+        ], $agent);
 
-        KbArticle::factory()->create([
-            'tenant_id' => $tenant->id,
+        $articleService->create([
             'brand_id' => $brand->id,
             'category_id' => $childCategory->id,
-            'author_id' => $agent->id,
-            'title' => 'Resetting Your Password',
             'slug' => 'reset-password',
-            'content' => '<p>Demo reset instructions. DO NOT USE IN PRODUCTION.</p>',
-            'status' => 'draft',
-            'excerpt' => 'Internal draft instructions for resetting credentials.',
-            'metadata' => ['tags' => ['credentials', 'internal']],
-        ]);
+            'default_locale' => 'en',
+            'author_id' => $agent->id,
+            'translations' => [
+                [
+                    'locale' => 'en',
+                    'title' => 'Resetting Your Password',
+                    'status' => 'draft',
+                    'content' => '<p>Demo reset instructions. DO NOT USE IN PRODUCTION.</p>',
+                    'excerpt' => 'Internal draft instructions for resetting credentials.',
+                    'metadata' => ['tags' => ['credentials', 'internal']],
+                ],
+            ],
+        ], $agent);
 
         $ticket = Ticket::factory()->create([
             'tenant_id' => $tenant->id,

@@ -1159,61 +1159,20 @@ paths:
     post:
       summary: Create knowledge base article
       tags: [Knowledge Base]
-    post:
-      summary: Manually record and broadcast a lifecycle event
-      tags: [Ticket Events]
       security:
         - cookieAuth: []
       parameters:
         - $ref: '#/components/parameters/TenantHeader'
         - $ref: '#/components/parameters/BrandHeader'
-        - $ref: '#/components/parameters/TicketId'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required: [brand_id, category_id, title, slug, status, content, locale]
-              properties:
-                brand_id:
-                  type: integer
-                category_id:
-                  type: integer
-                title:
-                  type: string
-                slug:
-                  type: string
-                status:
-                  type: string
-                  enum: [draft, published, archived]
-                content:
-                  type: string
-                locale:
-                  type: string
-                excerpt:
-                  type: string
-                  nullable: true
-                metadata:
-                  type: object
-                  additionalProperties: true
+              $ref: '#/components/schemas/KbArticleCreateRequest'
       responses:
         '201':
           description: Article created
-              required: [type]
-              properties:
-                type:
-                  type: string
-                  enum: [ticket.created, ticket.updated, ticket.assigned, ticket.merged]
-                visibility:
-                  type: string
-                  enum: [internal, public]
-                payload:
-                  type: object
-                  description: Additional attributes to merge into the broadcast payload.
-      responses:
-        '201':
-          description: Lifecycle event recorded
           content:
             application/json:
               schema:
@@ -1221,7 +1180,12 @@ paths:
                 properties:
                   data:
                     $ref: '#/components/schemas/KbArticle'
-                    $ref: '#/components/schemas/TicketEvent'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '422':
           description: Validation error
           content:
@@ -1268,29 +1232,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                brand_id:
-                  type: integer
-                category_id:
-                  type: integer
-                title:
-                  type: string
-                slug:
-                  type: string
-                status:
-                  type: string
-                  enum: [draft, published, archived]
-                content:
-                  type: string
-                locale:
-                  type: string
-                excerpt:
-                  type: string
-                  nullable: true
-                metadata:
-                  type: object
-                  additionalProperties: true
+              $ref: '#/components/schemas/KbArticleUpdateRequest'
       responses:
         '200':
           description: Updated article
@@ -1566,11 +1508,14 @@ components:
         author_id:
           type: integer
           nullable: true
-        title:
-          type: string
         slug:
           type: string
+        default_locale:
+          type: string
         locale:
+          type: string
+          description: The locale that was selected for this response (requested locale or default).
+        title:
           type: string
         status:
           type: string
@@ -1588,6 +1533,10 @@ components:
           type: string
           format: date-time
           nullable: true
+        translations:
+          type: array
+          items:
+            $ref: '#/components/schemas/KbArticleTranslation'
         created_at:
           type: string
           format: date-time
@@ -1604,6 +1553,103 @@ components:
               type: integer
             name:
               type: string
+    KbArticleTranslation:
+      type: object
+      properties:
+        id:
+          type: integer
+          nullable: true
+        locale:
+          type: string
+        title:
+          type: string
+        status:
+          type: string
+          enum: [draft, published, archived]
+        content:
+          type: string
+        excerpt:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+          additionalProperties: true
+          nullable: true
+        published_at:
+          type: string
+          format: date-time
+          nullable: true
+    KbArticleTranslationInput:
+      type: object
+      required: [locale, title, status, content]
+      properties:
+        locale:
+          type: string
+        title:
+          type: string
+        status:
+          type: string
+          enum: [draft, published, archived]
+        content:
+          type: string
+        excerpt:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+          additionalProperties: true
+          nullable: true
+        published_at:
+          type: string
+          format: date-time
+          nullable: true
+    KbArticleTranslationUpsert:
+      allOf:
+        - $ref: '#/components/schemas/KbArticleTranslationInput'
+        - type: object
+          properties:
+            delete:
+              type: boolean
+              description: When true the specified locale will be soft deleted.
+    KbArticleCreateRequest:
+      type: object
+      required: [brand_id, category_id, slug, translations]
+      properties:
+        brand_id:
+          type: integer
+        category_id:
+          type: integer
+        slug:
+          type: string
+        default_locale:
+          type: string
+          nullable: true
+        author_id:
+          type: integer
+          nullable: true
+        translations:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/KbArticleTranslationInput'
+    KbArticleUpdateRequest:
+      type: object
+      properties:
+        brand_id:
+          type: integer
+        category_id:
+          type: integer
+        slug:
+          type: string
+        default_locale:
+          type: string
+        author_id:
+          type: integer
+          nullable: true
+        translations:
+          type: array
+          items:
+            $ref: '#/components/schemas/KbArticleTranslationUpsert'
     AuditLog:
       type: object
       properties:

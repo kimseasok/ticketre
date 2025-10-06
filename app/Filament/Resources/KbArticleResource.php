@@ -46,35 +46,74 @@ class KbArticleResource extends Resource
                 Forms\Components\Select::make('author_id')
                     ->relationship('author', 'name', fn (Builder $query) => $query->orderBy('name'))
                     ->required(),
-                Forms\Components\TextInput::make('title')
-                    ->required()
-                    ->maxLength(255),
                 Forms\Components\TextInput::make('slug')
                     ->required()
                     ->maxLength(255)
                     ->rule(fn (Get $get, ?KbArticle $record) => Rule::unique('kb_articles', 'slug')
                         ->where('tenant_id', auth()->user()?->tenant_id)
                         ->where('brand_id', $get('brand_id'))
-                        ->where('locale', $get('locale'))
                         ->ignore($record?->getKey())),
-                Forms\Components\Select::make('status')
-                    ->options([
-                        'draft' => 'Draft',
-                        'published' => 'Published',
-                        'archived' => 'Archived',
+                Forms\Components\Select::make('default_locale')
+                    ->label('Default Locale')
+                    ->options(fn (Get $get) => collect($get('translations'))
+                        ->pluck('locale', 'locale')
+                        ->filter()
+                        ->toArray())
+                    ->required()
+                    ->helperText('Must match one of the translation locales.')
+                    ->default('en')
+                    ->reactive(),
+                Forms\Components\Repeater::make('translations')
+                    ->relationship('translations')
+                    ->label('Translations')
+                    ->columns(2)
+                    ->collapsible()
+                    ->minItems(1)
+                    ->defaultItems(1)
+                    ->itemLabel(fn (array $state): ?string => $state['locale'] ?? null)
+                    ->schema([
+                        Forms\Components\TextInput::make('locale')
+                            ->required()
+                            ->maxLength(10),
+                        Forms\Components\Select::make('status')
+                            ->options([
+                                'draft' => 'Draft',
+                                'published' => 'Published',
+                                'archived' => 'Archived',
+                            ])
+                            ->required(),
+                        Forms\Components\TextInput::make('title')
+                            ->required()
+                            ->maxLength(255)
+                            ->columnSpan(2),
+                        Forms\Components\RichEditor::make('content')
+                            ->required()
+                            ->columnSpan(2),
+                        Forms\Components\Textarea::make('excerpt')
+                            ->rows(3)
+                            ->columnSpan(2),
+                        Forms\Components\KeyValue::make('metadata')
+                            ->columnSpan(2)
+                            ->keyLabel('Key')
+                            ->valueLabel('Value'),
+                        Forms\Components\DateTimePicker::make('published_at')
+                            ->seconds(false)
+                            ->nullable()
+                            ->columnSpan(2),
                     ])
-                    ->required(),
-                Forms\Components\TextInput::make('locale')
-                    ->required()
-                    ->maxLength(10)
-                    ->default('en'),
-                Forms\Components\Textarea::make('excerpt')
-                    ->label('Summary')
-                    ->rows(3)
-                    ->maxLength(65535),
-                Forms\Components\RichEditor::make('content')
-                    ->required()
-                    ->columnSpanFull(),
+                    ->columnSpanFull()
+                    ->mutateRelationshipDataBeforeCreate(function (array $data, ?KbArticle $record) {
+                        return array_merge($data, [
+                            'tenant_id' => $record?->tenant_id ?? auth()->user()?->tenant_id,
+                            'brand_id' => $record?->brand_id ?? (app()->bound('currentBrand') && app('currentBrand') ? app('currentBrand')->getKey() : auth()->user()?->brand_id),
+                        ]);
+                    })
+                    ->mutateRelationshipDataBeforeSave(function (array $data, ?KbArticle $record) {
+                        return array_merge($data, [
+                            'tenant_id' => $record?->tenant_id ?? $data['tenant_id'] ?? auth()->user()?->tenant_id,
+                            'brand_id' => $record?->brand_id ?? $data['brand_id'] ?? (app()->bound('currentBrand') && app('currentBrand') ? app('currentBrand')->getKey() : auth()->user()?->brand_id),
+                        ]);
+                    }),
             ]);
     }
 
@@ -82,12 +121,19 @@ class KbArticleResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('title')->searchable()->limit(50),
+                Tables\Columns\TextColumn::make('defaultTranslation.title')
+                    ->label('Title')
+                    ->limit(50)
+                    ->searchable(query: function (Builder $query, string $search) {
+                        $query->whereHas('translations', function (Builder $builder) use ($search) {
+                            $builder->where('title', 'like', '%'.$search.'%');
+                        });
+                    }),
                 Tables\Columns\TextColumn::make('brand.name')->label('Brand')->sortable()->toggleable(),
                 Tables\Columns\TextColumn::make('category.name')->label('Category')->sortable()->searchable(),
-                Tables\Columns\TextColumn::make('status')->badge(),
-                Tables\Columns\TextColumn::make('locale'),
-                Tables\Columns\TextColumn::make('published_at')->dateTime()->sortable(),
+                Tables\Columns\TextColumn::make('defaultTranslation.status')->label('Status')->badge(),
+                Tables\Columns\TextColumn::make('default_locale')->label('Default Locale'),
+                Tables\Columns\TextColumn::make('defaultTranslation.published_at')->label('Published At')->dateTime()->sortable(),
                 Tables\Columns\TextColumn::make('updated_at')->dateTime()->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
@@ -95,7 +141,16 @@ class KbArticleResource extends Resource
                     'draft' => 'Draft',
                     'published' => 'Published',
                     'archived' => 'Archived',
-                ]),
+                ])->query(function (Builder $query, array $data) {
+                    if (! $data['value']) {
+                        return;
+                    }
+
+                    $query->whereHas('translations', function (Builder $builder) use ($data) {
+                        $builder->where('status', $data['value'])
+                            ->whereColumn('locale', 'kb_articles.default_locale');
+                    });
+                }),
                 Tables\Filters\SelectFilter::make('brand_id')
                     ->label('Brand')
                     ->relationship('brand', 'name'),
@@ -128,7 +183,7 @@ class KbArticleResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery()->with(['category', 'brand', 'author']);
+        $query = parent::getEloquentQuery()->with(['category', 'brand', 'author', 'translations']);
 
         if (app()->bound('currentTenant') && app('currentTenant')) {
             $query->where('tenant_id', app('currentTenant')->getKey());

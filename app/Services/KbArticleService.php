@@ -4,8 +4,11 @@ namespace App\Services;
 
 use App\Models\AuditLog;
 use App\Models\KbArticle;
+use App\Models\KbArticleTranslation;
 use App\Models\User;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class KbArticleService
@@ -14,71 +17,118 @@ class KbArticleService
     {
         $startedAt = microtime(true);
 
-        $article = KbArticle::create(array_merge([
-            'tenant_id' => $user->tenant_id,
-            'author_id' => $payload['author_id'] ?? $user->getKey(),
-        ], $payload));
+        $article = DB::transaction(function () use ($payload, $user) {
+            $translations = collect($payload['translations'] ?? []);
 
-        $article->refresh();
+            if (! isset($payload['default_locale']) && $translations->isNotEmpty()) {
+                $payload['default_locale'] = $translations->first()['locale'];
+            }
+
+            unset($payload['translations']);
+
+            $article = KbArticle::create(array_merge([
+                'tenant_id' => $user->tenant_id,
+                'author_id' => $payload['author_id'] ?? $user->getKey(),
+            ], $payload));
+
+            $translations->each(function (array $translation) use ($article) {
+                $article->translations()->create($this->prepareTranslationPayload($article, $translation));
+            });
+
+            return $article->fresh(['translations', 'category', 'author']);
+        });
 
         $this->recordAudit($user, 'kb_article.created', $article, [
-            'title' => $article->title,
-            'status' => $article->status,
-            'locale' => $article->locale,
+            'default_locale' => $article->default_locale,
             'category_id' => $article->category_id,
-            'content_digest' => $this->contentDigest($article->content),
+            'locales' => $this->translationSummary($article->translations),
         ]);
 
         $this->logEvent('kb_article.created', $article, $user, $startedAt);
 
-        return $article->load(['category', 'author']);
+        return $article;
     }
 
     public function update(KbArticle $article, array $payload, User $user): KbArticle
     {
         $startedAt = microtime(true);
 
-        $original = Arr::only($article->getOriginal(), ['title', 'status', 'locale', 'category_id']);
-
-        $article->fill($payload);
-        $article->save();
-
-        $changes = Arr::except($article->getChanges(), ['updated_at', 'published_at', 'content', 'metadata']);
-        $auditPayload = [
-            'changes' => $changes,
-            'original' => $original,
+        $original = [
+            'default_locale' => $article->default_locale,
+            'category_id' => $article->category_id,
+            'locales' => $this->translationSummary($article->translations()->get()),
         ];
 
-        if ($article->wasChanged('content')) {
-            $auditPayload['content_digest'] = $this->contentDigest($article->content);
-        }
+        $article = DB::transaction(function () use ($article, $payload) {
+            $translations = collect($payload['translations'] ?? []);
 
-        if ($article->wasChanged('metadata')) {
-            $auditPayload['metadata_keys'] = array_keys($article->metadata ?? []);
-        }
+            if ($translations->isNotEmpty() && ! isset($payload['default_locale'])) {
+                $payload['default_locale'] = $article->default_locale;
+            }
 
-        if ($article->wasChanged()) {
-            $this->recordAudit($user, 'kb_article.updated', $article, $auditPayload);
-        }
+            $article->fill(Arr::except($payload, ['translations', 'translations_to_delete']));
+            $article->save();
 
-        $article->refresh();
+            $existing = $article->translations()->get()->keyBy(fn (KbArticleTranslation $translation) => $translation->locale);
+
+            $translations->each(function (array $translation) use ($article, $existing) {
+                $locale = $translation['locale'];
+
+                if (! empty($translation['delete'])) {
+                    if ($existing->has($locale)) {
+                        $existing->get($locale)?->delete();
+                    }
+
+                    return;
+                }
+
+                $payload = $this->prepareTranslationPayload($article, $translation);
+
+                if ($existing->has($locale)) {
+                    $existing->get($locale)?->fill($payload)->save();
+                } else {
+                    $article->translations()->create($payload);
+                }
+            });
+
+            $article->load(['translations', 'category', 'author']);
+
+            if ($article->translations->doesntContain(fn (KbArticleTranslation $translation) => $translation->locale === $article->default_locale)) {
+                $article->default_locale = $article->translations->first()?->locale ?? $article->default_locale;
+                $article->save();
+                $article->refresh();
+            }
+
+            return $article;
+        });
+
+        $this->recordAudit($user, 'kb_article.updated', $article, [
+            'original' => $original,
+            'changes' => [
+                'default_locale' => $article->default_locale,
+                'category_id' => $article->category_id,
+                'locales' => $this->translationSummary($article->translations),
+            ],
+        ]);
 
         $this->logEvent('kb_article.updated', $article, $user, $startedAt);
 
-        return $article->load(['category', 'author']);
+        return $article;
     }
 
     public function delete(KbArticle $article, User $user): void
     {
         $startedAt = microtime(true);
 
+        $snapshot = [
+            'default_locale' => $article->default_locale,
+            'category_id' => $article->category_id,
+            'locales' => $this->translationSummary($article->translations()->get()),
+        ];
+
         $article->delete();
 
-        $this->recordAudit($user, 'kb_article.deleted', $article, [
-            'title' => $article->title,
-            'category_id' => $article->category_id,
-            'status' => $article->status,
-        ]);
+        $this->recordAudit($user, 'kb_article.deleted', $article, $snapshot);
 
         $this->logEvent('kb_article.deleted', $article, $user, $startedAt);
     }
@@ -106,13 +156,47 @@ class KbArticleService
             'tenant_id' => $article->tenant_id,
             'brand_id' => $article->brand_id,
             'category_id' => $article->category_id,
-            'status' => $article->status,
-            'locale' => $article->locale,
-            'content_digest' => $this->contentDigest($article->content),
+            'default_locale' => $article->default_locale,
+            'locales' => $this->translationSummary($article->translations),
             'duration_ms' => round($durationMs, 2),
             'user_id' => $user->getKey(),
             'context' => 'knowledge_base_article',
         ]);
+    }
+
+    protected function prepareTranslationPayload(KbArticle $article, array $payload): array
+    {
+        $data = [
+            'tenant_id' => $article->tenant_id,
+            'brand_id' => $article->brand_id,
+            'locale' => $payload['locale'],
+            'title' => $payload['title'],
+            'content' => $payload['content'],
+            'excerpt' => $payload['excerpt'] ?? null,
+            'status' => $payload['status'],
+            'metadata' => $payload['metadata'] ?? null,
+        ];
+
+        if (array_key_exists('published_at', $payload)) {
+            $data['published_at'] = $payload['published_at'];
+        }
+
+        return $data;
+    }
+
+    protected function translationSummary(Collection $translations): array
+    {
+        return $translations
+            ->filter()
+            ->map(function (KbArticleTranslation $translation) {
+                return [
+                    'locale' => $translation->locale,
+                    'status' => $translation->status,
+                    'content_digest' => $this->contentDigest($translation->content),
+                ];
+            })
+            ->values()
+            ->all();
     }
 
     protected function contentDigest(?string $content): string
