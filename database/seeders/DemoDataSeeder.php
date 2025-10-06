@@ -5,11 +5,13 @@ namespace Database\Seeders;
 use App\Models\Brand;
 use App\Models\Company;
 use App\Models\Contact;
+use App\Models\ContactAnonymizationRequest;
 use App\Models\KbArticle;
 use App\Models\KbCategory;
 use App\Models\Message;
 use App\Models\Tenant;
 use App\Models\Ticket;
+use App\Models\TicketDeletionRequest;
 use App\Models\TicketEvent;
 use App\Models\User;
 use App\Services\ContactService;
@@ -18,6 +20,7 @@ use App\Services\TicketLifecycleBroadcaster;
 use App\Services\TicketService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 /**
  * DO NOT USE IN PRODUCTION. Demo data only.
@@ -158,6 +161,48 @@ class DemoDataSeeder extends Seeder
         $contactService = app(ContactService::class);
         $ticketService->update($ticket, ['priority' => 'high', 'workflow_state' => 'triage'], $admin);
         $contactService->update($contact, ['phone' => '+15550000000'], $admin);
+
+        $gdprContact = Contact::create([
+            'tenant_id' => $tenant->id,
+            'company_id' => $company->getKey(),
+            'name' => 'GDPR Demo Contact',
+            'email' => 'gdpr-demo@example.com',
+            'metadata' => [],
+        ]);
+
+        $anonymizationRequest = ContactAnonymizationRequest::create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'contact_id' => $gdprContact->getKey(),
+            'requested_by' => $admin->getKey(),
+            'status' => ContactAnonymizationRequest::STATUS_COMPLETED,
+            'reason' => 'NON-PRODUCTION demo anonymization request.',
+            'correlation_id' => (string) Str::uuid(),
+            'pseudonym' => 'Anonymized Contact DEMO',
+            'processed_at' => now(),
+        ]);
+
+        $gdprContact->update([
+            'name' => $anonymizationRequest->pseudonym,
+            'email' => sprintf('anon-%s@redacted.local', $anonymizationRequest->getKey()),
+            'phone' => null,
+            'metadata' => [
+                'anonymized' => true,
+                'anonymized_at' => now()->toIso8601String(),
+                'anonymization_request_id' => $anonymizationRequest->getKey(),
+                'seed_source' => 'NON-PRODUCTION DEMO',
+            ],
+        ]);
+
+        TicketDeletionRequest::create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'ticket_id' => $ticket->getKey(),
+            'requested_by' => $admin->getKey(),
+            'status' => TicketDeletionRequest::STATUS_PENDING,
+            'reason' => 'NON-PRODUCTION demo deletion request.',
+            'correlation_id' => (string) Str::uuid(),
+        ]);
 
         app(TicketLifecycleBroadcaster::class)->record(
             $ticket->fresh(),

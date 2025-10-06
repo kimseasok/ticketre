@@ -4,18 +4,22 @@ namespace App\Providers;
 
 use App\Models\AuditLog;
 use App\Models\Contact;
+use App\Models\ContactAnonymizationRequest;
 use App\Models\KbArticle;
 use App\Models\KbCategory;
 use App\Models\Message;
 use App\Models\Role;
 use App\Models\Ticket;
 use App\Models\TicketEvent;
+use App\Models\TicketDeletionRequest;
 use App\Policies\AuditLogPolicy;
+use App\Policies\ContactAnonymizationRequestPolicy;
 use App\Policies\ContactPolicy;
 use App\Policies\KbArticlePolicy;
 use App\Policies\KbCategoryPolicy;
 use App\Policies\MessagePolicy;
 use App\Policies\RolePolicy;
+use App\Policies\TicketDeletionRequestPolicy;
 use App\Policies\TicketEventPolicy;
 use App\Policies\TicketPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
@@ -27,6 +31,8 @@ class AuthServiceProvider extends ServiceProvider
         Ticket::class => TicketPolicy::class,
         TicketEvent::class => TicketEventPolicy::class,
         Contact::class => ContactPolicy::class,
+        ContactAnonymizationRequest::class => ContactAnonymizationRequestPolicy::class,
+        TicketDeletionRequest::class => TicketDeletionRequestPolicy::class,
         KbArticle::class => KbArticlePolicy::class,
         KbCategory::class => KbCategoryPolicy::class,
         Message::class => MessagePolicy::class,

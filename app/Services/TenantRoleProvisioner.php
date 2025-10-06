@@ -47,7 +47,9 @@ class TenantRoleProvisioner
         $basePermissions = [
             'tickets.view',
             'tickets.manage',
+            'tickets.redact',
             'contacts.manage',
+            'contacts.anonymize',
             'knowledge.view',
             'knowledge.manage',
             'reports.view',
