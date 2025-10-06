@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\User;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -17,5 +18,21 @@ abstract class ApiFormRequest extends FormRequest
                 'details' => $validator->errors()->toArray(),
             ],
         ], 422));
+    }
+
+    protected function userOrFail(): User
+    {
+        $user = $this->user();
+
+        if ($user instanceof User) {
+            return $user;
+        }
+
+        throw new HttpResponseException(response()->json([
+            'error' => [
+                'code' => 'ERR_UNAUTHENTICATED',
+                'message' => 'Authentication required.',
+            ],
+        ], 401));
     }
 }

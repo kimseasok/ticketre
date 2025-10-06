@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateMessageRequest;
 use App\Http\Resources\MessageResource;
 use App\Models\Message;
 use App\Models\Ticket;
+use App\Models\User;
 use App\Repositories\MessageRepository;
 use App\Services\MessageService;
 use Illuminate\Http\JsonResponse;
@@ -26,17 +27,22 @@ class MessageController extends Controller
 
     public function index(Request $request, Ticket $ticket): AnonymousResourceCollection
     {
-        $this->authorizeForRequest($request, 'viewAny', [Message::class, $ticket]);
+        $user = $this->resolveUser($request);
 
-        $user = $request->user();
+        $this->authorizeForRequest($request, $user, 'viewAny', [Message::class, $ticket]);
+
         $visibility = $request->query('visibility');
+
+        if (is_array($visibility)) {
+            $this->throwValidationError('Visibility must be a string.');
+        }
 
         if ($visibility && ! in_array($visibility, [Message::VISIBILITY_PUBLIC, Message::VISIBILITY_INTERNAL], true)) {
             $this->throwValidationError('Visibility must be public or internal.');
         }
 
         if ($visibility === Message::VISIBILITY_INTERNAL && ! $user->can('tickets.manage')) {
-            abort(403, 'You are not authorized to view internal notes.');
+            $this->throwAuthorizationError('You are not authorized to view internal notes.');
         }
 
         $messages = $user->can('tickets.manage')
@@ -48,13 +54,14 @@ class MessageController extends Controller
 
     public function store(StoreMessageRequest $request, Ticket $ticket): JsonResponse
     {
-        $this->authorizeForRequest($request, 'create', [Message::class, $ticket]);
+        $user = $this->resolveUser($request);
+
+        $this->authorizeForRequest($request, $user, 'create', [Message::class, $ticket]);
 
         $data = $request->validated();
-        $user = $request->user();
 
         if ($data['visibility'] === Message::VISIBILITY_INTERNAL && ! $user->can('tickets.manage')) {
-            abort(403, 'Only agents can create internal notes.');
+            $this->throwAuthorizationError('Only agents can create internal notes.');
         }
 
         $message = $this->service->create($ticket, [
@@ -70,7 +77,9 @@ class MessageController extends Controller
     public function show(Request $request, Ticket $ticket, Message $message): MessageResource
     {
         $this->ensureMessageBelongsToTicket($ticket, $message);
-        $this->authorizeForRequest($request, 'view', $message);
+        $user = $this->resolveUser($request);
+
+        $this->authorizeForRequest($request, $user, 'view', $message);
 
         return MessageResource::make($message->load('author'));
     }
@@ -78,15 +87,17 @@ class MessageController extends Controller
     public function update(UpdateMessageRequest $request, Ticket $ticket, Message $message): MessageResource
     {
         $this->ensureMessageBelongsToTicket($ticket, $message);
-        $this->authorizeForRequest($request, 'update', $message);
+        $user = $this->resolveUser($request);
+
+        $this->authorizeForRequest($request, $user, 'update', $message);
 
         $data = $request->validated();
 
-        if (($data['visibility'] ?? null) === Message::VISIBILITY_INTERNAL && ! $request->user()->can('tickets.manage')) {
-            abort(403, 'Only agents can set internal visibility.');
+        if (($data['visibility'] ?? null) === Message::VISIBILITY_INTERNAL && ! $user->can('tickets.manage')) {
+            $this->throwAuthorizationError('Only agents can set internal visibility.');
         }
 
-        $message = $this->service->update($message, $data, $request->user())->load('author');
+        $message = $this->service->update($message, $data, $user)->load('author');
 
         return MessageResource::make($message);
     }
@@ -94,9 +105,11 @@ class MessageController extends Controller
     public function destroy(Request $request, Ticket $ticket, Message $message): JsonResponse
     {
         $this->ensureMessageBelongsToTicket($ticket, $message);
-        $this->authorizeForRequest($request, 'delete', $message);
+        $user = $this->resolveUser($request);
 
-        $this->service->delete($message, $request->user());
+        $this->authorizeForRequest($request, $user, 'delete', $message);
+
+        $this->service->delete($message, $user);
 
         return response()->json(null, 204);
     }
@@ -118,9 +131,9 @@ class MessageController extends Controller
         ], 422));
     }
 
-    protected function authorizeForRequest(Request $request, string $ability, mixed $arguments): void
+    protected function authorizeForRequest(Request $request, User $user, string $ability, mixed $arguments): void
     {
-        $response = Gate::forUser($request->user())->inspect($ability, $arguments);
+        $response = Gate::forUser($user)->inspect($ability, $arguments);
 
         if (! $response->allowed()) {
             $this->throwAuthorizationError($response->message() ?: 'This action is unauthorized.');
@@ -135,5 +148,21 @@ class MessageController extends Controller
                 'message' => $message,
             ],
         ], 403));
+    }
+
+    protected function resolveUser(Request $request): User
+    {
+        $user = $request->user();
+
+        if ($user instanceof User) {
+            return $user;
+        }
+
+        throw new HttpResponseException(response()->json([
+            'error' => [
+                'code' => 'ERR_UNAUTHENTICATED',
+                'message' => 'Authentication required.',
+            ],
+        ], 401));
     }
 }

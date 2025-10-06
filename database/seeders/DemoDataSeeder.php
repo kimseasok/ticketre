@@ -73,19 +73,47 @@ class DemoDataSeeder extends Seeder
             'email' => 'contact@example.com',
         ]);
 
-        $category = KbCategory::factory()->create([
+        $rootCategory = KbCategory::factory()->create([
             'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
             'name' => 'Getting Started',
             'slug' => 'getting-started',
+            'order' => 1,
+        ]);
+
+        $childCategory = KbCategory::factory()->create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'parent_id' => $rootCategory->id,
+            'name' => 'Troubleshooting',
+            'slug' => 'troubleshooting',
+            'order' => 2,
         ]);
 
         KbArticle::factory()->create([
             'tenant_id' => $tenant->id,
-            'category_id' => $category->id,
+            'brand_id' => $brand->id,
+            'category_id' => $rootCategory->id,
+            'author_id' => $agent->id,
             'title' => 'Welcome to the Service Desk',
             'slug' => 'welcome',
             'content' => '<p>This is demo content. DO NOT USE IN PRODUCTION.</p>',
             'status' => 'published',
+            'excerpt' => 'Orientation article for the NON-PRODUCTION demo knowledge base.',
+            'metadata' => ['tags' => ['welcome', 'demo']],
+        ]);
+
+        KbArticle::factory()->create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'category_id' => $childCategory->id,
+            'author_id' => $agent->id,
+            'title' => 'Resetting Your Password',
+            'slug' => 'reset-password',
+            'content' => '<p>Demo reset instructions. DO NOT USE IN PRODUCTION.</p>',
+            'status' => 'draft',
+            'excerpt' => 'Internal draft instructions for resetting credentials.',
+            'metadata' => ['tags' => ['credentials', 'internal']],
         ]);
 
         $ticket = Ticket::factory()->create([

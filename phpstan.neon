@@ -9,9 +9,7 @@ parameters:
         - config
         - database
         - routes
-        - tests
     level: 8
-    checkGenericClassInNonGenericObjectType: false
     excludePaths:
         - database/migrations
         - storage
