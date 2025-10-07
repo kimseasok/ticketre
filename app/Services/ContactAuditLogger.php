@@ -6,6 +6,7 @@ use App\Models\AuditLog;
 use App\Models\Contact;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class ContactAuditLogger
 {
@@ -15,6 +16,10 @@ class ContactAuditLogger
             'snapshot' => [
                 'name' => $contact->name,
                 'company_id' => $contact->company_id,
+                'tags' => $contact->tags->pluck('name')->sort()->values()->all(),
+                'gdpr_marketing_opt_in' => $contact->gdpr_marketing_opt_in,
+                'gdpr_tracking_opt_in' => $contact->gdpr_tracking_opt_in,
+                'gdpr_consent_recorded_at' => optional($contact->gdpr_consent_recorded_at)->toISOString(),
             ],
             'sensitive' => [
                 'email_hash' => $this->hashValue($contact->email),
@@ -49,6 +54,10 @@ class ContactAuditLogger
             'snapshot' => [
                 'name' => $contact->name,
                 'company_id' => $contact->company_id,
+                'tags' => $contact->tags->pluck('name')->sort()->values()->all(),
+                'gdpr_marketing_opt_in' => $contact->gdpr_marketing_opt_in,
+                'gdpr_tracking_opt_in' => $contact->gdpr_tracking_opt_in,
+                'gdpr_consent_recorded_at' => optional($contact->gdpr_consent_recorded_at)->toISOString(),
             ],
             'sensitive' => [
                 'email_hash' => $this->hashValue($contact->email),
@@ -111,6 +120,22 @@ class ContactAuditLogger
                 continue;
             }
 
+            if ($field === 'tags') {
+                $diff['tags'] = [
+                    'old' => array_values(array_unique((array) ($original['tags'] ?? []))),
+                    'new' => $contact->tags->pluck('name')->sort()->values()->all(),
+                ];
+                continue;
+            }
+
+            if (Str::startsWith($field, 'gdpr_')) {
+                $diff[$field] = [
+                    'old' => $original[$field] ?? null,
+                    'new' => $contact->{$field},
+                ];
+                continue;
+            }
+
             $diff[$field] = [
                 'old' => $original[$field] ?? null,
                 'new' => $contact->{$field},
@@ -131,6 +156,7 @@ class ContactAuditLogger
     protected function logEvent(string $action, Contact $contact, ?User $actor, float $startedAt, array $payload): void
     {
         $durationMs = (microtime(true) - $startedAt) * 1000;
+        $correlationId = request()?->header('X-Correlation-ID');
 
         Log::channel(config('logging.default'))->info($action, [
             'contact_id' => $contact->getKey(),
@@ -140,6 +166,7 @@ class ContactAuditLogger
             'duration_ms' => round($durationMs, 2),
             'user_id' => $actor?->getKey(),
             'context' => 'contact_audit',
+            'correlation_id' => $correlationId,
         ]);
     }
 }

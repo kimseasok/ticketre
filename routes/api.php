@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\Api\AuditLogController;
+use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\ContactAnonymizationRequestController;
+use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\HealthcheckController;
 use App\Http\Controllers\Api\KbArticleController;
 use App\Http\Controllers\Api\KbCategoryController;
@@ -47,4 +49,6 @@ Route::middleware(['auth', 'tenant'])->prefix('v1')->name('api.')->group(functio
     Route::apiResource('kb-categories', KbCategoryController::class)->except(['create', 'edit']);
     Route::apiResource('kb-articles', KbArticleController::class)->except(['create', 'edit']);
     Route::apiResource('roles', RoleController::class)->except(['create', 'edit']);
+    Route::apiResource('contacts', ContactController::class)->except(['create', 'edit']);
+    Route::apiResource('companies', CompanyController::class)->except(['create', 'edit']);
 });

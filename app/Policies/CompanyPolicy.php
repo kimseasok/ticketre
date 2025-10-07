@@ -2,17 +2,17 @@
 
 namespace App\Policies;
 
-use App\Models\Contact;
+use App\Models\Company;
 use App\Models\User;
 
-class ContactPolicy
+class CompanyPolicy
 {
-    public function view(User $user, Contact $contact): bool
+    public function viewAny(User $user): bool
     {
         return $user->can('contacts.manage') || $user->can('contacts.view');
     }
 
-    public function viewAny(User $user): bool
+    public function view(User $user, Company $company): bool
     {
         return $user->can('contacts.manage') || $user->can('contacts.view');
     }
@@ -22,12 +22,12 @@ class ContactPolicy
         return $user->can('contacts.manage');
     }
 
-    public function update(User $user, Contact $contact): bool
+    public function update(User $user, Company $company): bool
     {
         return $user->can('contacts.manage');
     }
 
-    public function delete(User $user, Contact $contact): bool
+    public function delete(User $user, Company $company): bool
     {
         return $user->can('contacts.manage');
     }

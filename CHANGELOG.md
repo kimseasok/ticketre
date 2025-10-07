@@ -9,6 +9,7 @@
 - Tenant role provisioning with per-tenant RBAC APIs, Filament administration, audit logging, and OpenAPI/README documentation. (E2-F2-I1)
 - Ticket deletion and redaction workflow with approval holds, queued processing, audit logging, and REST/Filament interfaces. (E2-F7-I3)
 - Multilingual knowledge base storage with translation migrations, RBAC-aware API/Filament CRUD, audit logging, and OpenAPI documentation. (E3-F5-I2)
+- Contact and company administration with GDPR consent enforcement, tag management, REST/Filament CRUD, audit logging, and OpenAPI documentation. (E2-F1-I2)
 ### Fixed
 - Restore Pint compatibility and database credentials so CI linting and migrations succeed on MySQL and PostgreSQL.
 - Declare the application as an ES module so Vite can import `laravel-vite-plugin` during CI builds without require() failures.

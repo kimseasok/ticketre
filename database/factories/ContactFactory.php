@@ -21,6 +21,9 @@ class ContactFactory extends Factory
             'email' => $this->faker->unique()->safeEmail(),
             'phone' => $this->faker->phoneNumber(),
             'metadata' => [],
+            'gdpr_marketing_opt_in' => true,
+            'gdpr_tracking_opt_in' => $this->faker->boolean(),
+            'gdpr_consent_recorded_at' => now(),
         ];
     }
 }
