@@ -6,6 +6,7 @@ use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Support\Arr;
+use Spatie\Permission\PermissionRegistrar;
 
 class TenantRoleProvisioner
 {
@@ -32,6 +33,8 @@ class TenantRoleProvisioner
             $this->roleService->update($existing, Arr::except($definition, ['slug', 'is_system']), $actor);
         }
 
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
         if ($previousTenant) {
             app()->instance('currentTenant', $previousTenant);
         } else {
@@ -54,6 +57,8 @@ class TenantRoleProvisioner
             'knowledge.manage',
             'reports.view',
             'integrations.manage',
+            'broadcast_connections.view',
+            'broadcast_connections.manage',
             'audit_logs.view',
             'roles.view',
             'roles.manage',
@@ -77,6 +82,7 @@ class TenantRoleProvisioner
                     'contacts.manage',
                     'knowledge.view',
                     'knowledge.manage',
+                    'broadcast_connections.view',
                 ],
                 'is_system' => true,
             ],

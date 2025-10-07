@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Brand;
+use App\Models\BroadcastConnection;
 use App\Models\Company;
 use App\Models\Contact;
 use App\Models\ContactAnonymizationRequest;
@@ -195,6 +196,20 @@ class DemoDataSeeder extends Seeder
             'ip_address' => '198.51.100.42',
             'user_agent' => 'Demo Seed Browser/1.0',
         ], [], (string) Str::uuid());
+
+        BroadcastConnection::factory()->create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'user_id' => $agent->id,
+            'channel_name' => sprintf('tenants.%d.brands.%d.tickets', $tenant->id, $brand->id),
+            'status' => BroadcastConnection::STATUS_ACTIVE,
+            'latency_ms' => 32,
+            'metadata' => [
+                'note' => 'NON-PRODUCTION demo connection monitor',
+            ],
+            'last_seen_at' => now(),
+            'correlation_id' => (string) Str::uuid(),
+        ]);
 
         $ticketService = app(TicketService::class);
         $contactService = app(ContactService::class);
