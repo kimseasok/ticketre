@@ -19,6 +19,14 @@
 ## Docker
 - `make up` to start services (db, redis, meilisearch, queue, app, nginx)
 - `make down` to stop
+- Copy `.env.docker.example` to `.env.docker` to populate container-specific secrets including the Meilisearch master key and health-check configuration.
+
+## Meilisearch Infrastructure
+
+- Configuration defaults live in `config/meilisearch.php` with environment keys documented in `.env.example`. Health checks and backup paths are safe to tweak per-tenant.
+- `php artisan meilisearch:health-check` performs a JSON health probe using structured logs with correlation IDs; it is also scheduled every five minutes when `SCOUT_DRIVER=meilisearch`.
+- Backups write to `storage/app/backups/meilisearch` by default. See `docs/runbooks/meilisearch.md` for provisioning, backup rotation, and monitoring alert definitions covering uptime and indexing lag.
+- The Docker service exports persistent volume `meilisearch-data` and respects `MEILISEARCH_HEALTHCHECK_URL` so managed hosts can override the default probe target.
 
 ## Testing
 - `make test`
@@ -80,8 +88,11 @@ X-Brand: <brand-slug>
 - `GET /api/v1/kb-articles/{id}` – retrieve an article with category and author context. The response includes the selected translation alongside a `translations` collection containing every locale and a digest-friendly metadata payload.
 - `PATCH /api/v1/kb-articles/{id}` – update base metadata or synchronise translations. Passing `translations` replaces/updates locales, while including `delete: true` on an entry softly removes that locale. The `default_locale` must always resolve to an active translation.
 - `DELETE /api/v1/kb-articles/{id}` – soft delete the article and its translations while retaining audit history.
+- `GET /api/v1/kb-articles/search` – full-text search powered by Laravel Scout + Meilisearch. Filters include `locale`, `status`, `category_id`, and tenant/brand scope is enforced automatically. Responses include the standard resource payload plus optional search `score` and Meilisearch highlight snippets under `highlights`.
 
-Audit logs capture every create, update, and delete operation with hashed payload digests for observability, and structured JSON logs include correlation IDs by default. Filament exposes the same functionality via `/admin/kb-categories` and `/admin/kb-articles`, featuring tenant/brand scoped queries, validation rules, and soft-delete management. Demo data is seeded through `DemoDataSeeder` for NON-PRODUCTION environments only.
+Articles are indexed asynchronously after every create/update/delete or translation change via the `SyncKbArticleSearchDocument` job. The job retries with exponential backoff, redacts slug and query data via SHA-256 digests, and writes structured JSON logs with correlation IDs for observability.
+
+Structured JSON logs capture every knowledge base search request with hashed query digests while audit logs continue to record create/update/delete operations. Filament exposes the same functionality via `/admin/kb-categories` and `/admin/kb-articles`, featuring tenant/brand scoped queries, validation rules, and soft-delete management. Demo data is seeded through `DemoDataSeeder` for NON-PRODUCTION environments only.
 
 ## Tenant Role Management
 

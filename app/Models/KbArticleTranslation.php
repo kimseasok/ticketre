@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Jobs\SyncKbArticleSearchDocument;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -40,6 +41,29 @@ class KbArticleTranslation extends Model
                 $translation->published_at = null;
             }
         });
+
+        static::saved(function (self $translation): void {
+            static::dispatchArticleSync($translation);
+        });
+
+        static::deleted(function (self $translation): void {
+            static::dispatchArticleSync($translation);
+        });
+
+        static::restored(function (self $translation): void {
+            static::dispatchArticleSync($translation);
+        });
+    }
+
+    protected static function dispatchArticleSync(self $translation): void
+    {
+        if (! $translation->kb_article_id) {
+            return;
+        }
+
+        $correlation = request()?->header('X-Correlation-ID');
+
+        SyncKbArticleSearchDocument::dispatch($translation->kb_article_id, $correlation);
     }
 
     public function article()

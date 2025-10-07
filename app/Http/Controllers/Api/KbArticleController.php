@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\SearchKbArticlesRequest;
 use App\Http\Requests\StoreKbArticleRequest;
 use App\Http\Requests\UpdateKbArticleRequest;
 use App\Http\Resources\KbArticleResource;
+use App\Http\Resources\KbArticleSearchResource;
 use App\Models\KbArticle;
 use App\Services\KbArticleService;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -13,13 +15,73 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class KbArticleController extends Controller
 {
     public function __construct(private readonly KbArticleService $service)
     {
+    }
+
+    public function search(SearchKbArticlesRequest $request): AnonymousResourceCollection
+    {
+        $this->authorizeForRequest($request, 'viewAny', KbArticle::class);
+
+        $validated = $request->validated();
+        $limit = $validated['limit'] ?? 15;
+        $tenantId = $request->user()->tenant_id;
+        $brand = app()->bound('currentBrand') && app('currentBrand') ? app('currentBrand') : null;
+        $brandId = $brand?->getKey() ?? $request->user()->brand_id;
+
+        $builder = KbArticle::search($validated['q'])
+            ->take($limit)
+            ->orderByDesc('updated_at')
+            ->where('tenant_id', $tenantId);
+
+        if ($brandId) {
+            $builder->where('brand_id', $brandId);
+        }
+
+        if (! empty($validated['category_id'])) {
+            $builder->where('category_id', (int) $validated['category_id']);
+        }
+
+        if (! empty($validated['locale'])) {
+            $builder->where('locales', $validated['locale']);
+        }
+
+        if (! empty($validated['status'])) {
+            $builder->where('status', $validated['status']);
+        }
+
+        $startedAt = microtime(true);
+
+        $articles = $builder->get()->load(['translations', 'category', 'author']);
+
+        $correlationId = $request->header('X-Correlation-ID') ?? (string) Str::uuid();
+
+        Log::channel(config('logging.default'))->info('kb_article.search.performed', [
+            'tenant_id' => $tenantId,
+            'brand_id' => $brandId,
+            'category_id' => $validated['category_id'] ?? null,
+            'locale' => $validated['locale'] ?? null,
+            'status' => $validated['status'] ?? null,
+            'limit' => $limit,
+            'result_count' => $articles->count(),
+            'duration_ms' => round((microtime(true) - $startedAt) * 1000, 2),
+            'correlation_id' => $correlationId,
+            'query_digest' => hash('sha256', $validated['q']),
+        ]);
+
+        return KbArticleSearchResource::collection($articles)
+            ->additional([
+                'meta' => [
+                    'correlation_id' => $correlationId,
+                ],
+            ]);
     }
 
     public function index(Request $request): AnonymousResourceCollection
