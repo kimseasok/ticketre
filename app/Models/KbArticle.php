@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Traits\BelongsToBrand;
 use App\Traits\BelongsToTenant;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -80,9 +81,25 @@ class KbArticle extends Model
         return $this->belongsTo(User::class, 'author_id');
     }
 
-    public function scopePublished($query)
+    public function scopePublished(Builder $query, ?string $locale = null): Builder
     {
-        return $query->where('status', 'published');
+        return $query->whereHas('translations', function (Builder $translationQuery) use ($locale) {
+            if ($locale) {
+                $translationQuery->where('locale', $locale);
+            }
+
+            $translationQuery->where('status', 'published');
+        });
+    }
+
+    public function getTitleAttribute(): ?string
+    {
+        return $this->defaultTranslation?->title;
+    }
+
+    public function getStatusAttribute(): ?string
+    {
+        return $this->defaultTranslation?->status;
     }
 
     public function toSearchableArray(): array

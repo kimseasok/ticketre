@@ -48,6 +48,7 @@ class TenantRoleProvisioner
             'tickets.view',
             'tickets.manage',
             'tickets.redact',
+            'contacts.view',
             'contacts.manage',
             'contacts.anonymize',
             'knowledge.view',
@@ -74,6 +75,7 @@ class TenantRoleProvisioner
                 'permissions' => [
                     'tickets.view',
                     'tickets.manage',
+                    'contacts.view',
                     'contacts.manage',
                     'knowledge.view',
                     'knowledge.manage',
@@ -87,6 +89,7 @@ class TenantRoleProvisioner
                 'permissions' => [
                     'tickets.view',
                     'reports.view',
+                    'contacts.view',
                     'knowledge.view',
                 ],
                 'is_system' => true,

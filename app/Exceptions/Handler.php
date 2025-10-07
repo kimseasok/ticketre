@@ -175,4 +175,20 @@ class Handler extends ExceptionHandler
 
         return 'An unexpected error occurred.';
     }
+
+    protected function unauthenticated($request, AuthenticationException $exception)
+    {
+        $path = method_exists($request, 'getPathInfo') ? ltrim((string) $request->getPathInfo(), '/') : '';
+
+        if ($request->expectsJson() || str_starts_with($path, 'api/')) {
+            return response()->json([
+                'error' => [
+                    'code' => 'ERR_UNAUTHENTICATED',
+                    'message' => $exception->getMessage() ?: 'Authentication required.',
+                ],
+            ], 401);
+        }
+
+        return parent::unauthenticated($request, $exception);
+    }
 }

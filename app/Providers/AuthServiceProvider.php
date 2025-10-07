@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\AuditLog;
+use App\Models\Company;
 use App\Models\Contact;
 use App\Models\ContactAnonymizationRequest;
 use App\Models\KbArticle;
@@ -14,6 +15,7 @@ use App\Models\TicketEvent;
 use App\Models\TicketDeletionRequest;
 use App\Policies\AuditLogPolicy;
 use App\Policies\ContactAnonymizationRequestPolicy;
+use App\Policies\CompanyPolicy;
 use App\Policies\ContactPolicy;
 use App\Policies\KbArticlePolicy;
 use App\Policies\KbCategoryPolicy;
@@ -31,6 +33,7 @@ class AuthServiceProvider extends ServiceProvider
         Ticket::class => TicketPolicy::class,
         TicketEvent::class => TicketEventPolicy::class,
         Contact::class => ContactPolicy::class,
+        Company::class => CompanyPolicy::class,
         ContactAnonymizationRequest::class => ContactAnonymizationRequestPolicy::class,
         TicketDeletionRequest::class => TicketDeletionRequestPolicy::class,
         KbArticle::class => KbArticlePolicy::class,

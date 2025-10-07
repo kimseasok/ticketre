@@ -180,7 +180,12 @@ class DemoDataSeeder extends Seeder
         $ticketService = app(TicketService::class);
         $contactService = app(ContactService::class);
         $ticketService->update($ticket, ['priority' => 'high', 'workflow_state' => 'triage'], $admin);
-        $contactService->update($contact, ['phone' => '+15550000000'], $admin);
+        $contactService->update($contact, [
+            'phone' => '+15550000000',
+            'tags' => ['vip', 'demo'],
+            'gdpr_marketing_opt_in' => true,
+            'gdpr_tracking_opt_in' => true,
+        ], $admin);
 
         $gdprContact = Contact::create([
             'tenant_id' => $tenant->id,
@@ -188,6 +193,8 @@ class DemoDataSeeder extends Seeder
             'name' => 'GDPR Demo Contact',
             'email' => 'gdpr-demo@example.com',
             'metadata' => [],
+            'gdpr_marketing_opt_in' => false,
+            'gdpr_tracking_opt_in' => false,
         ]);
 
         $anonymizationRequest = ContactAnonymizationRequest::create([

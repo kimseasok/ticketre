@@ -135,6 +135,15 @@ Filament exposes the same functionality at `/admin/contact-anonymization-request
 
 > The demo seeder provisions a NON-PRODUCTION example request showing the post-anonymization state. Run `php artisan queue:work` locally to process new requests automatically.
 
+## Contact Directory Administration
+
+Admins and agents can manage tenant contacts and companies end-to-end with RBAC, audit logging, and observability baked in:
+
+- **Filament UI** – `/admin/companies` and `/admin/contacts` surface searchable tables, GDPR consent toggles, tag management, and soft-delete bulk actions. Tag inputs automatically create tenant-scoped records when a new label is entered.
+- **REST API** – `GET/POST /api/v1/companies` and `GET/POST /api/v1/contacts` expose tenant-scoped CRUD with optional `search`, `company_id`, `tags`, and `marketing_opt_in` filters. `PATCH`/`DELETE` endpoints follow the `{ "error": { "code", "message" } }` schema when authorization or validation fails.
+- **Validation & GDPR** – contact emails must be unique per tenant (soft deletes respected) and every request must specify `gdpr_marketing_opt_in` plus `gdpr_tracking_opt_in`. Consent timestamps are auto-populated whenever opt-in flags change.
+- **Audit & Logging** – create/update/delete actions write hashed email and domain digests to `audit_logs`, record applied tags, and emit structured JSON logs with the supplied `X-Correlation-ID` for observability.
+
 ## Ticket Deletion & Redaction Workflow
 
 Tickets that contain personal data can be purged while preserving operational analytics via the queued deletion workflow. The new `tickets.redact` permission is provisioned for tenant Admins and governs both the API and Filament surfaces.
