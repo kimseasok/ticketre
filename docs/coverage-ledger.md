@@ -10,4 +10,4 @@
 | Integrations | Webhook model | FactoryTest.php |
 | Admin & Portal | FilamentServiceProvider, resources | ContactCrudTest.php, TicketCrudTest.php |
 | Security | Policies, AuthServiceProvider, session config | RbacPolicyTest.php, AuthTest.php |
-| DevOps & Infra | Dockerfile, docker-compose, CI workflow, Makefile | HealthcheckTest.php (runtime), CI config |
+| DevOps & Infra | Dockerfile, docker-compose, CI workflow, Makefile, config/meilisearch.php | HealthcheckTest.php (runtime), MeilisearchInfrastructureTest.php |

@@ -51,6 +51,7 @@ Route::middleware(['auth', 'tenant'])->prefix('v1')->name('api.')->group(functio
     ])->name('ticket-deletion-requests.cancel');
 
     Route::apiResource('kb-categories', KbCategoryController::class)->except(['create', 'edit']);
+    Route::get('kb-articles/search', [KbArticleController::class, 'search'])->name('kb-articles.search');
     Route::apiResource('kb-articles', KbArticleController::class)->except(['create', 'edit']);
     Route::apiResource('roles', RoleController::class)->except(['create', 'edit']);
     Route::apiResource('ticket-submissions', TicketSubmissionController::class)->only(['index', 'show']);

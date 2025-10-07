@@ -1116,6 +1116,71 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/kb-articles/search:
+    get:
+      summary: Search knowledge base articles
+      tags: [Knowledge Base]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 255
+        - name: locale
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, published, archived]
+        - name: category_id
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/KbArticleSearchResult'
+                  meta:
+                    type: object
+                    properties:
+                      correlation_id:
+                        type: string
+                        description: Correlation identifier echoed from the request header or generated server-side.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /api/v1/kb-articles:
     get:
       summary: List knowledge base articles
@@ -1670,6 +1735,20 @@ components:
               type: integer
             name:
               type: string
+    KbArticleSearchResult:
+      allOf:
+        - $ref: '#/components/schemas/KbArticle'
+        - type: object
+          properties:
+            score:
+              type: number
+              format: float
+              nullable: true
+            highlights:
+              type: object
+              nullable: true
+              additionalProperties: true
+              description: Highlight snippets provided by Meilisearch for matching fields.
     KbArticleTranslation:
       type: object
       properties:
@@ -2103,6 +2182,35 @@ components:
               type: array
               items:
                 type: string
+    MeilisearchHealthLog:
+      type: object
+      description: Structured JSON log emitted by the `meilisearch:health-check` scheduler/command.
+      required: [correlation_id, duration_ms, host, http_status, status]
+      properties:
+        correlation_id:
+          type: string
+          format: uuid
+          description: Prefixed correlation identifier used to trace related logs.
+        duration_ms:
+          type: integer
+          minimum: 0
+          description: Total request duration in milliseconds.
+        host:
+          type: string
+          format: uri
+          description: Base Meilisearch host that was probed.
+        http_status:
+          type: integer
+          minimum: 100
+          maximum: 599
+          description: HTTP status returned by the health endpoint.
+        status:
+          type: string
+          description: Health status reported by Meilisearch (`available`, `ready`, `maintenance`).
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp captured by the logging pipeline.
     ErrorResponse:
       type: object
       properties:
