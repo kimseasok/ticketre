@@ -6,12 +6,18 @@ use App\Http\Controllers\Api\HealthcheckController;
 use App\Http\Controllers\Api\KbArticleController;
 use App\Http\Controllers\Api\KbCategoryController;
 use App\Http\Controllers\Api\MessageController;
+use App\Http\Controllers\Api\PortalTicketSubmissionController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\TicketController;
 use App\Http\Controllers\Api\TicketDeletionRequestController;
+use App\Http\Controllers\Api\TicketSubmissionController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/v1/health', [HealthcheckController::class, 'show'])->name('api.health');
+
+Route::middleware(['tenant'])->prefix('v1/portal')->name('api.portal.')->group(function () {
+    Route::post('tickets', [PortalTicketSubmissionController::class, 'store'])->name('tickets.store');
+});
 
 Route::middleware(['auth', 'tenant'])->prefix('v1')->name('api.')->group(function () {
     Route::scopeBindings()->group(function () {
@@ -47,4 +53,5 @@ Route::middleware(['auth', 'tenant'])->prefix('v1')->name('api.')->group(functio
     Route::apiResource('kb-categories', KbCategoryController::class)->except(['create', 'edit']);
     Route::apiResource('kb-articles', KbArticleController::class)->except(['create', 'edit']);
     Route::apiResource('roles', RoleController::class)->except(['create', 'edit']);
+    Route::apiResource('ticket-submissions', TicketSubmissionController::class)->only(['index', 'show']);
 });

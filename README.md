@@ -46,6 +46,16 @@ API responses follow the `{ "data": { ... } }` envelope, while errors follow `{ 
 
 Filament administrators can manage the same records via `/admin/messages`, with filters for tenant, brand, and visibility pre-configured.
 
+## Customer Portal Ticket Submission
+
+Give contacts a branded, unauthenticated portal for raising support tickets while keeping internal agents in control of triage.
+
+- **Public API** – `POST /api/v1/portal/tickets` accepts JSON or multipart form payloads with the standard tenant headers. Requests capture `name`, `email`, `subject`, `message`, optional `tags` (up to five), and up to five attachments. Successful submissions return a confirmation payload with a stable reference, correlation ID, and confirmation link. Validation errors respond with `ERR_VALIDATION` and field details.
+- **Portal UI** – `/portal/tickets/create` renders the submission form for the active tenant/brand, surfaces inline validation errors, and redirects to `/portal/tickets/{id}/confirmation` with a friendly reference code once accepted. Confirmation emails use the `TicketPortalSubmissionConfirmation` notification template and redact PII in structured logs.
+- **Agent surfaces** – Authenticated users with `tickets.view` or `tickets.manage` may review submissions via `GET /api/v1/ticket-submissions` (with optional `channel`, `status`, and `search` filters) or Filament at `/admin/ticket-submissions`. Records display correlation IDs, hashed IP metadata, attachment counts, and linked ticket/contact context with eager-loaded relations to prevent N+1 queries.
+
+All responses continue to use the `{ "data": { ... } }` envelope and include the structured JSON logging correlation ID. Tenant isolation is enforced by middleware, and demo seeds (`DemoDataSeeder`) provision NON-PRODUCTION sample submissions for manual testing.
+
 ## Knowledge Base Categories & Articles
 
 The knowledge base module introduces hierarchical categories with closure table metadata and brand-aware article publishing. All APIs require authentication plus tenant and optional brand headers:
