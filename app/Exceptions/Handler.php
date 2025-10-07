@@ -77,6 +77,20 @@ class Handler extends ExceptionHandler
         return parent::render($request, $e);
     }
 
+    protected function unauthenticated($request, AuthenticationException $exception)
+    {
+        if ($this->shouldReturnJson($request, $exception)) {
+            return response()->json([
+                'error' => [
+                    'code' => 'ERR_UNAUTHENTICATED',
+                    'message' => 'Authentication required.',
+                ],
+            ], 401);
+        }
+
+        return parent::unauthenticated($request, $exception);
+    }
+
     protected function shouldReturnJson($request, Throwable $e): bool
     {
         if (method_exists($request, 'expectsJson') && $request->expectsJson()) {

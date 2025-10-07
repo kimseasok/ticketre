@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\EnsurePermission;
 use App\Http\Requests\SearchKbArticlesRequest;
 use App\Http\Requests\StoreKbArticleRequest;
 use App\Http\Requests\UpdateKbArticleRequest;
@@ -24,6 +25,8 @@ class KbArticleController extends Controller
 {
     public function __construct(private readonly KbArticleService $service)
     {
+        $this->middleware(EnsurePermission::class.':knowledge.view')->only(['index', 'show', 'search']);
+        $this->middleware(EnsurePermission::class.':knowledge.manage')->only(['store', 'update', 'destroy']);
     }
 
     public function search(SearchKbArticlesRequest $request): AnonymousResourceCollection

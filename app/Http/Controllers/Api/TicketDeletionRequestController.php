@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\EnsurePermission;
 use App\Http\Requests\ApproveTicketDeletionRequest;
 use App\Http\Requests\CancelTicketDeletionRequest;
 use App\Http\Requests\StoreTicketDeletionRequest;
@@ -20,6 +21,13 @@ class TicketDeletionRequestController extends Controller
 {
     public function __construct(private readonly TicketDeletionService $service)
     {
+        $this->middleware(EnsurePermission::class.':tickets.redact')->only([
+            'index',
+            'store',
+            'show',
+            'approve',
+            'cancel',
+        ]);
     }
 
     public function index(Request $request): AnonymousResourceCollection

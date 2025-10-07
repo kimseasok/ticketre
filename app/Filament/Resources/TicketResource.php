@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\HandlesAuthorization;
 use App\Filament\Resources\TicketResource\Pages;
 use App\Models\Ticket;
 use App\Services\TicketService;
@@ -17,6 +18,8 @@ use Illuminate\Support\Facades\Auth;
 
 class TicketResource extends Resource
 {
+    use HandlesAuthorization;
+
     protected static ?string $model = Ticket::class;
 
     protected static ?string $navigationGroup = 'Ticketing';
@@ -112,5 +115,30 @@ class TicketResource extends Resource
         /** @var TicketService $service */
         $service = App::make(TicketService::class);
         $service->delete($ticket, $user);
+    }
+
+    public static function canViewAny(): bool
+    {
+        return static::userCan('tickets.view');
+    }
+
+    public static function canCreate(): bool
+    {
+        return static::userCan('tickets.manage');
+    }
+
+    public static function canEdit($record): bool
+    {
+        return static::userCan('tickets.manage');
+    }
+
+    public static function canDelete($record): bool
+    {
+        return static::userCan('tickets.manage');
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return static::canViewAny();
     }
 }

@@ -45,11 +45,15 @@ class TenantRoleProvisioner
     protected function definitions(): array
     {
         $basePermissions = [
+            'admin.access',
             'tickets.view',
             'tickets.manage',
             'tickets.redact',
+            'contacts.view',
             'contacts.manage',
             'contacts.anonymize',
+            'companies.view',
+            'companies.manage',
             'knowledge.view',
             'knowledge.manage',
             'reports.view',
@@ -57,6 +61,10 @@ class TenantRoleProvisioner
             'audit_logs.view',
             'roles.view',
             'roles.manage',
+            'permissions.view',
+            'permissions.manage',
+            'teams.view',
+            'teams.manage',
         ];
 
         return [
@@ -72,12 +80,18 @@ class TenantRoleProvisioner
                 'slug' => 'agent',
                 'description' => 'Work operational tickets, manage contacts, and publish knowledge base content for the tenant.',
                 'permissions' => [
+                    'admin.access',
                     'tickets.view',
                     'tickets.manage',
+                    'contacts.view',
                     'contacts.manage',
+                    'companies.view',
+                    'companies.manage',
                     'knowledge.view',
-                    'knowledge.manage',
-                ],
+                'knowledge.manage',
+                'permissions.view',
+                'teams.view',
+            ],
                 'is_system' => true,
             ],
             [
@@ -87,7 +101,10 @@ class TenantRoleProvisioner
                 'permissions' => [
                     'tickets.view',
                     'reports.view',
+                    'contacts.view',
+                    'companies.view',
                     'knowledge.view',
+                    'teams.view',
                 ],
                 'is_system' => true,
             ],

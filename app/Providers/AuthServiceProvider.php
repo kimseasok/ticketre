@@ -5,10 +5,13 @@ namespace App\Providers;
 use App\Models\AuditLog;
 use App\Models\Contact;
 use App\Models\ContactAnonymizationRequest;
+use App\Models\Company;
 use App\Models\KbArticle;
 use App\Models\KbCategory;
 use App\Models\Message;
 use App\Models\Role;
+use App\Models\Permission;
+use App\Models\Team;
 use App\Models\Ticket;
 use App\Models\TicketEvent;
 use App\Models\TicketSubmission;
@@ -16,10 +19,13 @@ use App\Models\TicketDeletionRequest;
 use App\Policies\AuditLogPolicy;
 use App\Policies\ContactAnonymizationRequestPolicy;
 use App\Policies\ContactPolicy;
+use App\Policies\CompanyPolicy;
 use App\Policies\KbArticlePolicy;
 use App\Policies\KbCategoryPolicy;
 use App\Policies\MessagePolicy;
 use App\Policies\RolePolicy;
+use App\Policies\PermissionPolicy;
+use App\Policies\TeamPolicy;
 use App\Policies\TicketDeletionRequestPolicy;
 use App\Policies\TicketEventPolicy;
 use App\Policies\TicketPolicy;
@@ -33,6 +39,7 @@ class AuthServiceProvider extends ServiceProvider
         Ticket::class => TicketPolicy::class,
         TicketEvent::class => TicketEventPolicy::class,
         Contact::class => ContactPolicy::class,
+        Company::class => CompanyPolicy::class,
         ContactAnonymizationRequest::class => ContactAnonymizationRequestPolicy::class,
         TicketDeletionRequest::class => TicketDeletionRequestPolicy::class,
         KbArticle::class => KbArticlePolicy::class,
@@ -40,7 +47,9 @@ class AuthServiceProvider extends ServiceProvider
         Message::class => MessagePolicy::class,
         AuditLog::class => AuditLogPolicy::class,
         Role::class => RolePolicy::class,
+        Permission::class => PermissionPolicy::class,
         TicketSubmission::class => TicketSubmissionPolicy::class,
+        Team::class => TeamPolicy::class,
     ];
 
     public function boot(): void

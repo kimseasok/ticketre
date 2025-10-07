@@ -5,6 +5,9 @@ namespace App\Providers;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use App\Http\Middleware\EnsurePermission;
+use App\Http\Middleware\Authenticate;
+use App\Http\Middleware\BindAuthenticatedTenant;
 
 class FilamentServiceProvider extends PanelProvider
 {
@@ -24,6 +27,11 @@ class FilamentServiceProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->middleware([
                 'web',
+            ])
+            ->authMiddleware([
+                Authenticate::class,
+                BindAuthenticatedTenant::class,
+                EnsurePermission::class.':admin.access',
             ])
             ->authGuard('web')
             ->sidebarCollapsibleOnDesktop();

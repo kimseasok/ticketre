@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\HandlesAuthorization;
 use App\Filament\Resources\TicketEventResource\Pages;
 use App\Models\TicketEvent;
 use Filament\Forms;
@@ -14,6 +15,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class TicketEventResource extends Resource
 {
+    use HandlesAuthorization;
+
     protected static ?string $model = TicketEvent::class;
 
     protected static ?string $navigationGroup = 'Ticketing';
@@ -109,5 +112,30 @@ class TicketEventResource extends Resource
         }
 
         return $query;
+    }
+
+    public static function canViewAny(): bool
+    {
+        return static::userCan('tickets.view');
+    }
+
+    public static function canCreate(): bool
+    {
+        return static::userCan('tickets.manage');
+    }
+
+    public static function canEdit($record): bool
+    {
+        return static::userCan('tickets.manage');
+    }
+
+    public static function canDelete($record): bool
+    {
+        return static::userCan('tickets.manage');
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return static::canViewAny();
     }
 }

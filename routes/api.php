@@ -2,12 +2,16 @@
 
 use App\Http\Controllers\Api\AuditLogController;
 use App\Http\Controllers\Api\ContactAnonymizationRequestController;
+use App\Http\Controllers\Api\ContactController;
+use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\HealthcheckController;
 use App\Http\Controllers\Api\KbArticleController;
 use App\Http\Controllers\Api\KbCategoryController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\PortalTicketSubmissionController;
 use App\Http\Controllers\Api\RoleController;
+use App\Http\Controllers\Api\PermissionController;
+use App\Http\Controllers\Api\TeamController;
 use App\Http\Controllers\Api\TicketController;
 use App\Http\Controllers\Api\TicketDeletionRequestController;
 use App\Http\Controllers\Api\TicketSubmissionController;
@@ -22,6 +26,9 @@ Route::middleware(['tenant'])->prefix('v1/portal')->name('api.portal.')->group(f
 Route::middleware(['auth', 'tenant'])->prefix('v1')->name('api.')->group(function () {
     Route::scopeBindings()->group(function () {
         Route::apiResource('tickets', TicketController::class)->only(['index', 'store', 'show', 'update']);
+
+        Route::apiResource('contacts', ContactController::class)->except(['create', 'edit']);
+        Route::apiResource('companies', CompanyController::class)->except(['create', 'edit']);
 
         Route::get('tickets/{ticket}/events', [TicketController::class, 'events'])->name('tickets.events.index');
         Route::post('tickets/{ticket}/events', [TicketController::class, 'storeEvent'])->name('tickets.events.store');
@@ -54,5 +61,7 @@ Route::middleware(['auth', 'tenant'])->prefix('v1')->name('api.')->group(functio
     Route::get('kb-articles/search', [KbArticleController::class, 'search'])->name('kb-articles.search');
     Route::apiResource('kb-articles', KbArticleController::class)->except(['create', 'edit']);
     Route::apiResource('roles', RoleController::class)->except(['create', 'edit']);
+    Route::apiResource('permissions', PermissionController::class)->except(['create', 'edit']);
+    Route::apiResource('teams', TeamController::class)->except(['create', 'edit']);
     Route::apiResource('ticket-submissions', TicketSubmissionController::class)->only(['index', 'show']);
 });

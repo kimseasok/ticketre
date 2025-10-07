@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\HandlesAuthorization;
 use App\Filament\Resources\TicketDeletionRequestResource\Pages;
 use App\Models\Brand;
 use App\Models\Ticket;
@@ -17,6 +18,8 @@ use Illuminate\Support\Arr;
 
 class TicketDeletionRequestResource extends Resource
 {
+    use HandlesAuthorization;
+
     protected static ?string $model = TicketDeletionRequest::class;
 
     protected static ?string $navigationGroup = 'Compliance';
@@ -187,5 +190,20 @@ class TicketDeletionRequestResource extends Resource
     public static function canEdit($record): bool
     {
         return false;
+    }
+
+    public static function canViewAny(): bool
+    {
+        return static::userCan('tickets.redact');
+    }
+
+    public static function canCreate(): bool
+    {
+        return static::userCan('tickets.redact');
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return static::canViewAny();
     }
 }

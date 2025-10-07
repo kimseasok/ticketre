@@ -32,5 +32,12 @@ class Kernel extends HttpKernel
     protected $routeMiddleware = [
         'auth' => \App\Http\Middleware\Authenticate::class,
         'tenant' => \App\Http\Middleware\ResolveTenant::class,
+        'permission' => \App\Http\Middleware\EnsurePermission::class,
+    ];
+
+    protected $middlewareAliases = [
+        'auth' => \App\Http\Middleware\Authenticate::class,
+        'tenant' => \App\Http\Middleware\ResolveTenant::class,
+        'permission' => \App\Http\Middleware\EnsurePermission::class,
     ];
 }

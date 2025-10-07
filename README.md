@@ -54,6 +54,22 @@ API responses follow the `{ "data": { ... } }` envelope, while errors follow `{ 
 
 Filament administrators can manage the same records via `/admin/messages`, with filters for tenant, brand, and visibility pre-configured.
 
+## Contact & Company Directory
+
+Tenant administrators can now manage a centralized contact directory with GDPR-aware consent tracking, hashed audit trails, and reusable tags:
+
+- `GET /api/v1/contacts` – list contacts for the active tenant with optional `search`, `company_id`, `gdpr_consent`, and `tag_ids` filters. (Requires `contacts.view` or `contacts.manage`).
+- `POST /api/v1/contacts` – create a contact with required GDPR consent metadata, optional company linkage, and tag assignments. (Requires `contacts.manage`).
+- `GET /api/v1/contacts/{contact}` / `PATCH /api/v1/contacts/{contact}` / `DELETE /api/v1/contacts/{contact}` – inspect, update, or soft delete a contact while preserving hashed audit trails and structured JSON logs. (Requires `contacts.view`/`contacts.manage`).
+- `GET /api/v1/companies` – list tenant companies with search support. (Requires `companies.view` or `contacts.view`).
+- `POST /api/v1/companies` / `PATCH /api/v1/companies/{company}` / `DELETE /api/v1/companies/{company}` – manage company records with per-tenant uniqueness on name/domain and audit logging. (Requires `companies.manage` or `contacts.manage`).
+
+Every response follows the `{ "data": { ... } }` envelope and error payloads continue to use `{ "error": { "code", "message" } }`. Requests must include the `X-Tenant` header; optional `X-Brand` headers are ignored for contacts/companies because data is tenant scoped.
+
+Structured audit entries record hashed emails, phone numbers, consent notes, and tag diffs, while API logs emit correlation IDs for observability. Consent method/source are mandatory whenever `gdpr_consent` is true, and the system automatically timestamps consent when missing. Contacts can be tagged with tenant-owned labels to drive segmentation—Filament exposes inline tag creation with hashed metadata.
+
+Filament administrators manage the same data via `/admin/contacts` and the new `/admin/companies` resource. Both resources respect tenant scoping, surface consent status, support bulk actions, and redaction-safe metadata entry. Only users with `contacts.manage`/`companies.manage` may mutate records, while viewers granted `contacts.view` or `companies.view` receive read-only dashboards.
+
 ## Customer Portal Ticket Submission
 
 Give contacts a branded, unauthenticated portal for raising support tickets while keeping internal agents in control of triage.
@@ -110,6 +126,44 @@ X-Tenant: <tenant-slug>
 ```
 
 Filament administrators can manage the same data under `/admin/roles`. The resource respects tenant scoping automatically, disables destructive actions for system roles, and surfaces permission counts to help audit access. Each create/update/delete call emits a structured JSON log with correlation IDs and writes a `role.*` audit entry for traceability.
+
+### Permission catalog
+
+Spatie permissions are now first-class resources so that tenants can extend the system catalog without custom code. Two new permissions—`permissions.view` and `permissions.manage`—are provisioned automatically for Admins (view-only access is granted to Agents). Endpoints follow the standard API envelope and require tenant headers:
+
+- `GET /api/v1/permissions` – list system and tenant-specific permissions in scope (requires `permissions.view`). Supports optional `search` and `system_only` query parameters.
+- `POST /api/v1/permissions` – create a tenant permission (requires `permissions.manage`). Names and slugs are unique across both system and tenant scopes and audit logs capture hashed descriptions.
+- `GET /api/v1/permissions/{permission}` – retrieve metadata for a permission that is either global or owned by the active tenant (requires `permissions.view`).
+- `PATCH /api/v1/permissions/{permission}` – update description or guard metadata for tenant-owned permissions (requires `permissions.manage`). System permissions return `ERR_IMMUTABLE_PERMISSION`.
+- `DELETE /api/v1/permissions/{permission}` – remove tenant-owned permissions with audit + structured logs. System permissions return `ERR_IMMUTABLE_PERMISSION` with status `422`.
+
+Filament exposes the same catalogue at `/admin/permissions`, with inline validation for duplicates, tenant-aware filtering, and toast errors when attempting to mutate system records. Permission caching is now tenant- and brand-aware via a custom registrar that salts Spatie’s cache keys using the current scope to avoid cross-tenant bleed-through while retaining 24-hour cache lifetimes.
+
+### RBAC middleware and access attempts
+
+- A dedicated `permission` middleware now guards every authenticated API route and Filament panel request. Permissions are resolved via Spatie gates with tenant and brand alignment checks before the controller executes.
+- A new `admin.access` permission determines who can load the Filament admin experience. The system `Admin` and `Agent` roles are seeded with this capability; custom roles may opt in through the existing role APIs.
+- Failed authorization attempts are recorded in the new `access_attempts` table with hashed IP/user-agent values, correlation IDs, and the exact permission that was denied. These rows provide a lightweight audit trail for SOC analysts without persisting raw PII.
+- The same events emit structured JSON logs under the `authorization_attempt` key so central logging can raise alerts for repeated failures.
+
+## Team Management
+
+Model collaborative support pods with tenant- and brand-aware teams:
+
+- `GET /api/v1/teams` – list teams for the active tenant/brand (requires `teams.view`). Supports optional `search` and `brand_id` filters.
+- `POST /api/v1/teams` – create a team (requires `teams.manage`). Payload accepts `name`, optional `brand_id`, `default_queue`, `description`, and a `members` array of `{ user_id, role, is_primary }` entries.
+- `GET /api/v1/teams/{team}` – retrieve a team including membership roster (requires `teams.view`).
+- `PATCH /api/v1/teams/{team}` – update metadata or replace membership assignments (requires `teams.manage`).
+- `DELETE /api/v1/teams/{team}` – soft delete a team and its memberships (requires `teams.manage`).
+
+All endpoints enforce the standard `{ "data": { ... } }` success envelope and `{ "error": { "code", "message" } }` error schema with tenant headers:
+
+```http
+X-Tenant: <tenant-slug>
+X-Brand: <brand-slug>
+```
+
+Teams emit `team.*` audit log entries that redact descriptions to hashed digests and log structured JSON with correlation IDs, membership counts, and timing metadata. Filament exposes the same CRUD via `/admin/teams`, including brand filters, member repeaters, and soft-delete management. The NON-PRODUCTION demo seeder provisions Tier 1 and Escalation teams so environments can validate RBAC and audit trails quickly.
 ## Audit Log Writers & Viewer
 
 Every ticket and contact create, update, and delete action now produces an audit trail entry with tenant, optional brand, actor, and a redacted change set:

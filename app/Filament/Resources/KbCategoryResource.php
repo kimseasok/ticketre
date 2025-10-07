@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\HandlesAuthorization;
 use App\Filament\Resources\KbCategoryResource\Pages;
 use App\Models\KbCategory;
 use Filament\Forms;
@@ -15,6 +16,8 @@ use Illuminate\Validation\Rule;
 
 class KbCategoryResource extends Resource
 {
+    use HandlesAuthorization;
+
     protected static ?string $model = KbCategory::class;
 
     protected static ?string $navigationGroup = 'Knowledge Base';
@@ -112,5 +115,30 @@ class KbCategoryResource extends Resource
         }
 
         return $query;
+    }
+
+    public static function canViewAny(): bool
+    {
+        return static::userCan('knowledge.view');
+    }
+
+    public static function canCreate(): bool
+    {
+        return static::userCan('knowledge.manage');
+    }
+
+    public static function canEdit($record): bool
+    {
+        return static::userCan('knowledge.manage');
+    }
+
+    public static function canDelete($record): bool
+    {
+        return static::userCan('knowledge.manage');
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return static::canViewAny();
     }
 }

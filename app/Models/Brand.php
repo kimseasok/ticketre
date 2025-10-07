@@ -29,4 +29,9 @@ class Brand extends Model
     {
         return $this->hasMany(Ticket::class);
     }
+
+    public function teams()
+    {
+        return $this->hasMany(Team::class);
+    }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\HandlesAuthorization;
 use App\Filament\Resources\RoleResource\Pages;
 use App\Models\Role;
 use Filament\Forms;
@@ -10,10 +11,12 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Spatie\Permission\Models\Permission;
+use App\Models\Permission;
 
 class RoleResource extends Resource
 {
+    use HandlesAuthorization;
+
     protected static ?string $model = Role::class;
 
     protected static ?string $navigationGroup = 'Administration';
@@ -113,5 +116,30 @@ class RoleResource extends Resource
         }
 
         return $query;
+    }
+
+    public static function canViewAny(): bool
+    {
+        return static::userCan('roles.view');
+    }
+
+    public static function canCreate(): bool
+    {
+        return static::userCan('roles.manage');
+    }
+
+    public static function canEdit($record): bool
+    {
+        return static::userCan('roles.manage');
+    }
+
+    public static function canDelete($record): bool
+    {
+        return static::userCan('roles.manage');
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return static::canViewAny();
     }
 }

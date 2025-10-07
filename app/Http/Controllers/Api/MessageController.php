@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\EnsurePermission;
 use App\Http\Requests\StoreMessageRequest;
 use App\Http\Requests\UpdateMessageRequest;
 use App\Http\Resources\MessageResource;
@@ -22,6 +23,8 @@ class MessageController extends Controller
         private readonly MessageRepository $repository,
         private readonly MessageService $service
     ) {
+        $this->middleware(EnsurePermission::class.':tickets.view')->only(['index', 'show']);
+        $this->middleware(EnsurePermission::class.':tickets.manage')->only(['store', 'update', 'destroy']);
     }
 
     public function index(Request $request, Ticket $ticket): AnonymousResourceCollection

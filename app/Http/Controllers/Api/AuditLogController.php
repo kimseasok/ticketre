@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\EnsurePermission;
 use App\Http\Requests\AuditLogIndexRequest;
 use App\Http\Resources\AuditLogResource;
 use App\Models\AuditLog;
@@ -18,6 +19,11 @@ use Illuminate\Support\Facades\Gate;
 
 class AuditLogController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(EnsurePermission::class.':audit_logs.view')->only('index');
+    }
+
     public function index(AuditLogIndexRequest $request): AnonymousResourceCollection
     {
         $this->authorizeForRequest($request, 'viewAny', AuditLog::class);

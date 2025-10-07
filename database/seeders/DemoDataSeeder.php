@@ -6,6 +6,7 @@ use App\Models\Brand;
 use App\Models\Company;
 use App\Models\Contact;
 use App\Models\ContactAnonymizationRequest;
+use App\Models\Permission;
 use App\Models\KbCategory;
 use App\Models\Message;
 use App\Models\Tenant;
@@ -16,10 +17,12 @@ use App\Models\TicketSubmission;
 use App\Models\User;
 use App\Services\ContactService;
 use App\Services\KbArticleService;
+use App\Services\PermissionService;
 use App\Services\TenantRoleProvisioner;
 use App\Services\TicketLifecycleBroadcaster;
 use App\Services\PortalTicketSubmissionService;
 use App\Services\TicketService;
+use App\Services\TeamService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -76,6 +79,41 @@ class DemoDataSeeder extends Seeder
             'password' => Hash::make('password'),
         ]);
         $viewer->assignRole('Viewer');
+
+        /** @var PermissionService $permissionService */
+        $permissionService = app(PermissionService::class);
+
+        if (! Permission::query()->where('name', 'NON-PRODUCTION escalate.override')->exists()) {
+            $permissionService->create([
+                'name' => 'NON-PRODUCTION escalate.override',
+                'description' => 'Demo override permission for NON-PRODUCTION runbooks.',
+            ], $admin);
+        }
+
+        /** @var TeamService $teamService */
+        $teamService = app(TeamService::class);
+
+        $teamService->create([
+            'name' => 'NON-PRODUCTION Tier 1 Support',
+            'brand_id' => $brand->id,
+            'default_queue' => 'general',
+            'description' => 'Seeded frontline team for demo tenant workflows. DO NOT USE IN PRODUCTION.',
+            'members' => [
+                ['user_id' => $admin->id, 'role' => 'Team Lead', 'is_primary' => true],
+                ['user_id' => $agent->id, 'role' => 'Agent', 'is_primary' => true],
+            ],
+        ], $admin);
+
+        $teamService->create([
+            'name' => 'NON-PRODUCTION Escalations',
+            'brand_id' => $brand->id,
+            'default_queue' => 'vip',
+            'description' => 'Escalation pod for seeded demonstrations only. DO NOT USE IN PRODUCTION.',
+            'members' => [
+                ['user_id' => $admin->id, 'role' => 'Escalation Manager', 'is_primary' => true],
+                ['user_id' => $viewer->id, 'role' => 'Observer', 'is_primary' => false],
+            ],
+        ], $admin);
 
         $company = Company::factory()->create([
             'tenant_id' => $tenant->id,

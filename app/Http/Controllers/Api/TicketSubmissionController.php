@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\EnsurePermission;
 use App\Http\Requests\TicketSubmissionIndexRequest;
 use App\Http\Resources\TicketSubmissionResource;
 use App\Models\TicketSubmission;
@@ -13,6 +14,11 @@ use Illuminate\Support\Facades\Gate;
 
 class TicketSubmissionController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(EnsurePermission::class.':tickets.view')->only(['index', 'show']);
+    }
+
     public function index(TicketSubmissionIndexRequest $request): AnonymousResourceCollection
     {
         $this->authorizeRequest($request, 'viewAny', TicketSubmission::class);

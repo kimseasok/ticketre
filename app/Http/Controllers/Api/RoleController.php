@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\EnsurePermission;
 use App\Http\Requests\StoreRoleRequest;
 use App\Http\Requests\UpdateRoleRequest;
 use App\Http\Resources\RoleResource;
@@ -18,6 +19,8 @@ class RoleController extends Controller
 {
     public function __construct(private readonly RoleService $service)
     {
+        $this->middleware(EnsurePermission::class.':roles.view')->only(['index', 'show']);
+        $this->middleware(EnsurePermission::class.':roles.manage')->only(['store', 'update', 'destroy']);
     }
 
     public function index(Request $request): AnonymousResourceCollection

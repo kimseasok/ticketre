@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Contact;
 use App\Models\User;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 
 class ContactService
 {
@@ -17,14 +18,26 @@ class ContactService
      */
     public function create(array $data, User $actor): Contact
     {
-        $startedAt = microtime(true);
+        return DB::transaction(function () use ($data, $actor) {
+            $startedAt = microtime(true);
 
-        $contact = Contact::create($data);
-        $contact->refresh();
+            $tags = Arr::pull($data, 'tags', []);
 
-        $this->auditLogger->created($contact, $actor, $startedAt);
+            $this->normalizeGdprConsent($data);
 
-        return $contact;
+            $contact = Contact::create($data);
+            $contact->refresh();
+
+            if (! empty($tags)) {
+                $contact->tags()->sync($tags);
+            }
+
+            $contact->load('tags');
+
+            $this->auditLogger->created($contact, $actor, $startedAt);
+
+            return $contact;
+        });
     }
 
     /**
@@ -32,20 +45,39 @@ class ContactService
      */
     public function update(Contact $contact, array $data, User $actor): Contact
     {
-        $startedAt = microtime(true);
+        return DB::transaction(function () use ($contact, $data, $actor) {
+            $startedAt = microtime(true);
 
-        $contact->fill($data);
-        $dirty = Arr::except($contact->getDirty(), ['updated_at']);
-        $original = Arr::only($contact->getOriginal(), array_keys($dirty));
-        $contact->save();
+            $tags = Arr::pull($data, 'tags', null);
 
-        $contact->refresh();
+            $this->normalizeGdprConsent($data, $contact);
 
-        if (! empty($dirty)) {
-            $this->auditLogger->updated($contact, $actor, $dirty, $original, $startedAt);
-        }
+            $contact->fill($data);
+            $dirty = Arr::except($contact->getDirty(), ['updated_at']);
+            $original = Arr::only($contact->getOriginal(), array_keys($dirty));
 
-        return $contact;
+            $originalTags = null;
+
+            $contact->save();
+
+            if (is_array($tags)) {
+                $originalTags = $contact->tags()->pluck('contact_tags.slug')->all();
+                $contact->tags()->sync($tags);
+            }
+
+            $contact->refresh()->load('tags');
+
+            if (is_array($tags)) {
+                $dirty['tags'] = $contact->tags->pluck('slug')->all();
+                $original['tags'] = $originalTags;
+            }
+
+            if (! empty($dirty) || is_array($tags)) {
+                $this->auditLogger->updated($contact, $actor, $dirty, $original, $startedAt);
+            }
+
+            return $contact;
+        });
     }
 
     public function delete(Contact $contact, User $actor): void
@@ -55,5 +87,27 @@ class ContactService
         $contact->delete();
 
         $this->auditLogger->deleted($contact, $actor, $startedAt);
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    protected function normalizeGdprConsent(array &$data, ?Contact $contact = null): void
+    {
+        if (array_key_exists('gdpr_consent', $data)) {
+            $consented = (bool) $data['gdpr_consent'];
+
+            if ($consented) {
+                $data['gdpr_consent'] = true;
+                $data['gdpr_consented_at'] = $data['gdpr_consented_at'] ?? now();
+            } else {
+                $data['gdpr_consent'] = false;
+                $data['gdpr_consented_at'] = null;
+                $data['gdpr_consent_method'] = $data['gdpr_consent_method'] ?? null;
+                $data['gdpr_consent_source'] = $data['gdpr_consent_source'] ?? null;
+            }
+        } elseif ($contact) {
+            $data['gdpr_consent'] = $contact->gdpr_consent;
+        }
     }
 }

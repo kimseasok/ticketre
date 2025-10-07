@@ -43,4 +43,17 @@ class User extends Authenticatable
     {
         return $this->hasMany(Ticket::class, 'assignee_id');
     }
+
+    public function teamMemberships()
+    {
+        return $this->hasMany(TeamMembership::class);
+    }
+
+    public function teams()
+    {
+        return $this->belongsToMany(Team::class, 'team_memberships')
+            ->using(TeamMembership::class)
+            ->withPivot(['role', 'is_primary'])
+            ->withTimestamps();
+    }
 }

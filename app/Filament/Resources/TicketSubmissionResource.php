@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\HandlesAuthorization;
 use App\Filament\Resources\TicketSubmissionResource\Pages;
 use App\Models\TicketSubmission;
 use Filament\Forms\Form;
@@ -20,6 +21,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class TicketSubmissionResource extends Resource
 {
+    use HandlesAuthorization;
+
     protected static ?string $model = TicketSubmission::class;
 
     protected static ?string $navigationGroup = 'Tickets';
@@ -162,5 +165,15 @@ class TicketSubmissionResource extends Resource
     public static function canDelete($record): bool
     {
         return false;
+    }
+
+    public static function canViewAny(): bool
+    {
+        return static::userCan('tickets.view');
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return static::canViewAny();
     }
 }

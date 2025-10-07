@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\HandlesAuthorization;
 use App\Filament\Resources\AuditLogResource\Pages;
 use App\Models\AuditLog;
 use Filament\Forms\Form;
@@ -14,6 +15,8 @@ use Illuminate\Support\Str;
 
 class AuditLogResource extends Resource
 {
+    use HandlesAuthorization;
+
     protected static ?string $model = AuditLog::class;
 
     protected static ?string $navigationGroup = 'Compliance';
@@ -106,5 +109,15 @@ class AuditLogResource extends Resource
     public static function canDelete($record): bool
     {
         return false;
+    }
+
+    public static function canViewAny(): bool
+    {
+        return static::userCan('audit_logs.view');
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return static::canViewAny();
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\EnsurePermission;
 use App\Http\Requests\StoreTicketRequest;
 use App\Http\Requests\StoreTicketEventRequest;
 use App\Http\Requests\UpdateTicketRequest;
@@ -22,6 +23,8 @@ class TicketController extends Controller
 {
     public function __construct(private readonly TicketService $service)
     {
+        $this->middleware(EnsurePermission::class.':tickets.view')->only(['index', 'show', 'events']);
+        $this->middleware(EnsurePermission::class.':tickets.manage')->only(['store', 'update', 'storeEvent']);
     }
 
     public function index(Request $request): AnonymousResourceCollection

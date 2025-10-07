@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\EnsurePermission;
 use App\Http\Requests\StoreKbCategoryRequest;
 use App\Http\Requests\UpdateKbCategoryRequest;
 use App\Http\Resources\KbCategoryResource;
@@ -18,6 +19,8 @@ class KbCategoryController extends Controller
 {
     public function __construct(private readonly KbCategoryService $service)
     {
+        $this->middleware(EnsurePermission::class.':knowledge.view')->only(['index', 'show']);
+        $this->middleware(EnsurePermission::class.':knowledge.manage')->only(['store', 'update', 'destroy']);
     }
 
     public function index(Request $request): AnonymousResourceCollection

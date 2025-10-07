@@ -2,9 +2,10 @@
 
 namespace Database\Factories;
 
-use App\Models\Company;
 use App\Models\Contact;
+use App\Models\Tenant;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 class ContactFactory extends Factory
 {
@@ -12,15 +13,19 @@ class ContactFactory extends Factory
 
     public function definition(): array
     {
-        $company = Company::factory()->create();
-
         return [
-            'tenant_id' => $company->tenant_id,
-            'company_id' => $company->id,
+            'tenant_id' => Tenant::factory(),
+            'company_id' => null,
             'name' => $this->faker->name(),
             'email' => $this->faker->unique()->safeEmail(),
             'phone' => $this->faker->phoneNumber(),
             'metadata' => [],
+            'gdpr_consent' => true,
+            'gdpr_consented_at' => now(),
+            'gdpr_consent_method' => 'factory-import',
+            'gdpr_consent_source' => 'NON_PRODUCTION',
+            'gdpr_notes' => 'Seeded via factory '.Str::random(8),
         ];
     }
+
 }
