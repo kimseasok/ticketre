@@ -12,11 +12,13 @@ use App\Models\Tenant;
 use App\Models\Ticket;
 use App\Models\TicketDeletionRequest;
 use App\Models\TicketEvent;
+use App\Models\TicketSubmission;
 use App\Models\User;
 use App\Services\ContactService;
 use App\Services\KbArticleService;
 use App\Services\TenantRoleProvisioner;
 use App\Services\TicketLifecycleBroadcaster;
+use App\Services\PortalTicketSubmissionService;
 use App\Services\TicketService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -176,6 +178,16 @@ class DemoDataSeeder extends Seeder
             'visibility' => Message::VISIBILITY_PUBLIC,
             'body' => 'Public reply seeded for demo. DO NOT USE IN PRODUCTION.',
         ]);
+
+        app(PortalTicketSubmissionService::class)->submit([
+            'name' => 'Portal Demo Contact',
+            'email' => 'portal.demo@example.com',
+            'subject' => 'NON-PRODUCTION portal submission',
+            'message' => 'This ticket submission is seeded for demo purposes only. DO NOT USE IN PRODUCTION.',
+            'tags' => ['demo', 'support'],
+            'ip_address' => '198.51.100.42',
+            'user_agent' => 'Demo Seed Browser/1.0',
+        ], [], (string) Str::uuid());
 
         $ticketService = app(TicketService::class);
         $contactService = app(ContactService::class);

@@ -20,6 +20,12 @@ class Ticket extends Model
     use BelongsToBrand;
     use Searchable;
 
+    public const CHANNEL_AGENT = 'agent';
+    public const CHANNEL_PORTAL = 'portal';
+    public const CHANNEL_EMAIL = 'email';
+    public const CHANNEL_CHAT = 'chat';
+    public const CHANNEL_API = 'api';
+
     protected $fillable = [
         'tenant_id',
         'brand_id',
@@ -29,6 +35,7 @@ class Ticket extends Model
         'subject',
         'status',
         'priority',
+        'channel',
         'department',
         'category',
         'workflow_state',
@@ -83,6 +90,7 @@ class Ticket extends Model
             'status' => $this->status,
             'priority' => $this->priority,
             'category' => $this->category,
+            'channel' => $this->channel,
         ];
     }
 }

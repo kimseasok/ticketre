@@ -37,6 +37,7 @@ class TicketFactory extends Factory
             'subject' => $this->faker->sentence(),
             'status' => 'open',
             'priority' => $this->faker->randomElement(['low', 'medium', 'high']),
+            'channel' => Ticket::CHANNEL_AGENT,
             'department' => 'support',
             'category' => 'general',
             'workflow_state' => 'new',
