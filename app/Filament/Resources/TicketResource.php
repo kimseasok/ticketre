@@ -43,7 +43,35 @@ class TicketResource extends Resource
                     ->searchable()
                     ->relationship('assignee', 'name')
                     ->nullable(),
-                Forms\Components\Textarea::make('metadata')->columnSpanFull(),
+                Forms\Components\KeyValue::make('metadata')
+                    ->label('Metadata')
+                    ->keyLabel('Key')
+                    ->valueLabel('Value')
+                    ->nullable()
+                    ->columnSpanFull(),
+                Forms\Components\Repeater::make('custom_fields')
+                    ->label('Custom Fields')
+                    ->schema([
+                        Forms\Components\TextInput::make('key')
+                            ->required()
+                            ->maxLength(64),
+                        Forms\Components\Select::make('type')
+                            ->required()
+                            ->options([
+                                'string' => 'String',
+                                'number' => 'Number',
+                                'boolean' => 'Boolean',
+                                'date' => 'Date',
+                                'json' => 'JSON',
+                            ]),
+                        Forms\Components\TextInput::make('value')
+                            ->label('Value')
+                            ->columnSpan(2),
+                    ])
+                    ->columns(3)
+                    ->collapsed()
+                    ->default([])
+                    ->columnSpanFull(),
             ]);
     }
 

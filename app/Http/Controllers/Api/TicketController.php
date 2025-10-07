@@ -17,6 +17,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
 
 class TicketController extends Controller
 {
@@ -28,14 +29,21 @@ class TicketController extends Controller
     {
         $this->authorizeForRequest($request, 'viewAny', Ticket::class);
 
-        $tickets = Ticket::query()->with(['assignee'])->latest()->paginate();
+        $tickets = Ticket::query()->with(['assignee', 'contact', 'company'])->latest()->paginate();
 
         return TicketResource::collection($tickets);
     }
 
     public function store(StoreTicketRequest $request): JsonResponse
     {
-        $ticket = $this->service->create($request->validated(), $request->user());
+        $data = $request->validated();
+        $data['metadata'] = $request->sanitizedMetadata() ?? [];
+        $data['custom_fields'] = $request->sanitizedCustomFields() ?? [];
+        $data['channel'] = Ticket::CHANNEL_API;
+
+        $correlationId = Str::limit($request->headers->get('X-Correlation-ID') ?: (string) Str::uuid(), 64, '');
+
+        $ticket = $this->service->create($data, $request->user(), $correlationId);
 
         return TicketResource::make($ticket)->response()->setStatusCode(201);
     }
@@ -46,14 +54,23 @@ class TicketController extends Controller
 
         $this->authorizeForRequest($request, 'view', $ticket);
 
-        return TicketResource::make($ticket->load('assignee'));
+        return TicketResource::make($ticket->load(['assignee', 'contact', 'company']));
     }
 
     public function update(UpdateTicketRequest $request, Ticket $ticket): TicketResource
     {
         $this->guardTicketContext($ticket);
 
-        $ticket = $this->service->update($ticket, $request->validated(), $request->user());
+        $data = $request->validated();
+        if (($customFields = $request->sanitizedCustomFields(true)) !== null) {
+            $data['custom_fields'] = $customFields;
+        }
+
+        if (($metadata = $request->sanitizedMetadata(true)) !== null) {
+            $data['metadata'] = $metadata;
+        }
+
+        $ticket = $this->service->update($ticket, $data, $request->user());
 
         return TicketResource::make($ticket);
     }

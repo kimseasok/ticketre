@@ -181,4 +181,64 @@ Ticket lifecycle events are persisted, audited, and broadcast over Echo-compatib
 - `GET /api/v1/tickets/{ticket}/events` – retrieve the lifecycle event history for a ticket.
 - `POST /api/v1/tickets/{ticket}/events` – manually broadcast a lifecycle event with a custom payload (agents only).
 
+The ticket creation endpoint accepts authenticated requests with the standard `X-Tenant` and optional `X-Brand` headers. Provide
+an `X-Correlation-ID` header (max 64 chars) to tie API calls to structured logs; a UUID is generated when omitted. The JSON reques
+t body must include `subject`, `status`, and `priority`, and may include tenant-scoped foreign keys plus a `metadata` object and
+`custom_fields` collection:
+
+```json
+{
+  "subject": "Customer cannot log in",
+  "status": "open",
+  "priority": "high",
+  "contact_id": 123,
+  "metadata": {"source": "api", "tags": ["vip"]},
+  "custom_fields": [
+    {"key": "order_id", "type": "string", "value": "INV-1001"},
+    {"key": "urgent", "type": "boolean", "value": true}
+  ]
+}
+```
+
+Custom field keys must be unique per request (case-insensitive), limited to 64 characters, and the `type` must be one of `string`
+, `number`, `boolean`, `date`, or `json`. Values are automatically normalised (numbers are cast, booleans coerce `"true"/"false"`
+, dates resolve to ISO-8601 strings, JSON accepts arrays/objects). Validation errors return `422` with `ERR_VALIDATION` plus field
+-specific messages. Related IDs (`contact_id`, `company_id`, `assignee_id`) are tenant-scoped to prevent cross-tenant leakage.
+
+Successful responses follow a JSON:API style envelope:
+
+```json
+{
+  "data": {
+    "type": "tickets",
+    "id": "142",
+    "attributes": {
+      "subject": "Customer cannot log in",
+      "status": "open",
+      "priority": "high",
+      "channel": "api",
+      "metadata": {"source": "api", "tags": ["vip"]},
+      "custom_fields": [
+        {"key": "order_id", "type": "string", "value": "INV-1001"},
+        {"key": "urgent", "type": "boolean", "value": true}
+      ],
+      "created_at": "2025-10-07T12:45:30Z"
+    },
+    "relationships": {
+      "assignee": {"data": null},
+      "contact": {"data": {"type": "contacts", "id": "123", "attributes": {"name": "Acme CTO"}}}
+    },
+    "links": {
+      "self": "https://api.example.com/api/v1/tickets/142",
+      "messages": "https://api.example.com/api/v1/tickets/142/messages",
+      "events": "https://api.example.com/api/v1/tickets/142/events"
+    }
+  }
+}
+```
+
+Structured logs emit `ticket.api.created` with hashed subject digests, the supplied correlation ID, tenant/brand identifiers, and
+the custom field count. When the request originates from Filament or another internal surface the channel defaults to `agent` and
+the specialised API log entry is skipped.
+
 All responses include `correlation_id` metadata and redact PII in logs via hashed digests. Manual testing is available via Filament at `/admin/ticket-events`, which respects tenant and brand scopes.

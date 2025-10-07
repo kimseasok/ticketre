@@ -159,6 +159,13 @@ class DemoDataSeeder extends Seeder
             'assignee_id' => $agent->id,
             'subject' => 'Demo ticket',
             'status' => 'open',
+            'custom_fields' => [
+                [
+                    'key' => 'environment',
+                    'type' => 'string',
+                    'value' => 'NON-PRODUCTION',
+                ],
+            ],
         ]);
 
         Message::factory()->for($ticket)->create([

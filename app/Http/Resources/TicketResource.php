@@ -16,22 +16,69 @@ class TicketResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
-            'tenant_id' => $this->tenant_id,
-            'brand_id' => $this->brand_id,
-            'subject' => $this->subject,
-            'status' => $this->status,
-            'priority' => $this->priority,
-            'department' => $this->department,
-            'category' => $this->category,
-            'workflow_state' => $this->workflow_state,
-            'sla_due_at' => $this->sla_due_at?->toIso8601String(),
-            'assignee' => $this->when($this->assignee, fn () => [
-                'id' => $this->assignee?->getKey(),
-                'name' => $this->assignee?->name,
-            ]),
-            'created_at' => $this->created_at?->toIso8601String(),
-            'updated_at' => $this->updated_at?->toIso8601String(),
+            'type' => 'tickets',
+            'id' => (string) $this->getKey(),
+            'attributes' => [
+                'tenant_id' => $this->tenant_id,
+                'brand_id' => $this->brand_id,
+                'subject' => $this->subject,
+                'status' => $this->status,
+                'priority' => $this->priority,
+                'channel' => $this->channel,
+                'department' => $this->department,
+                'category' => $this->category,
+                'workflow_state' => $this->workflow_state,
+                'metadata' => $this->metadata ?? [],
+                'custom_fields' => $this->custom_fields ?? [],
+                'sla_due_at' => $this->sla_due_at?->toIso8601String(),
+                'created_at' => $this->created_at?->toIso8601String(),
+                'updated_at' => $this->updated_at?->toIso8601String(),
+            ],
+            'relationships' => [
+                'assignee' => $this->when(
+                    $this->relationLoaded('assignee') && $this->assignee,
+                    fn () => [
+                        'data' => [
+                            'type' => 'users',
+                            'id' => (string) $this->assignee->getKey(),
+                            'attributes' => [
+                                'name' => $this->assignee->name,
+                                'email' => $this->assignee->email,
+                            ],
+                        ],
+                    ]
+                ),
+                'contact' => $this->when(
+                    $this->relationLoaded('contact') && $this->contact,
+                    fn () => [
+                        'data' => [
+                            'type' => 'contacts',
+                            'id' => (string) $this->contact->getKey(),
+                            'attributes' => [
+                                'name' => $this->contact->name,
+                                'email' => $this->contact->email,
+                            ],
+                        ],
+                    ]
+                ),
+                'company' => $this->when(
+                    $this->relationLoaded('company') && $this->company,
+                    fn () => [
+                        'data' => [
+                            'type' => 'companies',
+                            'id' => (string) $this->company->getKey(),
+                            'attributes' => [
+                                'name' => $this->company->name,
+                            ],
+                        ],
+                    ]
+                ),
+            ],
+            'links' => [
+                'self' => route('api.tickets.show', $this->resource),
+                'messages' => route('api.tickets.messages.index', ['ticket' => $this->resource]),
+                'events' => route('api.tickets.events.index', ['ticket' => $this->resource]),
+            ],
         ];
     }
 }

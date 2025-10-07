@@ -40,11 +40,13 @@ class Ticket extends Model
         'category',
         'workflow_state',
         'metadata',
+        'custom_fields',
         'sla_due_at',
     ];
 
     protected $casts = [
         'metadata' => 'array',
+        'custom_fields' => 'array',
         'sla_due_at' => 'datetime',
     ];
 

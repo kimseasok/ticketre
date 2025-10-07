@@ -207,5 +207,5 @@ it('E1-F8-I2 returns ticket collection via api', function () {
     $response = $this->withHeaders(actingHeadersForTenant($tenant, $brand))->getJson('/api/v1/tickets');
 
     $response->assertOk();
-    $response->assertJsonPath('data.0.id', $ticket->id);
+    $response->assertJsonPath('data.0.id', (string) $ticket->id);
 });
