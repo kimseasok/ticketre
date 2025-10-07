@@ -42,6 +42,13 @@ class TicketFactory extends Factory
             'category' => 'general',
             'workflow_state' => 'new',
             'metadata' => [],
+            'custom_fields' => [
+                [
+                    'key' => 'source',
+                    'type' => 'string',
+                    'value' => 'factory',
+                ],
+            ],
             'sla_due_at' => now()->addHours(8),
         ];
     }

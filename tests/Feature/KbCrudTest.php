@@ -3,14 +3,17 @@
 use App\Models\KbArticle;
 
 it('creates knowledge base article', function () {
-    $article = KbArticle::factory()->create(['title' => 'Demo Article']);
+    $article = KbArticle::factory()->create();
+    $article->defaultTranslation->update(['title' => 'Demo Article']);
 
-    expect($article->fresh()->title)->toBe('Demo Article');
+    expect($article->fresh()->defaultTranslation->title)->toBe('Demo Article');
 });
 
 it('updates knowledge base article status', function () {
-    $article = KbArticle::factory()->create(['status' => 'draft']);
-    $article->update(['status' => 'published']);
+    $article = KbArticle::factory()->create();
+    $article->defaultTranslation->update(['status' => 'draft']);
 
-    expect($article->fresh()->status)->toBe('published');
+    $article->defaultTranslation->update(['status' => 'published']);
+
+    expect($article->fresh()->defaultTranslation->status)->toBe('published');
 });
