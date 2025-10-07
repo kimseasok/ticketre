@@ -90,6 +90,8 @@ X-Brand: <brand-slug>
 - `DELETE /api/v1/kb-articles/{id}` – soft delete the article and its translations while retaining audit history.
 - `GET /api/v1/kb-articles/search` – full-text search powered by Laravel Scout + Meilisearch. Filters include `locale`, `status`, `category_id`, and tenant/brand scope is enforced automatically. Responses include the standard resource payload plus optional search `score` and Meilisearch highlight snippets under `highlights`.
 
+Rich-text translations are sanitized against a strict HTML allow list before persistence. Disallowed tags, event attributes, and `javascript:` protocols are stripped, the cleaned payload is stored, and a `kb_article.sanitization_blocked` audit entry captures hashed digests plus a redacted preview when changes occur. Structured JSON logs include the same correlation ID that arrives in the request headers so investigations can follow the trail without exposing raw content.
+
 Articles are indexed asynchronously after every create/update/delete or translation change via the `SyncKbArticleSearchDocument` job. The job retries with exponential backoff, redacts slug and query data via SHA-256 digests, and writes structured JSON logs with correlation IDs for observability.
 
 Structured JSON logs capture every knowledge base search request with hashed query digests while audit logs continue to record create/update/delete operations. Filament exposes the same functionality via `/admin/kb-categories` and `/admin/kb-articles`, featuring tenant/brand scoped queries, validation rules, and soft-delete management. Demo data is seeded through `DemoDataSeeder` for NON-PRODUCTION environments only.

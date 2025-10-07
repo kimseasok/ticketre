@@ -2,17 +2,24 @@
 
 namespace App\Services;
 
+use App\Data\SanitizedHtml;
 use App\Models\AuditLog;
 use App\Models\KbArticle;
 use App\Models\KbArticleTranslation;
 use App\Models\User;
+use App\Services\KnowledgeBaseContentSanitizer;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class KbArticleService
 {
+    public function __construct(private readonly KnowledgeBaseContentSanitizer $sanitizer)
+    {
+    }
+
     public function create(array $payload, User $user): KbArticle
     {
         $startedAt = microtime(true);
@@ -31,8 +38,8 @@ class KbArticleService
                 'author_id' => $payload['author_id'] ?? $user->getKey(),
             ], $payload));
 
-            $translations->each(function (array $translation) use ($article) {
-                $article->translations()->create($this->prepareTranslationPayload($article, $translation));
+            $translations->each(function (array $translation) use ($article, $user) {
+                $article->translations()->create($this->prepareTranslationPayload($article, $translation, $user));
             });
 
             return $article->fresh(['translations', 'category', 'author']);
@@ -59,7 +66,7 @@ class KbArticleService
             'locales' => $this->translationSummary($article->translations()->get()),
         ];
 
-        $article = DB::transaction(function () use ($article, $payload) {
+        $article = DB::transaction(function () use ($article, $payload, $user) {
             $translations = collect($payload['translations'] ?? []);
 
             if ($translations->isNotEmpty() && ! isset($payload['default_locale'])) {
@@ -71,7 +78,7 @@ class KbArticleService
 
             $existing = $article->translations()->get()->keyBy(fn (KbArticleTranslation $translation) => $translation->locale);
 
-            $translations->each(function (array $translation) use ($article, $existing) {
+            $translations->each(function (array $translation) use ($article, $existing, $user) {
                 $locale = $translation['locale'];
 
                 if (! empty($translation['delete'])) {
@@ -82,7 +89,7 @@ class KbArticleService
                     return;
                 }
 
-                $payload = $this->prepareTranslationPayload($article, $translation);
+                $payload = $this->prepareTranslationPayload($article, $translation, $user);
 
                 if ($existing->has($locale)) {
                     $existing->get($locale)?->fill($payload)->save();
@@ -164,24 +171,91 @@ class KbArticleService
         ]);
     }
 
-    protected function prepareTranslationPayload(KbArticle $article, array $payload): array
+    protected function prepareTranslationPayload(KbArticle $article, array $payload, User $user): array
     {
+        $contentResult = $this->sanitizer->sanitize((string) ($payload['content'] ?? ''));
+
+        if ($contentResult->modified) {
+            $this->recordSanitizationAlert($user, $article, $payload['locale'], 'content', $contentResult);
+        }
+
         $data = [
             'tenant_id' => $article->tenant_id,
             'brand_id' => $article->brand_id,
             'locale' => $payload['locale'],
-            'title' => $payload['title'],
-            'content' => $payload['content'],
-            'excerpt' => $payload['excerpt'] ?? null,
+            'title' => strip_tags((string) $payload['title']),
+            'content' => $contentResult->sanitized,
+            'excerpt' => null,
             'status' => $payload['status'],
             'metadata' => $payload['metadata'] ?? null,
         ];
+
+        if (array_key_exists('excerpt', $payload)) {
+            $excerpt = $payload['excerpt'];
+
+            if ($excerpt !== null) {
+                $excerptResult = $this->sanitizer->sanitize((string) $excerpt);
+
+                if ($excerptResult->modified) {
+                    $this->recordSanitizationAlert($user, $article, $payload['locale'], 'excerpt', $excerptResult);
+                }
+
+                $cleanExcerpt = trim(strip_tags($excerptResult->sanitized));
+                $data['excerpt'] = $cleanExcerpt !== '' ? $cleanExcerpt : null;
+            }
+        }
 
         if (array_key_exists('published_at', $payload)) {
             $data['published_at'] = $payload['published_at'];
         }
 
         return $data;
+    }
+
+    protected function recordSanitizationAlert(User $user, KbArticle $article, string $locale, string $field, SanitizedHtml $result): void
+    {
+        if (! $article->exists) {
+            return;
+        }
+
+        $correlationId = request()?->header('X-Correlation-ID') ?? (string) Str::uuid();
+
+        $changes = [
+            'locale' => $locale,
+            'field' => $field,
+            'blocked_elements' => $result->blockedElements,
+            'blocked_attributes' => $result->blockedAttributes,
+            'blocked_protocols' => $result->blockedProtocols,
+            'original_digest' => hash('sha256', $result->original),
+            'sanitized_digest' => hash('sha256', $result->sanitized),
+            'preview' => $result->preview(),
+            'correlation_id' => $correlationId,
+        ];
+
+        AuditLog::create([
+            'tenant_id' => $article->tenant_id,
+            'brand_id' => $article->brand_id,
+            'user_id' => $user->getKey(),
+            'action' => 'kb_article.sanitization_blocked',
+            'auditable_type' => KbArticle::class,
+            'auditable_id' => $article->getKey(),
+            'changes' => $changes,
+            'ip_address' => request()?->ip(),
+        ]);
+
+        Log::channel(config('logging.default'))->warning('kb_article.sanitization_blocked', [
+            'article_id' => $article->getKey(),
+            'tenant_id' => $article->tenant_id,
+            'brand_id' => $article->brand_id,
+            'user_id' => $user->getKey(),
+            'locale' => $locale,
+            'field' => $field,
+            'blocked_elements' => $result->blockedElements,
+            'blocked_attributes' => $result->blockedAttributes,
+            'blocked_protocols' => $result->blockedProtocols,
+            'correlation_id' => $correlationId,
+            'preview' => $result->preview(),
+        ]);
     }
 
     protected function translationSummary(Collection $translations): array

@@ -12,6 +12,7 @@
 - Multilingual knowledge base storage with translation migrations, RBAC-aware API/Filament CRUD, audit logging, and OpenAPI documentation. (E3-F5-I2)
 - Knowledge base article search indexing with Scout/Meilisearch, queued sync jobs, RBAC-protected API search endpoint, and documentation/test coverage. (E3-F6-I2)
 - Meilisearch infrastructure configuration with health-check command, Docker templates, runbook, and monitoring guidance. (E3-F6-I1)
+- Hardened knowledge base HTML sanitization with allow-listed rich text, redacted audit logging, structured observability, and regression tests covering malicious payloads. (E3-F2-I3)
 ### Fixed
 - Restore Pint compatibility and database credentials so CI linting and migrations succeed on MySQL and PostgreSQL.
 - Declare the application as an ES module so Vite can import `laravel-vite-plugin` during CI builds without require() failures.
