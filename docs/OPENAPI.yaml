@@ -1751,6 +1751,123 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/portal/tickets:
+    post:
+      summary: Submit ticket via customer portal
+      tags: [Portal Tickets]
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PortalTicketSubmissionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PortalTicketSubmissionUploadRequest'
+      responses:
+        '201':
+          description: Ticket submission accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PortalTicketSubmission'
+        '404':
+          description: Tenant not resolved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/ticket-submissions:
+    get:
+      summary: List ticket submissions
+      tags: [Ticket Submissions]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: channel
+          in: query
+          schema:
+            type: string
+            enum: [portal, email, chat, api]
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [accepted, pending, failed]
+        - name: search
+          in: query
+          schema:
+            type: string
+            maxLength: 255
+      responses:
+        '200':
+          description: Submission list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TicketSubmission'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/ticket-submissions/{ticketSubmission}:
+    get:
+      summary: View ticket submission detail
+      tags: [Ticket Submissions]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: ticketSubmission
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Submission detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/TicketSubmission'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
 components:
   securitySchemes:
@@ -2398,6 +2515,156 @@ components:
               type: integer
             name:
               type: string
+    PortalTicketSubmissionRequest:
+      type: object
+      required: [name, email, subject, message]
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        subject:
+          type: string
+          maxLength: 255
+        message:
+          type: string
+          minLength: 10
+        tags:
+          type: array
+          maxItems: 5
+          items:
+            type: string
+            maxLength: 50
+    PortalTicketSubmissionUploadRequest:
+      type: object
+      required: [name, email, subject, message]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        subject:
+          type: string
+        message:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        attachments:
+          type: array
+          maxItems: 5
+          items:
+            type: string
+            format: binary
+    PortalTicketSubmission:
+      type: object
+      properties:
+        id:
+          type: integer
+        reference:
+          type: string
+        ticket_id:
+          type: integer
+        status:
+          type: string
+          enum: [accepted, pending, failed]
+        channel:
+          type: string
+          enum: [portal, email, chat, api]
+        submitted_at:
+          type: string
+          format: date-time
+          nullable: true
+        correlation_id:
+          type: string
+          nullable: true
+        message:
+          type: object
+          properties:
+            preview:
+              type: string
+              nullable: true
+        links:
+          type: object
+          properties:
+            confirmation:
+              type: string
+              format: uri
+    TicketSubmission:
+      type: object
+      properties:
+        id:
+          type: integer
+        subject:
+          type: string
+        message:
+          type: string
+        status:
+          type: string
+          enum: [accepted, pending, failed]
+        channel:
+          type: string
+          enum: [portal, email, chat, api]
+        tags:
+          type: array
+          maxItems: 5
+          items:
+            type: string
+        submitted_at:
+          type: string
+          format: date-time
+          nullable: true
+        correlation_id:
+          type: string
+        ticket:
+          type: object
+          properties:
+            id:
+              type: integer
+            status:
+              type: string
+              nullable: true
+            priority:
+              type: string
+              nullable: true
+            channel:
+              type: string
+              enum: [portal, email, chat, api]
+              nullable: true
+        contact:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+              nullable: true
+            email:
+              type: string
+              format: email
+              nullable: true
+        attachments:
+          type: object
+          properties:
+            count:
+              type: integer
+              nullable: true
+        metadata:
+          type: object
+          nullable: true
+          properties:
+            ip_hash:
+              type: string
+            filename_digests:
+              type: array
+              items:
+                type: string
     ErrorResponse:
       type: object
       properties:
