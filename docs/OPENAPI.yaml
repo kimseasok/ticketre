@@ -1223,6 +1223,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
     post:
       summary: Create knowledge base article
+      description: "Stores knowledge base translations after sanitizing HTML against the configured allow list. Sanitization removals trigger a kb_article.sanitization_blocked audit entry with redacted metadata."
       tags: [Knowledge Base]
       security:
         - cookieAuth: []
@@ -1704,6 +1705,7 @@ components:
           enum: [draft, published, archived]
         content:
           type: string
+          description: Sanitized HTML body. Disallowed tags, inline event handlers, and unsafe protocols are stripped before persistence.
         excerpt:
           type: string
           nullable: true
@@ -1764,9 +1766,11 @@ components:
           enum: [draft, published, archived]
         content:
           type: string
+          description: Sanitized HTML body. Disallowed tags, inline event handlers, and unsafe protocols are stripped before persistence.
         excerpt:
           type: string
           nullable: true
+          description: Plain text excerpt derived from the sanitized content.
         metadata:
           type: object
           additionalProperties: true
@@ -1788,9 +1792,11 @@ components:
           enum: [draft, published, archived]
         content:
           type: string
+          description: Raw HTML submitted by authors; sanitized against the knowledge base allow list prior to storage.
         excerpt:
           type: string
           nullable: true
+          description: Optional excerpt that is sanitized to plain text before persistence.
         metadata:
           type: object
           additionalProperties: true
