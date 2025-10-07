@@ -180,3 +180,22 @@ Ticket lifecycle events are persisted, audited, and broadcast over Echo-compatib
 - `POST /api/v1/tickets/{ticket}/events` – manually broadcast a lifecycle event with a custom payload (agents only).
 
 All responses include `correlation_id` metadata and redact PII in logs via hashed digests. Manual testing is available via Filament at `/admin/ticket-events`, which respects tenant and brand scopes.
+
+## Ticket Core Field Management
+
+The core ticket CRUD endpoints (`/api/v1/tickets`) now enforce tenant-aware departments, categories, and tags while preserving structured audit trails:
+
+- **Create/Update Payloads** – `department_id`, `category_ids`, and `tag_ids` accept identifiers that belong to the active tenant (and optionally brand). Validation failures return the standard `{ "error": { "code", "message", "details" } }` schema with `ERR_VALIDATION`.
+- **API Responses** – Ticket resources embed department metadata, category and tag collections, and the current SLA deadline while continuing to redact subjects via SHA-256 digests in structured logs. The default envelope remains `{ "data": { ... } }`.
+- **Filament Admin** – `/admin/tickets` supports selecting departments, categories, and tags with tenant/brand scoped options. Multi-select widgets prevent duplicate taxonomy assignments, and metadata entry uses a key/value editor.
+- **Audit & Observability** – Every create/update sync writes to `audit_logs` with category/tag diffs and records `ticket.service.*` structured JSON log entries containing correlation IDs, hashed subjects, and timing metrics.
+- **Demo Data** – `DemoDataSeeder` provisions NON-PRODUCTION departments, categories, tags, and sample tickets demonstrating the new taxonomy relationships.
+
+Ensure requests include the tenant (and optional brand) headers:
+
+```http
+X-Tenant: <tenant-slug>
+X-Brand: <brand-slug>
+```
+
+Role permissions remain unchanged: `tickets.manage` is required for create/update, while `tickets.view` covers read-only access.

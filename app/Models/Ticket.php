@@ -2,14 +2,21 @@
 
 namespace App\Models;
 
+use App\Models\TicketCategory;
 use App\Models\TicketDeletionRequest;
+use App\Models\TicketDepartment;
 use App\Models\TicketEvent;
+use App\Models\TicketTag;
 use App\Traits\BelongsToBrand;
 use App\Traits\BelongsToTenant;
+use App\Traits\BrandScope;
+use App\Traits\TenantScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Laravel\Scout\Searchable;
 
 class Ticket extends Model
@@ -32,6 +39,7 @@ class Ticket extends Model
         'contact_id',
         'company_id',
         'assignee_id',
+        'department_id',
         'subject',
         'status',
         'priority',
@@ -51,6 +59,21 @@ class Ticket extends Model
     public function assignee()
     {
         return $this->belongsTo(User::class, 'assignee_id');
+    }
+
+    public function departmentRelation(): BelongsTo
+    {
+        return $this->belongsTo(TicketDepartment::class, 'department_id');
+    }
+
+    public function categories(): BelongsToMany
+    {
+        return $this->belongsToMany(TicketCategory::class, 'ticket_category_ticket')->withTimestamps();
+    }
+
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(TicketTag::class, 'ticket_tag_ticket')->withTimestamps();
     }
 
     public function contact()
@@ -85,12 +108,26 @@ class Ticket extends Model
 
     public function toSearchableArray(): array
     {
+        $this->loadMissing(['categories', 'tags', 'departmentRelation']);
+
         return [
             'subject' => $this->subject,
             'status' => $this->status,
             'priority' => $this->priority,
             'category' => $this->category,
             'channel' => $this->channel,
+            'categories' => $this->categories->pluck('name')->all(),
+            'tags' => $this->tags->pluck('name')->all(),
+            'department' => $this->departmentRelation?->name,
         ];
+    }
+
+    public function resolveRouteBindingQuery($query, $value, $field = null)
+    {
+        return parent::resolveRouteBindingQuery(
+            $query->withoutGlobalScopes([TenantScope::class, BrandScope::class]),
+            $value,
+            $field
+        );
     }
 }

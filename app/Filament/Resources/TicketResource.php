@@ -4,6 +4,9 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\TicketResource\Pages;
 use App\Models\Ticket;
+use App\Models\TicketCategory;
+use App\Models\TicketDepartment;
+use App\Models\TicketTag;
 use App\Services\TicketService;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -38,12 +41,32 @@ class TicketResource extends Resource
                     'medium' => 'Medium',
                     'high' => 'High',
                 ])->required(),
+                Forms\Components\Select::make('department_id')
+                    ->label('Department')
+                    ->searchable()
+                    ->options(fn () => TicketDepartment::query()->pluck('name', 'id')->all())
+                    ->nullable(),
                 Forms\Components\Select::make('assignee_id')
                     ->label('Assignee')
                     ->searchable()
                     ->relationship('assignee', 'name')
                     ->nullable(),
-                Forms\Components\Textarea::make('metadata')->columnSpanFull(),
+                Forms\Components\Select::make('category_ids')
+                    ->label('Categories')
+                    ->multiple()
+                    ->preload()
+                    ->options(fn () => TicketCategory::query()->pluck('name', 'id')->all()),
+                Forms\Components\Select::make('tag_ids')
+                    ->label('Tags')
+                    ->multiple()
+                    ->preload()
+                    ->options(fn () => TicketTag::query()->pluck('name', 'id')->all()),
+                Forms\Components\KeyValue::make('metadata')
+                    ->label('Metadata')
+                    ->columnSpanFull()
+                    ->addButtonLabel('Add metadata entry')
+                    ->keyLabel('Key')
+                    ->valueLabel('Value'),
             ]);
     }
 
@@ -54,6 +77,9 @@ class TicketResource extends Resource
                 Tables\Columns\TextColumn::make('subject')->searchable(),
                 Tables\Columns\TextColumn::make('status')->badge(),
                 Tables\Columns\TextColumn::make('priority')->badge(),
+                Tables\Columns\TextColumn::make('departmentRelation.name')->label('Department'),
+                Tables\Columns\TagsColumn::make('categories.name')->label('Categories'),
+                Tables\Columns\TagsColumn::make('tags.name')->label('Tags'),
                 Tables\Columns\TextColumn::make('assignee.name')->label('Assignee'),
                 Tables\Columns\TextColumn::make('created_at')->dateTime(),
             ])
@@ -66,6 +92,9 @@ class TicketResource extends Resource
                 Tables\Filters\SelectFilter::make('brand_id')
                     ->label('Brand')
                     ->relationship('brand', 'name'),
+                Tables\Filters\SelectFilter::make('department_id')
+                    ->label('Department')
+                    ->options(fn () => TicketDepartment::query()->pluck('name', 'id')->all()),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -92,7 +121,7 @@ class TicketResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery()->with(['assignee']);
+        $query = parent::getEloquentQuery()->with(['assignee', 'departmentRelation', 'categories', 'tags']);
 
         if (app()->bound('currentTenant')) {
             $query->where('tenant_id', app('currentTenant')->getKey());

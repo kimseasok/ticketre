@@ -26,4 +26,21 @@ class CreateTicket extends CreateRecord
 
         return $service->create($data, $user);
     }
+
+    protected function mutateFormDataBeforeCreate(array $data): array
+    {
+        $data['category_ids'] = $this->normalizeIdentifiers($data['category_ids'] ?? []);
+        $data['tag_ids'] = $this->normalizeIdentifiers($data['tag_ids'] ?? []);
+
+        return $data;
+    }
+
+    /**
+     * @param  array<int|string>  $values
+     * @return array<int>
+     */
+    protected function normalizeIdentifiers(array $values): array
+    {
+        return array_values(array_unique(array_filter(array_map(static fn ($value) => (int) $value, $values), static fn ($value) => $value > 0)));
+    }
 }

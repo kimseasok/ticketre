@@ -4,6 +4,9 @@ namespace App\Services;
 
 use App\Models\AuditLog;
 use App\Models\Ticket;
+use App\Models\TicketCategory;
+use App\Models\TicketDepartment;
+use App\Models\TicketTag;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
 
@@ -130,6 +133,30 @@ class TicketAuditLogger
                 continue;
             }
 
+            if ($field === 'department_id') {
+                $diff['department'] = [
+                    'old' => $this->departmentName($original['department_id'] ?? null),
+                    'new' => $ticket->departmentRelation?->name,
+                ];
+                continue;
+            }
+
+            if ($field === 'categories') {
+                $diff['categories'] = [
+                    'old' => $this->categoryNames($original['categories'] ?? []),
+                    'new' => $ticket->categories->pluck('name')->all(),
+                ];
+                continue;
+            }
+
+            if ($field === 'tags') {
+                $diff['tags'] = [
+                    'old' => $this->tagNames($original['tags'] ?? []),
+                    'new' => $ticket->tags->pluck('name')->all(),
+                ];
+                continue;
+            }
+
             $diff[$field] = [
                 'old' => $original[$field] ?? null,
                 'new' => $ticket->{$field},
@@ -137,6 +164,41 @@ class TicketAuditLogger
         }
 
         return $diff;
+    }
+
+    protected function departmentName(?int $departmentId): ?string
+    {
+        if (! $departmentId) {
+            return null;
+        }
+
+        return TicketDepartment::query()->find($departmentId)?->name;
+    }
+
+    /**
+     * @param  array<int>  $ids
+     * @return array<int, string>
+     */
+    protected function categoryNames(array $ids): array
+    {
+        if (empty($ids)) {
+            return [];
+        }
+
+        return TicketCategory::query()->whereIn('id', $ids)->pluck('name')->all();
+    }
+
+    /**
+     * @param  array<int>  $ids
+     * @return array<int, string>
+     */
+    protected function tagNames(array $ids): array
+    {
+        if (empty($ids)) {
+            return [];
+        }
+
+        return TicketTag::query()->whereIn('id', $ids)->pluck('name')->all();
     }
 
     protected function subjectDigest(?string $value): string

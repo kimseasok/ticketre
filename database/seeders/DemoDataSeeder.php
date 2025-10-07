@@ -11,6 +11,9 @@ use App\Models\Message;
 use App\Models\Tenant;
 use App\Models\Ticket;
 use App\Models\TicketDeletionRequest;
+use App\Models\TicketDepartment;
+use App\Models\TicketCategory;
+use App\Models\TicketTag;
 use App\Models\TicketEvent;
 use App\Models\TicketSubmission;
 use App\Models\User;
@@ -151,6 +154,21 @@ class DemoDataSeeder extends Seeder
             ],
         ], $agent);
 
+        $departments = TicketDepartment::factory()->count(2)->create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+        ]);
+
+        $categories = TicketCategory::factory()->count(3)->create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+        ]);
+
+        $tags = TicketTag::factory()->count(4)->create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+        ]);
+
         $ticket = Ticket::factory()->create([
             'tenant_id' => $tenant->id,
             'brand_id' => $brand->id,
@@ -159,7 +177,15 @@ class DemoDataSeeder extends Seeder
             'assignee_id' => $agent->id,
             'subject' => 'Demo ticket',
             'status' => 'open',
+            'department_id' => $departments->first()->id,
         ]);
+
+        $ticket->categories()->sync($categories->take(2)->pluck('id')->all());
+        $ticket->tags()->sync($tags->take(3)->pluck('id')->all());
+        $ticket->forceFill([
+            'category' => $categories->first()->name,
+            'department' => $departments->first()->name,
+        ])->save();
 
         Message::factory()->for($ticket)->create([
             'tenant_id' => $tenant->id,

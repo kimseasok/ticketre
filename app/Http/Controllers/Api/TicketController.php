@@ -28,7 +28,7 @@ class TicketController extends Controller
     {
         $this->authorizeForRequest($request, 'viewAny', Ticket::class);
 
-        $tickets = Ticket::query()->with(['assignee'])->latest()->paginate();
+        $tickets = Ticket::query()->with(['assignee', 'departmentRelation', 'categories', 'tags'])->latest()->paginate();
 
         return TicketResource::collection($tickets);
     }
@@ -46,7 +46,7 @@ class TicketController extends Controller
 
         $this->authorizeForRequest($request, 'view', $ticket);
 
-        return TicketResource::make($ticket->load('assignee'));
+        return TicketResource::make($ticket->load(['assignee', 'departmentRelation', 'categories', 'tags']));
     }
 
     public function update(UpdateTicketRequest $request, Ticket $ticket): TicketResource
@@ -55,7 +55,7 @@ class TicketController extends Controller
 
         $ticket = $this->service->update($ticket, $request->validated(), $request->user());
 
-        return TicketResource::make($ticket);
+        return TicketResource::make($ticket->loadMissing(['assignee', 'departmentRelation', 'categories', 'tags']));
     }
 
     public function events(Request $request, Ticket $ticket): AnonymousResourceCollection

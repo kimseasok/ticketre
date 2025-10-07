@@ -7,6 +7,9 @@ use App\Models\Company;
 use App\Models\Contact;
 use App\Models\Tenant;
 use App\Models\Ticket;
+use App\Models\TicketCategory;
+use App\Models\TicketDepartment;
+use App\Models\TicketTag;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -27,6 +30,11 @@ class TicketFactory extends Factory
             'tenant_id' => $tenant,
             'brand_id' => $brand,
         ])->id;
+        $departmentId = $this->attributes['department_id'] ?? TicketDepartment::factory()->create([
+            'tenant_id' => $tenant,
+            'brand_id' => $brand,
+        ])->id;
+        $department = TicketDepartment::withoutGlobalScopes()->find($departmentId);
 
         return [
             'tenant_id' => $tenant,
@@ -34,15 +42,40 @@ class TicketFactory extends Factory
             'company_id' => $company,
             'contact_id' => $contact,
             'assignee_id' => $assignee,
+            'department_id' => $departmentId,
             'subject' => $this->faker->sentence(),
             'status' => 'open',
             'priority' => $this->faker->randomElement(['low', 'medium', 'high']),
             'channel' => Ticket::CHANNEL_AGENT,
-            'department' => 'support',
-            'category' => 'general',
+            'department' => $department?->name,
+            'category' => null,
             'workflow_state' => 'new',
             'metadata' => [],
             'sla_due_at' => now()->addHours(8),
         ];
+    }
+
+    public function configure(): static
+    {
+        return $this->afterCreating(function (Ticket $ticket): void {
+            if ($ticket->categories()->count() === 0) {
+                $category = TicketCategory::factory()->create([
+                    'tenant_id' => $ticket->tenant_id,
+                    'brand_id' => $ticket->brand_id,
+                ]);
+
+                $ticket->categories()->sync([$category->getKey()]);
+                $ticket->forceFill(['category' => $category->name])->save();
+            }
+
+            if ($ticket->tags()->count() === 0) {
+                $tag = TicketTag::factory()->create([
+                    'tenant_id' => $ticket->tenant_id,
+                    'brand_id' => $ticket->brand_id,
+                ]);
+
+                $ticket->tags()->sync([$tag->getKey()]);
+            }
+        });
     }
 }

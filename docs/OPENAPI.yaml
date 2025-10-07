@@ -273,6 +273,17 @@ paths:
                 company_id:
                   type: integer
                   nullable: true
+                department_id:
+                  type: integer
+                  nullable: true
+                category_ids:
+                  type: array
+                  items:
+                    type: integer
+                tag_ids:
+                  type: array
+                  items:
+                    type: integer
                 metadata:
                   type: object
       responses:
@@ -346,6 +357,17 @@ paths:
                   nullable: true
                 metadata:
                   type: object
+                department_id:
+                  type: integer
+                  nullable: true
+                category_ids:
+                  type: array
+                  items:
+                    type: integer
+                tag_ids:
+                  type: array
+                  items:
+                    type: integer
       responses:
         '200':
           description: Ticket updated
@@ -1552,15 +1574,65 @@ components:
         brand_id:
           type: integer
           nullable: true
+        contact_id:
+          type: integer
+          nullable: true
+        company_id:
+          type: integer
+          nullable: true
         subject:
           type: string
         status:
           type: string
         priority:
           type: string
+        channel:
+          type: string
+        department:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+        categories:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+              slug:
+                type: string
+        tags:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+              slug:
+                type: string
+              color:
+                type: string
+                nullable: true
+        category:
+          type: string
+          nullable: true
         workflow_state:
           type: string
           nullable: true
+        sla_due_at:
+          type: string
+          format: date-time
+          nullable: true
+        metadata:
+          type: object
         assignee:
           type: object
           nullable: true
