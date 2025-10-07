@@ -242,3 +242,13 @@ the custom field count. When the request originates from Filament or another int
 the specialised API log entry is skipped.
 
 All responses include `correlation_id` metadata and redact PII in logs via hashed digests. Manual testing is available via Filament at `/admin/ticket-events`, which respects tenant and brand scopes.
+
+### Echo Broadcasting Stack
+
+The realtime stack now exposes secure authentication, connection health monitoring, and admin tooling for Laravel Echo / Pusher-compatible consumers.
+
+- **Environment toggles** – set `ECHO_ENABLED=true` alongside the `PUSHER_*` credentials to switch the broadcast driver from the default log channel to `pusher`. Optional flags `PUSHER_FORCE_TLS`, `PUSHER_ENCRYPTED`, and `PUSHER_CLIENT_TIMEOUT` control TLS enforcement and client timeouts.
+- **Auth endpoint** – clients authenticate private and presence channels via `POST /api/v1/broadcasting/auth` (guards `auth:api,web`, `tenant`). Requests must include `channel_name`, `socket_id`, and the standard tenant headers; responses return the signed auth payload plus the `X-Correlation-ID` that is also written to structured logs.
+- **Connection monitoring API** – `/api/v1/broadcast-connections` supports full CRUD with tenant/brand scoping, RBAC (`broadcast_connections.view` / `broadcast_connections.manage`), and correlation-aware responses. Payloads capture `connection_id`, `channel_name`, latency metrics, and anonymised metadata.
+- **Filament UI** – administrators can inspect and manage connections at `/admin/broadcast-connections`, with status/brand filters and operations funneled through the same audit-logged service layer.
+- **Observability** – all API and auth flows emit JSON logs (`broadcast_connection.*`, `broadcast.auth.*`) with hashed socket identifiers, tenant/brand identifiers, and correlation IDs. Audit entries record metadata key snapshots without persisting raw socket identifiers.

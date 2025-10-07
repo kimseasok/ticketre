@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\AuditLog;
+use App\Models\BroadcastConnection;
 use App\Models\Contact;
 use App\Models\ContactAnonymizationRequest;
 use App\Models\KbArticle;
@@ -12,8 +13,10 @@ use App\Models\Role;
 use App\Models\Ticket;
 use App\Models\TicketEvent;
 use App\Models\TicketSubmission;
+use App\Models\User;
 use App\Models\TicketDeletionRequest;
 use App\Policies\AuditLogPolicy;
+use App\Policies\BroadcastConnectionPolicy;
 use App\Policies\ContactAnonymizationRequestPolicy;
 use App\Policies\ContactPolicy;
 use App\Policies\KbArticlePolicy;
@@ -41,12 +44,13 @@ class AuthServiceProvider extends ServiceProvider
         AuditLog::class => AuditLogPolicy::class,
         Role::class => RolePolicy::class,
         TicketSubmission::class => TicketSubmissionPolicy::class,
+        BroadcastConnection::class => BroadcastConnectionPolicy::class,
     ];
 
     public function boot(): void
     {
         $this->registerPolicies();
 
-        Gate::before(fn ($user, $ability) => $user->hasRole('SuperAdmin') ? true : null);
+        Gate::before(fn (User $user, string $ability) => $user->hasRole('SuperAdmin') ? true : null);
     }
 }

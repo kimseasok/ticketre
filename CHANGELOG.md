@@ -6,6 +6,7 @@
 - Ticket message visibility controls with API, policy, Filament resource, and observability for internal notes. (E1-F5-I1)
 - Knowledge base categories and articles with migrations, RBAC-enforced APIs, Filament management, observability, and documentation updates. (E3-F1-I2)
 - Ticket lifecycle broadcasting stack with REST + Filament management, queued broadcasts, audit logging, and OpenAPI coverage. (E1-F8-I2)
+- Echo broadcasting authentication and connection monitoring with RBAC-protected API, Filament tooling, structured logging, and OpenAPI/README updates. (E1-F8-I1)
 - Tenant-scoped audit log writers for tickets and contacts with masked diffs, a Filament audit viewer, and an authenticated API endpoint. (E2-F6-I2)
 - Tenant role provisioning with per-tenant RBAC APIs, Filament administration, audit logging, and OpenAPI/README documentation. (E2-F2-I1)
 - Ticket deletion and redaction workflow with approval holds, queued processing, audit logging, and REST/Filament interfaces. (E2-F7-I3)

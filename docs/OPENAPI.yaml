@@ -1474,6 +1474,266 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/broadcast-connections:
+    get:
+      summary: List broadcast connections
+      tags: [Broadcasting]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+      responses:
+        '200':
+          description: Broadcast connection collection
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BroadcastConnectionResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Create broadcast connection
+      tags: [Broadcasting]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BroadcastConnectionCreateRequest'
+      responses:
+        '201':
+          description: Connection created
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/BroadcastConnectionResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/broadcast-connections/{broadcastConnection}:
+    get:
+      summary: Show broadcast connection
+      tags: [Broadcasting]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: broadcastConnection
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Connection detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/BroadcastConnectionResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      summary: Update broadcast connection
+      tags: [Broadcasting]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: broadcastConnection
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BroadcastConnectionUpdateRequest'
+      responses:
+        '200':
+          description: Updated connection
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/BroadcastConnectionResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete broadcast connection
+      tags: [Broadcasting]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: broadcastConnection
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Connection deleted
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/broadcasting/auth:
+    post:
+      summary: Authenticate broadcast channel
+      tags: [Broadcasting]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BroadcastAuthRequest'
+      responses:
+        '200':
+          description: Signed authentication payload
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BroadcastAuthResponse'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
 components:
   securitySchemes:
@@ -1567,6 +1827,131 @@ components:
         updated_at:
           type: string
           format: date-time
+    BroadcastConnectionResource:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [broadcast-connections]
+        id:
+          type: string
+        attributes:
+          type: object
+          properties:
+            tenant_id:
+              type: integer
+            brand_id:
+              type: integer
+              nullable: true
+            user_id:
+              type: integer
+              nullable: true
+            connection_id:
+              type: string
+            channel_name:
+              type: string
+            status:
+              type: string
+              enum: [active, stale, disconnected]
+            latency_ms:
+              type: integer
+              nullable: true
+            last_seen_at:
+              type: string
+              format: date-time
+              nullable: true
+            metadata:
+              type: object
+              additionalProperties: {}
+            correlation_id:
+              type: string
+              nullable: true
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+    BroadcastConnectionCreateRequest:
+      type: object
+      required: [connection_id, channel_name, status]
+      properties:
+        brand_id:
+          type: integer
+          nullable: true
+        user_id:
+          type: integer
+          nullable: true
+        connection_id:
+          type: string
+          maxLength: 255
+        channel_name:
+          type: string
+          maxLength: 255
+        status:
+          type: string
+          enum: [active, stale, disconnected]
+        latency_ms:
+          type: integer
+          minimum: 0
+          nullable: true
+        last_seen_at:
+          type: string
+          format: date-time
+          nullable: true
+        metadata:
+          type: object
+          additionalProperties: {}
+    BroadcastConnectionUpdateRequest:
+      type: object
+      properties:
+        brand_id:
+          type: integer
+          nullable: true
+        user_id:
+          type: integer
+          nullable: true
+        connection_id:
+          type: string
+          maxLength: 255
+        channel_name:
+          type: string
+          maxLength: 255
+        status:
+          type: string
+          enum: [active, stale, disconnected]
+        latency_ms:
+          type: integer
+          minimum: 0
+          nullable: true
+        last_seen_at:
+          type: string
+          format: date-time
+          nullable: true
+        metadata:
+          type: object
+          additionalProperties: {}
+    BroadcastAuthRequest:
+      type: object
+      required: [channel_name, socket_id]
+      properties:
+        channel_name:
+          type: string
+        socket_id:
+          type: string
+        channel_data:
+          type: string
+          nullable: true
+    BroadcastAuthResponse:
+      type: object
+      properties:
+        auth:
+          type: string
+        channel_data:
+          type: string
+          nullable: true
+        correlation_id:
+          type: string
     TicketResource:
       type: object
       properties:

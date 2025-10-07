@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'default' => env('BROADCAST_DRIVER', 'log'),
+    'default' => env('BROADCAST_DRIVER', env('ECHO_ENABLED', false) ? 'pusher' : 'log'),
 
     'connections' => [
         'log' => [
@@ -17,7 +17,11 @@ return [
                 'host' => env('PUSHER_HOST'),
                 'port' => env('PUSHER_PORT'),
                 'scheme' => env('PUSHER_SCHEME', 'https'),
-                'useTLS' => env('PUSHER_SCHEME', 'https') === 'https',
+                'useTLS' => (bool) env('PUSHER_FORCE_TLS', env('PUSHER_SCHEME', 'https') === 'https'),
+                'encrypted' => (bool) env('PUSHER_ENCRYPTED', env('PUSHER_SCHEME', 'https') === 'https'),
+            ],
+            'client_options' => [
+                'timeout' => (int) env('PUSHER_CLIENT_TIMEOUT', 5),
             ],
         ],
         'null' => [
