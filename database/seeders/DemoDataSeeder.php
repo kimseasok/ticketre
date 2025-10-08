@@ -15,6 +15,9 @@ use App\Models\TicketRelationship;
 use App\Models\TicketDeletionRequest;
 use App\Models\TicketEvent;
 use App\Models\TicketSubmission;
+use App\Models\TicketWorkflow;
+use App\Models\TicketWorkflowState;
+use App\Models\TicketWorkflowTransition;
 use App\Models\User;
 use App\Services\ContactService;
 use App\Services\KbArticleService;
@@ -53,6 +56,74 @@ class DemoDataSeeder extends Seeder
         ]);
 
         app()->instance('currentBrand', $brand);
+
+        $workflow = TicketWorkflow::create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'name' => 'Default Support Workflow',
+            'slug' => 'default-support',
+            'description' => 'NON-PRODUCTION demo workflow for seeded tickets.',
+            'is_default' => true,
+        ]);
+
+        $newState = TicketWorkflowState::create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'ticket_workflow_id' => $workflow->getKey(),
+            'name' => 'New',
+            'slug' => 'new',
+            'position' => 0,
+            'is_initial' => true,
+            'is_terminal' => false,
+            'sla_minutes' => 480,
+            'description' => 'Initial intake state for demo purposes only.',
+        ]);
+
+        $triageState = TicketWorkflowState::create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'ticket_workflow_id' => $workflow->getKey(),
+            'name' => 'Triage',
+            'slug' => 'triage',
+            'position' => 1,
+            'is_initial' => false,
+            'is_terminal' => false,
+            'sla_minutes' => 240,
+            'description' => 'NON-PRODUCTION triage state.',
+        ]);
+
+        $resolvedState = TicketWorkflowState::create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'ticket_workflow_id' => $workflow->getKey(),
+            'name' => 'Resolved',
+            'slug' => 'resolved',
+            'position' => 2,
+            'is_initial' => false,
+            'is_terminal' => true,
+            'sla_minutes' => null,
+            'description' => 'Terminal resolution state (NON-PRODUCTION).',
+        ]);
+
+        TicketWorkflowTransition::create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'ticket_workflow_id' => $workflow->getKey(),
+            'from_state_id' => $newState->getKey(),
+            'to_state_id' => $triageState->getKey(),
+            'requires_comment' => false,
+            'metadata' => ['seed_source' => 'demo'],
+        ]);
+
+        TicketWorkflowTransition::create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'ticket_workflow_id' => $workflow->getKey(),
+            'from_state_id' => $triageState->getKey(),
+            'to_state_id' => $resolvedState->getKey(),
+            'requires_comment' => true,
+            'metadata' => ['seed_source' => 'demo'],
+        ]);
 
         $admin = User::factory()->create([
             'tenant_id' => $tenant->id,
@@ -158,6 +229,7 @@ class DemoDataSeeder extends Seeder
         $ticket = Ticket::factory()->create([
             'tenant_id' => $tenant->id,
             'brand_id' => $brand->id,
+            'ticket_workflow_id' => $workflow->getKey(),
             'company_id' => $company->id,
             'contact_id' => $contact->id,
             'assignee_id' => $agent->id,
@@ -175,6 +247,7 @@ class DemoDataSeeder extends Seeder
         $duplicateTicket = Ticket::factory()->create([
             'tenant_id' => $tenant->id,
             'brand_id' => $brand->id,
+            'ticket_workflow_id' => $workflow->getKey(),
             'company_id' => $company->id,
             'contact_id' => $contact->id,
             'assignee_id' => $agent->id,

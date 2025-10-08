@@ -17,6 +17,7 @@ use App\Models\TicketSubmission;
 use App\Models\User;
 use App\Models\TicketDeletionRequest;
 use App\Models\TicketRelationship;
+use App\Models\TicketWorkflow;
 use App\Policies\AuditLogPolicy;
 use App\Policies\BroadcastConnectionPolicy;
 use App\Policies\ContactAnonymizationRequestPolicy;
@@ -31,6 +32,7 @@ use App\Policies\TicketEventPolicy;
 use App\Policies\TicketMergePolicy;
 use App\Policies\TicketPolicy;
 use App\Policies\TicketSubmissionPolicy;
+use App\Policies\TicketWorkflowPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 
@@ -51,6 +53,7 @@ class AuthServiceProvider extends ServiceProvider
         Role::class => RolePolicy::class,
         TicketSubmission::class => TicketSubmissionPolicy::class,
         BroadcastConnection::class => BroadcastConnectionPolicy::class,
+        TicketWorkflow::class => TicketWorkflowPolicy::class,
     ];
 
     public function boot(): void

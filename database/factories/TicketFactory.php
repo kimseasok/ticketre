@@ -5,8 +5,10 @@ namespace Database\Factories;
 use App\Models\Brand;
 use App\Models\Company;
 use App\Models\Contact;
-use App\Models\Tenant;
 use App\Models\Ticket;
+use App\Models\TicketWorkflow;
+use App\Models\TicketWorkflowState;
+use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -28,9 +30,33 @@ class TicketFactory extends Factory
             'brand_id' => $brand,
         ])->id;
 
+        $workflow = null;
+
+        if (isset($this->attributes['ticket_workflow_id'])) {
+            $workflow = TicketWorkflow::find($this->attributes['ticket_workflow_id']);
+        }
+
+        if (! $workflow) {
+            $workflow = TicketWorkflow::factory()->default()->create([
+                'tenant_id' => $tenant,
+                'brand_id' => $brand,
+                'is_default' => true,
+            ]);
+
+            TicketWorkflowState::factory()->initial()->create([
+                'tenant_id' => $tenant,
+                'brand_id' => $brand,
+                'ticket_workflow_id' => $workflow->getKey(),
+                'slug' => 'new',
+                'name' => 'New',
+                'position' => 0,
+            ]);
+        }
+
         return [
             'tenant_id' => $tenant,
             'brand_id' => $brand,
+            'ticket_workflow_id' => $workflow->getKey(),
             'company_id' => $company,
             'contact_id' => $contact,
             'assignee_id' => $assignee,
@@ -40,7 +66,7 @@ class TicketFactory extends Factory
             'channel' => Ticket::CHANNEL_AGENT,
             'department' => 'support',
             'category' => 'general',
-            'workflow_state' => 'new',
+            'workflow_state' => $this->attributes['workflow_state'] ?? 'new',
             'metadata' => [],
             'custom_fields' => [
                 [

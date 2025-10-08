@@ -18,6 +18,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class TicketController extends Controller
 {
@@ -70,7 +71,17 @@ class TicketController extends Controller
             $data['metadata'] = $metadata;
         }
 
-        $ticket = $this->service->update($ticket, $data, $request->user());
+        try {
+            $ticket = $this->service->update($ticket, $data, $request->user());
+        } catch (ValidationException $exception) {
+            throw new HttpResponseException(response()->json([
+                'error' => [
+                    'code' => 'ERR_VALIDATION',
+                    'message' => $exception->getMessage() ?: 'Validation failed.',
+                    'details' => $exception->errors(),
+                ],
+            ], 422));
+        }
 
         return TicketResource::make($ticket);
     }

@@ -32,6 +32,7 @@ class Ticket extends Model
         'contact_id',
         'company_id',
         'assignee_id',
+        'ticket_workflow_id',
         'subject',
         'status',
         'priority',
@@ -68,6 +69,11 @@ class Ticket extends Model
     public function messages()
     {
         return $this->hasMany(Message::class)->orderBy('sent_at')->orderBy('id');
+    }
+
+    public function workflow()
+    {
+        return $this->belongsTo(TicketWorkflow::class, 'ticket_workflow_id');
     }
 
     public function attachments()

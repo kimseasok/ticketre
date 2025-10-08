@@ -191,6 +191,18 @@ X-Brand: <brand-slug>
 
 Structured JSON logs emit `ticket.relationship.*` events with correlation IDs, hashed context key lists, and execution timings. Each create/update/delete also writes `ticket.relationship.*` audit entries with tenant/brand scope for traceability. The demo seeder provisions a NON-PRODUCTION duplicate relationship to explore via Filament at `/admin/ticket-relationships`, which offers type and brand filters plus scoped CRUD actions using the shared service layer.
 
+## Ticket Workflows & SLA Enforcement
+
+Model configurable ticket workflows per tenant/brand and enforce transitions directly in the ticket service layer.
+
+- `GET /api/v1/ticket-workflows` – list workflows for the active tenant/brand (requires `tickets.workflows.view`). Responses include state/transition definitions.
+- `POST /api/v1/ticket-workflows` – create workflows with nested state + transition definitions. Requests validate uniqueness per tenant/brand and return `ERR_VALIDATION` on conflict.
+- `GET /api/v1/ticket-workflows/{id}` – inspect a single workflow.
+- `PATCH /api/v1/ticket-workflows/{id}` – update metadata, states, and transitions idempotently.
+- `DELETE /api/v1/ticket-workflows/{id}` – soft delete a workflow; tickets automatically fall back to the next available default.
+
+`TicketService` validates requested `workflow_state` changes against configured transitions, invokes optional guard/entry hooks, recalculates SLA timers when states define `sla_minutes`, writes `ticket.workflow.transitioned` audit entries, and emits structured lifecycle events. Invalid transitions return `422 ERR_VALIDATION` with the standard error envelope. Filament surfaces full CRUD management at `/admin/ticket-workflows`, including brand filters, default toggles, and NON-PRODUCTION repeaters for state/transition definitions.
+
 ## Ticket Lifecycle Broadcasting
 
 Ticket lifecycle events are persisted, audited, and broadcast over Echo-compatible websockets so agent consoles can react in real time.

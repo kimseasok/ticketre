@@ -6,6 +6,7 @@ use App\Exceptions\InvalidCustomFieldException;
 use App\Models\Ticket;
 use App\Models\TicketEvent;
 use App\Services\TicketMergeService;
+use App\Services\TicketWorkflowService;
 use App\Models\User;
 use App\Support\TicketCustomFieldValidator;
 use Illuminate\Support\Arr;
@@ -18,6 +19,7 @@ class TicketService
         private readonly TicketLifecycleBroadcaster $broadcaster,
         private readonly TicketAuditLogger $auditLogger,
         private readonly TicketMergeService $mergeService,
+        private readonly TicketWorkflowService $workflowService,
     ) {
     }
 
@@ -27,6 +29,9 @@ class TicketService
     public function create(array $data, User $actor, ?string $correlationId = null): Ticket
     {
         $startedAt = microtime(true);
+
+        $workflowPreparation = $this->workflowService->prepareForCreate($data);
+        $data = $workflowPreparation['attributes'];
 
         $data = $this->preparePayload($data);
         $data['channel'] = $data['channel'] ?? Ticket::CHANNEL_AGENT;
@@ -67,6 +72,23 @@ class TicketService
     {
         $startedAt = microtime(true);
 
+        $workflowContext = $data['workflow_context'] ?? [];
+        unset($data['workflow_context']);
+
+        $previousWorkflowState = $ticket->workflow_state;
+        $workflowResult = null;
+
+        if (array_key_exists('workflow_state', $data) && $data['workflow_state'] !== null) {
+            $workflowResult = $this->workflowService->validateTransition($ticket, $data['workflow_state'], $actor, $workflowContext);
+            $data['ticket_workflow_id'] = $workflowResult['workflow']->getKey();
+
+            if ($workflowResult['state']->sla_minutes) {
+                $data['sla_due_at'] = now()->addMinutes($workflowResult['state']->sla_minutes);
+            } elseif (! array_key_exists('sla_due_at', $data)) {
+                $data['sla_due_at'] = null;
+            }
+        }
+
         $data = $this->preparePayload($data, allowMissing: true);
 
         $ticket->fill($data);
@@ -88,6 +110,25 @@ class TicketService
                     'assignee_id' => $ticket->assignee_id,
                 ], $actor);
             }
+        }
+
+        if ($workflowResult && $workflowResult['transition']) {
+            $this->auditLogger->workflowTransitioned(
+                $ticket,
+                $actor,
+                $previousWorkflowState,
+                $ticket->workflow_state,
+                $workflowResult['transition'],
+                $workflowContext,
+                $startedAt,
+            );
+
+            $this->broadcaster->record($ticket, TicketEvent::TYPE_WORKFLOW_TRANSITIONED, [
+                'from' => $previousWorkflowState,
+                'to' => $ticket->workflow_state,
+                'workflow_id' => $workflowResult['workflow']->getKey(),
+                'comment' => $workflowContext['comment'] ?? null,
+            ], $actor);
         }
 
         return $ticket;

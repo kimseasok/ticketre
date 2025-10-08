@@ -17,6 +17,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'tickets.manage',
             'tickets.merge',
             'tickets.redact',
+            'tickets.workflows.view',
+            'tickets.workflows.manage',
             'tickets.relationships.view',
             'tickets.relationships.manage',
             'contacts.manage',
