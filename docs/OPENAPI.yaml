@@ -794,6 +794,196 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/ticket-workflows:
+    get:
+      summary: List ticket workflows
+      tags: [Ticket Workflows]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+      responses:
+        '200':
+          description: Collection of workflows
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketWorkflowCollection'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Create ticket workflow
+      tags: [Ticket Workflows]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TicketWorkflowRequest'
+      responses:
+        '201':
+          description: Created workflow
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketWorkflowResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/ticket-workflows/{ticketWorkflow}:
+    get:
+      summary: Show ticket workflow
+      tags: [Ticket Workflows]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: ticketWorkflow
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Workflow details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketWorkflowResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      summary: Update ticket workflow
+      tags: [Ticket Workflows]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: ticketWorkflow
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TicketWorkflowRequest'
+      responses:
+        '200':
+          description: Workflow updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketWorkflowResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete ticket workflow
+      tags: [Ticket Workflows]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: ticketWorkflow
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Workflow deleted
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /api/v1/ticket-merges:
     get:
       summary: List ticket merges
@@ -2086,6 +2276,173 @@ components:
             self:
               type: string
               format: uri
+    TicketWorkflowState:
+      type: object
+      required: [id, name, slug, position, is_initial, is_terminal]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        position:
+          type: integer
+        is_initial:
+          type: boolean
+        is_terminal:
+          type: boolean
+        sla_minutes:
+          type: integer
+          nullable: true
+        entry_hook:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+    TicketWorkflowTransition:
+      type: object
+      required: [id, from, to, requires_comment]
+      properties:
+        id:
+          type: integer
+        from:
+          type: string
+        to:
+          type: string
+        guard_hook:
+          type: string
+          nullable: true
+        requires_comment:
+          type: boolean
+        metadata:
+          type: object
+          additionalProperties: true
+    TicketWorkflowResource:
+      type: object
+      required: [type, id, attributes]
+      properties:
+        type:
+          type: string
+          enum: [ticket_workflows]
+        id:
+          type: string
+        attributes:
+          type: object
+          required:
+            - tenant_id
+            - name
+            - slug
+            - is_default
+            - created_at
+            - updated_at
+          properties:
+            tenant_id:
+              type: integer
+            brand_id:
+              type: integer
+              nullable: true
+            name:
+              type: string
+            slug:
+              type: string
+            description:
+              type: string
+              nullable: true
+            is_default:
+              type: boolean
+            states:
+              type: array
+              items:
+                $ref: '#/components/schemas/TicketWorkflowState'
+            transitions:
+              type: array
+              items:
+                $ref: '#/components/schemas/TicketWorkflowTransition'
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+    TicketWorkflowCollection:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TicketWorkflowResource'
+    TicketWorkflowRequest:
+      type: object
+      required: [name, slug, states]
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+          nullable: true
+        is_default:
+          type: boolean
+          default: false
+        brand_id:
+          type: integer
+          nullable: true
+        states:
+          type: array
+          items:
+            type: object
+            required: [name, slug]
+            properties:
+              id:
+                type: integer
+                nullable: true
+              name:
+                type: string
+              slug:
+                type: string
+              position:
+                type: integer
+                nullable: true
+              is_initial:
+                type: boolean
+                default: false
+              is_terminal:
+                type: boolean
+                default: false
+              sla_minutes:
+                type: integer
+                nullable: true
+              entry_hook:
+                type: string
+                nullable: true
+              description:
+                type: string
+                nullable: true
+        transitions:
+          type: array
+          items:
+            type: object
+            required: [from, to]
+            properties:
+              id:
+                type: integer
+                nullable: true
+              from:
+                type: string
+              to:
+                type: string
+              guard_hook:
+                type: string
+                nullable: true
+              requires_comment:
+                type: boolean
+                default: false
+              metadata:
+                type: object
+                additionalProperties: true
     TicketMergeCreateRequest:
       type: object
       required: [primary_ticket_id, secondary_ticket_id]

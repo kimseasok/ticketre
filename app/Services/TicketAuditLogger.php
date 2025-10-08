@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\AuditLog;
 use App\Models\Ticket;
+use App\Models\TicketWorkflowTransition;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
 
@@ -157,6 +158,40 @@ class TicketAuditLogger
             'brand_id' => $ticket->brand_id,
             'assignee_id' => $ticket->assignee_id,
             'changes_keys' => array_keys($payload),
+            'duration_ms' => round($durationMs, 2),
+            'user_id' => $actor?->getKey(),
+            'context' => 'ticket_audit',
+        ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $context
+     */
+    public function workflowTransitioned(Ticket $ticket, ?User $actor, ?string $fromState, ?string $toState, TicketWorkflowTransition $transition, array $context, float $startedAt): void
+    {
+        $payload = [
+            'workflow_transition' => [
+                'from' => $fromState,
+                'to' => $toState,
+                'transition_id' => $transition->getKey(),
+                'requires_comment' => $transition->requires_comment,
+                'has_comment' => ! empty($context['comment']),
+            ],
+        ];
+
+        $this->persist($ticket, $actor, 'ticket.workflow.transitioned', $payload);
+
+        $durationMs = (microtime(true) - $startedAt) * 1000;
+
+        Log::channel(config('logging.default'))->info('ticket.workflow.transitioned', [
+            'ticket_id' => $ticket->getKey(),
+            'tenant_id' => $ticket->tenant_id,
+            'brand_id' => $ticket->brand_id,
+            'transition_id' => $transition->getKey(),
+            'from_state' => $fromState,
+            'to_state' => $toState,
+            'requires_comment' => $transition->requires_comment,
+            'has_comment' => ! empty($context['comment']),
             'duration_ms' => round($durationMs, 2),
             'user_id' => $actor?->getKey(),
             'context' => 'ticket_audit',

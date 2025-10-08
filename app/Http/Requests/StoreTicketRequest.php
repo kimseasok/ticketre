@@ -47,6 +47,8 @@ class StoreTicketRequest extends ApiFormRequest
             'department' => ['nullable', 'string', 'max:255'],
             'category' => ['nullable', 'string', 'max:255'],
             'workflow_state' => ['nullable', 'string', 'max:255'],
+            'workflow_context' => ['sometimes', 'array'],
+            'workflow_context.comment' => ['nullable', 'string', 'max:1000'],
             'sla_due_at' => ['nullable', 'date'],
         ] + $this->customFieldRules();
     }

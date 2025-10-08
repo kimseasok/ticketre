@@ -17,6 +17,7 @@
 - Meilisearch infrastructure configuration with health-check command, Docker templates, runbook, and monitoring guidance. (E3-F6-I1)
 - Hardened knowledge base HTML sanitization with allow-listed rich text, redacted audit logging, structured observability, and regression tests covering malicious payloads. (E3-F2-I3)
 - Tenant-scoped ticket creation API with custom field validation, JSON:API responses, Filament custom field management, structured logging, and OpenAPI/README documentation. (E1-F1-I5)
+- Ticket workflow enforcement with migrations, API + FormRequest validation, Filament CRUD, SLA recalculation, audit/logging, and OpenAPI/README updates. (E1-F4-I3)
 ### Fixed
 - Restore Pint compatibility and database credentials so CI linting and migrations succeed on MySQL and PostgreSQL.
 - Declare the application as an ES module so Vite can import `laravel-vite-plugin` during CI builds without require() failures.

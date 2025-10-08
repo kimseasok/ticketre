@@ -47,6 +47,8 @@ class UpdateTicketRequest extends ApiFormRequest
             'department' => ['sometimes', 'nullable', 'string', 'max:255'],
             'category' => ['sometimes', 'nullable', 'string', 'max:255'],
             'workflow_state' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'workflow_context' => ['sometimes', 'array'],
+            'workflow_context.comment' => ['nullable', 'string', 'max:1000'],
             'sla_due_at' => ['sometimes', 'nullable', 'date'],
         ] + $this->customFieldRules(true);
     }

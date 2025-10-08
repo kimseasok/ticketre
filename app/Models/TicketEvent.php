@@ -19,6 +19,7 @@ class TicketEvent extends Model
     public const TYPE_UPDATED = 'ticket.updated';
     public const TYPE_ASSIGNED = 'ticket.assigned';
     public const TYPE_MERGED = 'ticket.merged';
+    public const TYPE_WORKFLOW_TRANSITIONED = 'ticket.workflow.transitioned';
 
     public const VISIBILITY_INTERNAL = 'internal';
     public const VISIBILITY_PUBLIC = 'public';
