@@ -12,9 +12,11 @@ use App\Models\Message;
 use App\Models\Role;
 use App\Models\Ticket;
 use App\Models\TicketEvent;
+use App\Models\TicketMerge;
 use App\Models\TicketSubmission;
 use App\Models\User;
 use App\Models\TicketDeletionRequest;
+use App\Models\TicketRelationship;
 use App\Policies\AuditLogPolicy;
 use App\Policies\BroadcastConnectionPolicy;
 use App\Policies\ContactAnonymizationRequestPolicy;
@@ -24,7 +26,9 @@ use App\Policies\KbCategoryPolicy;
 use App\Policies\MessagePolicy;
 use App\Policies\RolePolicy;
 use App\Policies\TicketDeletionRequestPolicy;
+use App\Policies\TicketRelationshipPolicy;
 use App\Policies\TicketEventPolicy;
+use App\Policies\TicketMergePolicy;
 use App\Policies\TicketPolicy;
 use App\Policies\TicketSubmissionPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
@@ -35,9 +39,11 @@ class AuthServiceProvider extends ServiceProvider
     protected $policies = [
         Ticket::class => TicketPolicy::class,
         TicketEvent::class => TicketEventPolicy::class,
+        TicketMerge::class => TicketMergePolicy::class,
         Contact::class => ContactPolicy::class,
         ContactAnonymizationRequest::class => ContactAnonymizationRequestPolicy::class,
         TicketDeletionRequest::class => TicketDeletionRequestPolicy::class,
+        TicketRelationship::class => TicketRelationshipPolicy::class,
         KbArticle::class => KbArticlePolicy::class,
         KbCategory::class => KbCategoryPolicy::class,
         Message::class => MessagePolicy::class,

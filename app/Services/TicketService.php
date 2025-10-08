@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Exceptions\InvalidCustomFieldException;
 use App\Models\Ticket;
 use App\Models\TicketEvent;
+use App\Services\TicketMergeService;
 use App\Models\User;
 use App\Support\TicketCustomFieldValidator;
 use Illuminate\Support\Arr;
@@ -16,6 +17,7 @@ class TicketService
     public function __construct(
         private readonly TicketLifecycleBroadcaster $broadcaster,
         private readonly TicketAuditLogger $auditLogger,
+        private readonly TicketMergeService $mergeService,
     ) {
     }
 
@@ -119,23 +121,15 @@ class TicketService
         $this->auditLogger->deleted($ticket, $actor, $startedAt);
     }
 
-    public function merge(Ticket $primary, Ticket $secondary, User $actor): Ticket
+    public function merge(Ticket $primary, Ticket $secondary, User $actor, ?string $correlationId = null): Ticket
     {
-        $this->broadcaster->record($primary->fresh(), TicketEvent::TYPE_MERGED, [
+        $merge = $this->mergeService->merge([
             'primary_ticket_id' => $primary->getKey(),
             'secondary_ticket_id' => $secondary->getKey(),
-        ], $actor);
+            'correlation_id' => $correlationId,
+        ], $actor, $correlationId);
 
-        Log::channel(config('logging.default'))->info('ticket.lifecycle.merged', [
-            'primary_ticket_id' => $primary->getKey(),
-            'secondary_ticket_id' => $secondary->getKey(),
-            'tenant_id' => $primary->tenant_id,
-            'brand_id' => $primary->brand_id,
-            'initiator_id' => $actor->getKey(),
-            'context' => 'ticket_lifecycle',
-        ]);
-
-        return $primary->fresh();
+        return $merge->primaryTicket->fresh(['assignee', 'contact', 'company']);
     }
 
     /**

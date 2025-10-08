@@ -15,7 +15,10 @@ class RolesAndPermissionsSeeder extends Seeder
         $permissions = [
             'tickets.view',
             'tickets.manage',
+            'tickets.merge',
             'tickets.redact',
+            'tickets.relationships.view',
+            'tickets.relationships.manage',
             'contacts.manage',
             'contacts.anonymize',
             'knowledge.manage',

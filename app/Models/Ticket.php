@@ -85,6 +85,26 @@ class Ticket extends Model
         return $this->hasMany(TicketDeletionRequest::class);
     }
 
+    public function primaryRelationships(): HasMany
+    {
+        return $this->hasMany(TicketRelationship::class, 'primary_ticket_id');
+    }
+
+    public function relatedRelationships(): HasMany
+    {
+        return $this->hasMany(TicketRelationship::class, 'related_ticket_id');
+    }
+
+    public function mergesAsPrimary(): HasMany
+    {
+        return $this->hasMany(TicketMerge::class, 'primary_ticket_id');
+    }
+
+    public function mergesAsSecondary(): HasMany
+    {
+        return $this->hasMany(TicketMerge::class, 'secondary_ticket_id');
+    }
+
     public function toSearchableArray(): array
     {
         return [

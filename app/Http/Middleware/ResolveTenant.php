@@ -6,6 +6,7 @@ use App\Models\Tenant;
 use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Spatie\Permission\PermissionRegistrar;
 use Symfony\Component\HttpFoundation\Response;
 
 class ResolveTenant
@@ -37,6 +38,12 @@ class ResolveTenant
         app()->instance(Tenant::class, $tenant);
         app()->instance('currentTenant', $tenant);
         app()->instance('currentBrand', $brand);
+
+        $permissionRegistrar = app(PermissionRegistrar::class);
+        $permissionRegistrar->forgetCachedPermissions();
+        if (method_exists($permissionRegistrar, 'clearPermissionsCollection')) {
+            $permissionRegistrar->clearPermissionsCollection();
+        }
 
         return $next($request);
     }

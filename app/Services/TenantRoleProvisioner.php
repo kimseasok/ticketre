@@ -33,7 +33,11 @@ class TenantRoleProvisioner
             $this->roleService->update($existing, Arr::except($definition, ['slug', 'is_system']), $actor);
         }
 
-        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $permissionRegistrar = app(PermissionRegistrar::class);
+        $permissionRegistrar->forgetCachedPermissions();
+        if (method_exists($permissionRegistrar, 'clearPermissionsCollection')) {
+            $permissionRegistrar->clearPermissionsCollection();
+        }
 
         if ($previousTenant) {
             app()->instance('currentTenant', $previousTenant);
@@ -50,7 +54,10 @@ class TenantRoleProvisioner
         $basePermissions = [
             'tickets.view',
             'tickets.manage',
+            'tickets.merge',
             'tickets.redact',
+            'tickets.relationships.view',
+            'tickets.relationships.manage',
             'contacts.manage',
             'contacts.anonymize',
             'knowledge.view',
@@ -79,6 +86,9 @@ class TenantRoleProvisioner
                 'permissions' => [
                     'tickets.view',
                     'tickets.manage',
+                    'tickets.merge',
+                    'tickets.relationships.view',
+                    'tickets.relationships.manage',
                     'contacts.manage',
                     'knowledge.view',
                     'knowledge.manage',
@@ -92,6 +102,7 @@ class TenantRoleProvisioner
                 'description' => 'Read-only visibility into tickets, reports, and published knowledge base resources.',
                 'permissions' => [
                     'tickets.view',
+                    'tickets.relationships.view',
                     'reports.view',
                     'knowledge.view',
                 ],

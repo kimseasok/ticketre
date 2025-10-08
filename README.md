@@ -172,6 +172,25 @@ Processing replaces the ticket subject with a pseudonymous label, clears associa
 
 Filament exposes the workflow at `/admin/ticket-deletion-requests`, including approve/cancel actions with hold configuration, tenant/brand filters, and read-only detail views. Run `php artisan queue:work` to process approved requests asynchronously; tests process jobs synchronously for determinism.
 
+## Ticket Relationship Metadata
+
+Track merges, splits, and duplicate links between tickets while keeping tenancy, RBAC, and observability consistent across surfaces.
+
+- `GET /api/v1/ticket-relationships` – list relationships for the active tenant/brand. Supports optional `relationship_type`, `primary_ticket_id`, `related_ticket_id`, and pagination parameters. Requires `tickets.relationships.view` (seeded for Admin/Agent/Viewer).
+- `POST /api/v1/ticket-relationships` – create a new relationship with `primary_ticket_id`, `related_ticket_id`, `relationship_type` (`merge`, `split`, or `duplicate`), optional `context` metadata, and an optional `correlation_id`. Requires `tickets.relationships.manage` (or `tickets.manage`). Requests reject cross-brand pairs, self-references, duplicate/inverse pairs, and merge cycles.
+- `GET /api/v1/ticket-relationships/{id}` – return a single relationship with ticket + creator context.
+- `PATCH /api/v1/ticket-relationships/{id}` – update the relationship type or context metadata. Context values are trimmed to 255 characters and logged by key only to avoid PII exposure.
+- `DELETE /api/v1/ticket-relationships/{id}` – delete a relationship with full audit + structured log coverage.
+
+All responses follow the `{ "data": { ... } }` envelope and include the stored `correlation_id`. Errors use `{ "error": { "code", "message" } }` and provide validation details when applicable. Provide the standard tenant headers:
+
+```http
+X-Tenant: <tenant-slug>
+X-Brand: <brand-slug>
+```
+
+Structured JSON logs emit `ticket.relationship.*` events with correlation IDs, hashed context key lists, and execution timings. Each create/update/delete also writes `ticket.relationship.*` audit entries with tenant/brand scope for traceability. The demo seeder provisions a NON-PRODUCTION duplicate relationship to explore via Filament at `/admin/ticket-relationships`, which offers type and brand filters plus scoped CRUD actions using the shared service layer.
+
 ## Ticket Lifecycle Broadcasting
 
 Ticket lifecycle events are persisted, audited, and broadcast over Echo-compatible websockets so agent consoles can react in real time.
@@ -242,6 +261,35 @@ the custom field count. When the request originates from Filament or another int
 the specialised API log entry is skipped.
 
 All responses include `correlation_id` metadata and redact PII in logs via hashed digests. Manual testing is available via Filament at `/admin/ticket-events`, which respects tenant and brand scopes.
+
+### Ticket Merge Workflow
+
+Merge duplicate tickets without losing historical context. The `tickets.merge` permission is provisioned for Admin and Agent roles; viewers cannot initiate merges.
+
+**API**
+
+- `GET /api/v1/ticket-merges` – paginate historical merges with optional `status`, `primary_ticket_id`, and `brand_id` filters. Responses include summary metrics plus eager-loaded ticket snapshots.
+- `POST /api/v1/ticket-merges` – merge two tickets by supplying `primary_ticket_id`, `secondary_ticket_id`, and an optional `correlation_id`. Self-merges, cross-tenant IDs, and cross-brand pairs return `422 ERR_VALIDATION`.
+- `GET /api/v1/ticket-merges/{id}` – inspect a single merge, including counts of migrated messages/events/attachments and the involved tickets.
+
+All requests require the tenant headers:
+
+```http
+X-Tenant: <tenant-slug>
+X-Brand: <brand-slug>
+```
+
+Provide an `X-Correlation-ID` (≤64 chars) to propagate the identifier into structured logs; the service generates a UUID when omitted. Successful responses follow the `{ "data": { ... } }` envelope, surface merge summaries under `attributes.summary`, and expose relationships to the primary/secondary tickets and initiator.
+
+**Filament**
+
+- `/admin/ticket-merges` offers a scoped creator and detail view with tenant/brand filters plus ticket pickers that honour the active brand.
+
+**Observability & Safeguards**
+
+- Structured logs emit `ticket.merge.created`, `.completed`, and `.failed` with tenant/brand IDs, correlation IDs, hashed failure reasons, and execution timings.
+- Audit logs capture created/completed/failed states with snapshot payloads; failure states persist timestamps and sanitized reasons on the merge record.
+- Merge executions automatically register `merge` ticket relationships for downstream analytics, and the demo seeder provisions a NON-PRODUCTION merge for exploration.
 
 ### Echo Broadcasting Stack
 
