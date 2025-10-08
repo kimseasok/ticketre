@@ -11,7 +11,9 @@ use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\PortalTicketSubmissionController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\TicketController;
+use App\Http\Controllers\Api\TicketMergeController;
 use App\Http\Controllers\Api\TicketDeletionRequestController;
+use App\Http\Controllers\Api\TicketRelationshipController;
 use App\Http\Controllers\Api\TicketSubmissionController;
 use Illuminate\Support\Facades\Route;
 
@@ -55,6 +57,9 @@ Route::middleware(['auth', 'tenant'])->prefix('v1')->name('api.')->group(functio
         TicketDeletionRequestController::class,
         'cancel',
     ])->name('ticket-deletion-requests.cancel');
+
+    Route::apiResource('ticket-merges', TicketMergeController::class)->only(['index', 'store', 'show']);
+    Route::apiResource('ticket-relationships', TicketRelationshipController::class)->except(['create', 'edit']);
 
     Route::apiResource('kb-categories', KbCategoryController::class)->except(['create', 'edit']);
     Route::get('kb-articles/search', [KbArticleController::class, 'search'])->name('kb-articles.search');

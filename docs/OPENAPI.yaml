@@ -794,22 +794,36 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /api/v1/roles:
+  /api/v1/ticket-merges:
     get:
-      summary: List tenant roles
-      tags: [Roles]
+      summary: List ticket merges
+      tags: [Tickets]
       security:
         - cookieAuth: []
       parameters:
         - $ref: '#/components/parameters/TenantHeader'
-        - name: search
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: status
           in: query
-          description: Optional case-insensitive search across name and slug.
           schema:
             type: string
+        - name: primary_ticket_id
+          in: query
+          schema:
+            type: integer
+        - name: brand_id
+          in: query
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
       responses:
         '200':
-          description: Collection of roles
+          description: Collection of ticket merges
           content:
             application/json:
               schema:
@@ -818,7 +832,13 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Role'
+                      $ref: '#/components/schemas/TicketMergeResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '403':
           description: Forbidden
           content:
@@ -826,42 +846,35 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
     post:
-      summary: Create tenant role
-      tags: [Roles]
+      summary: Create ticket merge
+      tags: [Tickets]
       security:
         - cookieAuth: []
       parameters:
         - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required: [name, permissions]
-              properties:
-                name:
-                  type: string
-                slug:
-                  type: string
-                  nullable: true
-                description:
-                  type: string
-                  nullable: true
-                permissions:
-                  type: array
-                  items:
-                    type: string
+              $ref: '#/components/schemas/TicketMergeCreateRequest'
       responses:
         '201':
-          description: Role created
+          description: Ticket merge created
           content:
             application/json:
               schema:
                 type: object
                 properties:
                   data:
-                    $ref: '#/components/schemas/Role'
+                    $ref: '#/components/schemas/TicketMergeResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '403':
           description: Forbidden
           content:
@@ -874,25 +887,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /api/v1/roles/{role}:
+  /api/v1/ticket-merges/{ticketMerge}:
     get:
-      summary: Retrieve role detail
-      tags: [Roles]
+      summary: Retrieve ticket merge
+      tags: [Tickets]
       security:
         - cookieAuth: []
       parameters:
         - $ref: '#/components/parameters/TenantHeader'
-        - $ref: '#/components/parameters/RoleId'
+        - $ref: '#/components/parameters/BrandHeader'
+        - $ref: '#/components/parameters/TicketMergeId'
       responses:
         '200':
-          description: Role detail
+          description: Ticket merge detail
           content:
             application/json:
               schema:
                 type: object
                 properties:
                   data:
-                    $ref: '#/components/schemas/Role'
+                    $ref: '#/components/schemas/TicketMergeResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '403':
           description: Forbidden
           content:
@@ -905,84 +925,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-    patch:
-      summary: Update tenant role
-      tags: [Roles]
-      security:
-        - cookieAuth: []
-      parameters:
-        - $ref: '#/components/parameters/TenantHeader'
-        - $ref: '#/components/parameters/RoleId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                slug:
-                  type: string
-                  nullable: true
-                description:
-                  type: string
-                  nullable: true
-                permissions:
-                  type: array
-                  items:
-                    type: string
-      responses:
-        '200':
-          description: Role updated
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    $ref: '#/components/schemas/Role'
-        '403':
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '422':
-          description: Validation error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-    delete:
-      summary: Delete tenant role
-      tags: [Roles]
-      security:
-        - cookieAuth: []
-      parameters:
-        - $ref: '#/components/parameters/TenantHeader'
-        - $ref: '#/components/parameters/RoleId'
-      responses:
-        '204':
-          description: Role deleted
-        '403':
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '422':
-          description: Protected role error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '422':
-          description: Validation error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+
   /api/v1/kb-categories:
     get:
       summary: List knowledge base categories
@@ -1796,6 +1739,18 @@ components:
       required: true
       schema:
         type: integer
+    TicketRelationshipId:
+      name: ticketRelationship
+      in: path
+      required: true
+      schema:
+        type: integer
+    TicketMergeId:
+      name: ticketMerge
+      in: path
+      required: true
+      schema:
+        type: integer
   schemas:
     Message:
       type: object
@@ -2001,10 +1956,109 @@ components:
             updated_at:
               type: string
               format: date-time
+    TicketMergeResource:
+      type: object
+      required: [type, id, attributes]
+      properties:
+        type:
+          type: string
+          enum: [ticket_merges]
+        id:
+          type: string
+        attributes:
+          type: object
+          required:
+            - tenant_id
+            - status
+            - primary_ticket_id
+            - secondary_ticket_id
+            - initiated_by
+            - created_at
+            - updated_at
+          properties:
+            tenant_id:
+              type: integer
+            brand_id:
+              type: integer
+              nullable: true
+            status:
+              type: string
+              enum: [pending, processing, completed, failed]
+            summary:
+              type: object
+              additionalProperties: true
+            correlation_id:
+              type: string
+              nullable: true
+            completed_at:
+              type: string
+              format: date-time
+              nullable: true
+            failed_at:
+              type: string
+              format: date-time
+              nullable: true
+            failure_reason:
+              type: string
+              nullable: true
+            primary_ticket_id:
+              type: integer
+            secondary_ticket_id:
+              type: integer
+            initiated_by:
+              type: integer
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
         relationships:
           type: object
           properties:
-            assignee:
+            primary_ticket:
+              type: object
+              nullable: true
+              properties:
+                data:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum: [tickets]
+                    id:
+                      type: string
+                    attributes:
+                      type: object
+                      properties:
+                        subject:
+                          type: string
+                          nullable: true
+                        status:
+                          type: string
+                          nullable: true
+            secondary_ticket:
+              type: object
+              nullable: true
+              properties:
+                data:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum: [tickets]
+                    id:
+                      type: string
+                    attributes:
+                      type: object
+                      properties:
+                        subject:
+                          type: string
+                          nullable: true
+                        status:
+                          type: string
+                          nullable: true
+            initiator:
               type: object
               nullable: true
               properties:
@@ -2021,58 +2075,31 @@ components:
                       properties:
                         name:
                           type: string
+                          nullable: true
                         email:
                           type: string
+                          format: email
                           nullable: true
-            contact:
-              type: object
-              nullable: true
-              properties:
-                data:
-                  type: object
-                  properties:
-                    type:
-                      type: string
-                      enum: [contacts]
-                    id:
-                      type: string
-                    attributes:
-                      type: object
-                      properties:
-                        name:
-                          type: string
-                        email:
-                          type: string
-                          nullable: true
-            company:
-              type: object
-              nullable: true
-              properties:
-                data:
-                  type: object
-                  properties:
-                    type:
-                      type: string
-                      enum: [companies]
-                    id:
-                      type: string
-                    attributes:
-                      type: object
-                      properties:
-                        name:
-                          type: string
         links:
           type: object
           properties:
             self:
               type: string
               format: uri
-            messages:
-              type: string
-              format: uri
-            events:
-              type: string
-              format: uri
+    TicketMergeCreateRequest:
+      type: object
+      required: [primary_ticket_id, secondary_ticket_id]
+      properties:
+        primary_ticket_id:
+          type: integer
+          minimum: 1
+        secondary_ticket_id:
+          type: integer
+          minimum: 1
+        correlation_id:
+          type: string
+          maxLength: 64
+          nullable: true
     TicketCustomField:
       type: object
       required: [key, type, value]
@@ -2788,3 +2815,36 @@ components:
               example: ERR_VALIDATION
             message:
               type: string
+    TicketRelationshipCreateRequest:
+      type: object
+      required: [primary_ticket_id, related_ticket_id, relationship_type]
+      properties:
+        primary_ticket_id:
+          type: integer
+          minimum: 1
+        related_ticket_id:
+          type: integer
+          minimum: 1
+        relationship_type:
+          type: string
+          enum: [merge, split, duplicate]
+        context:
+          type: object
+          additionalProperties:
+            type: string
+        correlation_id:
+          type: string
+          maxLength: 64
+    TicketRelationshipUpdateRequest:
+      type: object
+      properties:
+        relationship_type:
+          type: string
+          enum: [merge, split, duplicate]
+        context:
+          type: object
+          additionalProperties:
+            type: string
+        correlation_id:
+          type: string
+          maxLength: 64

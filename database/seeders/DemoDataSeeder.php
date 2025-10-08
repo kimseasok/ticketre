@@ -11,6 +11,7 @@ use App\Models\KbCategory;
 use App\Models\Message;
 use App\Models\Tenant;
 use App\Models\Ticket;
+use App\Models\TicketRelationship;
 use App\Models\TicketDeletionRequest;
 use App\Models\TicketEvent;
 use App\Models\TicketSubmission;
@@ -20,6 +21,8 @@ use App\Services\KbArticleService;
 use App\Services\TenantRoleProvisioner;
 use App\Services\TicketLifecycleBroadcaster;
 use App\Services\PortalTicketSubmissionService;
+use App\Services\TicketRelationshipService;
+use App\Services\TicketMergeService;
 use App\Services\TicketService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -169,6 +172,16 @@ class DemoDataSeeder extends Seeder
             ],
         ]);
 
+        $duplicateTicket = Ticket::factory()->create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'company_id' => $company->id,
+            'contact_id' => $contact->id,
+            'assignee_id' => $agent->id,
+            'subject' => 'Demo duplicate ticket',
+            'status' => 'pending',
+        ]);
+
         Message::factory()->for($ticket)->create([
             'tenant_id' => $tenant->id,
             'brand_id' => $brand->id,
@@ -186,6 +199,14 @@ class DemoDataSeeder extends Seeder
             'visibility' => Message::VISIBILITY_PUBLIC,
             'body' => 'Public reply seeded for demo. DO NOT USE IN PRODUCTION.',
         ]);
+
+        app(TicketRelationshipService::class)->create([
+            'primary_ticket_id' => $ticket->getKey(),
+            'related_ticket_id' => $duplicateTicket->getKey(),
+            'relationship_type' => TicketRelationship::TYPE_DUPLICATE,
+            'context' => ['note' => 'NON-PRODUCTION duplicate reference'],
+            'correlation_id' => (string) Str::uuid(),
+        ], $admin);
 
         app(PortalTicketSubmissionService::class)->submit([
             'name' => 'Portal Demo Contact',
@@ -248,6 +269,21 @@ class DemoDataSeeder extends Seeder
             ],
         ]);
 
+        app(TicketLifecycleBroadcaster::class)->record(
+            $ticket->fresh(),
+            TicketEvent::TYPE_CREATED,
+            ['seed_source' => 'demo'],
+            $admin,
+            TicketEvent::VISIBILITY_INTERNAL,
+            false
+        );
+
+        app(TicketMergeService::class)->merge([
+            'primary_ticket_id' => $ticket->getKey(),
+            'secondary_ticket_id' => $duplicateTicket->getKey(),
+            'correlation_id' => (string) Str::uuid(),
+        ], $admin, (string) Str::uuid());
+
         TicketDeletionRequest::create([
             'tenant_id' => $tenant->id,
             'brand_id' => $brand->id,
@@ -257,14 +293,5 @@ class DemoDataSeeder extends Seeder
             'reason' => 'NON-PRODUCTION demo deletion request.',
             'correlation_id' => (string) Str::uuid(),
         ]);
-
-        app(TicketLifecycleBroadcaster::class)->record(
-            $ticket->fresh(),
-            TicketEvent::TYPE_CREATED,
-            ['seed_source' => 'demo'],
-            $admin,
-            TicketEvent::VISIBILITY_INTERNAL,
-            false
-        );
     }
 }
