@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 ### Added
+- Two-factor authentication enrollment and enforcement with tenant policy configuration, REST endpoints, challenge middleware, Filament credential management, and OpenAPI/README updates. (E10-F1-I2)
 - Tenant/brand-aware permission registry with REST + Filament CRUD, audit logging, artisan command docs, and OpenAPI/README updates. (E2-F3-I1)
 - Tenant/brand-scoped contact and company directory with Filament CRM surfaces, REST APIs, GDPR consent enforcement, structured audit logging, and documentation/OpenAPI coverage. (E2-F1-I2)
 - Tenant-aware RBAC middleware enforcing `platform.access` and `portal.submit` permissions across admin and portal surfaces with correlation IDs, structured denial logging, and documentation/test coverage. (E2-F3-I3)

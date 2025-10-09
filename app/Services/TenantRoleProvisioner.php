@@ -85,6 +85,8 @@ class TenantRoleProvisioner
             'permissions.manage',
             'teams.view',
             'teams.manage',
+            'security.2fa.manage',
+            'security.2fa.review',
         ];
 
         return [
@@ -115,6 +117,7 @@ class TenantRoleProvisioner
                     'compliance.policies.view',
                     'broadcast_connections.view',
                     'teams.view',
+                    'security.2fa.manage',
                 ],
                 'is_system' => true,
             ],

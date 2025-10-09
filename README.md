@@ -127,6 +127,26 @@ Responses follow the existing `{ "data": { ... } }` envelope; validation/auth er
 
 Filament exposes the same CRUD operations at `/admin/permissions`. The resource filters by the resolved tenant, offers a brand picker (including “All brands”), disables destructive actions for system permissions, and eager loads brand relationships to avoid N+1 queries.
 
+## Two-Factor Authentication
+
+Platform administrators and agents must maintain an active TOTP profile before interacting with privileged APIs. The tenant security policy defaults to enforcing two-factor for `Admin` and `Agent` roles; viewer-only accounts remain exempt.
+
+- **Enrollment** – `POST /api/v1/two-factor/enroll` provisions an encrypted secret and returns an `otpauth://` URI suitable for QR display. Confirm the pairing with `POST /api/v1/two-factor/confirm` by supplying a 6-digit TOTP from the authenticator. Successful confirmation returns a fresh set of one-time recovery codes.
+- **Challenge** – Each authenticated session must call `POST /api/v1/two-factor/challenge` with either a current TOTP or unused recovery code. Successful challenges store a tenant-scoped session token for the configured TTL (30 minutes by default) and allow access to other `/api/v1/*` routes guarded by `platform.access`.
+- **Recovery maintenance** – `POST /api/v1/two-factor/recovery-codes` regenerates recovery codes after they are consumed. All responses follow the `{ "data": { ... }, "meta": { ... } }` envelope and include `X-Correlation-ID` headers for observability.
+
+If an account fails too many challenges (`config('security.two_factor.max_attempts')`, default `5`), the credential locks and the API responds with `ERR_2FA_LOCKED` until an administrator resets the lock via Filament.
+
+### Filament operations
+
+Visit `/admin/two-factor-credentials` to review tenant-scoped credentials. Admins can:
+
+- Start enrollment on behalf of a user (the generated secret is displayed in a persistent notification for secure handoff).
+- View status, last verification timestamps, and remaining recovery codes.
+- Unlock a credential directly from the edit screen after a lockout event.
+
+All actions emit structured JSON logs with the request correlation ID and write `two_factor.*` audit events that hash sensitive fields (secrets and recovery codes never appear in plaintext). Tenant scoping is enforced automatically and brand filters are available when multiple brands exist.
+
 ### Artisan helpers
 
 The Spatie commands remain available for operational tasks and now respect the tenant bindings configured in this project:

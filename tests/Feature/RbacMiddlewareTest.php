@@ -5,6 +5,7 @@ use App\Models\Tenant;
 use App\Models\User;
 use App\Services\TenantRoleProvisioner;
 use Illuminate\Support\Facades\Notification;
+
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\getJson;
 use function Pest\Laravel\postJson;

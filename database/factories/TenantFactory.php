@@ -20,7 +20,15 @@ class TenantFactory extends Factory
             'slug' => $slug,
             'domain' => $slug.'.example.com',
             'timezone' => 'UTC',
-            'settings' => [],
+            'settings' => [
+                'security' => [
+                    'two_factor' => [
+                        'enforced' => true,
+                        'required_roles' => ['Admin', 'Agent'],
+                        'session_ttl_minutes' => 30,
+                    ],
+                ],
+            ],
         ];
     }
 }

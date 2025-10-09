@@ -16,6 +16,7 @@ use App\Models\Ticket;
 use App\Models\TicketEvent;
 use App\Models\TicketMerge;
 use App\Models\TicketSubmission;
+use App\Models\TwoFactorCredential;
 use App\Models\User;
 use App\Models\TicketDeletionRequest;
 use App\Models\TicketRelationship;
@@ -41,6 +42,7 @@ use App\Policies\TicketMergePolicy;
 use App\Policies\TicketPolicy;
 use App\Policies\TicketSubmissionPolicy;
 use App\Policies\TicketWorkflowPolicy;
+use App\Policies\TwoFactorCredentialPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 
@@ -66,6 +68,7 @@ class AuthServiceProvider extends ServiceProvider
         TicketWorkflow::class => TicketWorkflowPolicy::class,
         Team::class => TeamPolicy::class,
         TeamMembership::class => TeamMembershipPolicy::class,
+        TwoFactorCredential::class => TwoFactorCredentialPolicy::class,
     ];
 
     public function boot(): void
