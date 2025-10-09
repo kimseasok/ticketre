@@ -25,6 +25,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'tickets.relationships.manage',
             'contacts.manage',
             'contacts.anonymize',
+            'companies.manage',
             'compliance.policies.view',
             'compliance.policies.manage',
             'knowledge.manage',

@@ -153,6 +153,15 @@ Filament administrators can review the same history via `/admin/audit-logs`, whi
 
 ## Contact Anonymization Workflow
 
+### Contact & Company Directory
+
+- Manage tenant-scoped companies and contacts via Filament under **CRM**. Companies support tag-based filtering and optional brand scoping, while contacts capture GDPR marketing/data processing consent flags.
+- API endpoints:
+  - `GET /api/v1/companies`, `POST /api/v1/companies`, `GET /api/v1/companies/{company}`, `PATCH /api/v1/companies/{company}`, `DELETE /api/v1/companies/{company}`
+  - `GET /api/v1/contacts`, `POST /api/v1/contacts`, `GET /api/v1/contacts/{contact}`, `PATCH /api/v1/contacts/{contact}`, `DELETE /api/v1/contacts/{contact}`
+- All responses include structured JSON:API payloads and enforce tenant plus optional brand scope derived from `X-Tenant`/`X-Brand` headers.
+- Unique contact emails are enforced per tenant, and consent toggles are required when creating or updating contacts. Structured audit logs emit correlation-aware entries for create/update/delete operations.
+
 Data-subject requests can now be fulfilled without purging analytics by queuing a tenant-scoped anonymization job. Only users with the new `contacts.anonymize` permission (seeded for tenant Admins) may initiate the flow.
 
 - `GET /api/v1/contact-anonymization-requests` – list pending/processed requests with optional `status`, `contact_id`, and `brand_id` filters. Responses include the sanitized contact snapshot and requester details.

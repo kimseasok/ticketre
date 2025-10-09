@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 ### Added
+- Tenant/brand-scoped contact and company directory with Filament CRM surfaces, REST APIs, GDPR consent enforcement, structured audit logging, and documentation/OpenAPI coverage. (E2-F1-I2)
 - Tenant-aware RBAC middleware enforcing `platform.access` and `portal.submit` permissions across admin and portal surfaces with correlation IDs, structured denial logging, and documentation/test coverage. (E2-F3-I3)
 - GDPR anonymization policy registry with tenant/brand scoped API + Filament CRUD, RBAC, structured logging, and OpenAPI/README coverage. (E2-F7-I1)
 - Tenant-scoped teams and membership management with RBAC-protected API endpoints, Filament CRUD, audit logging, and structured observability. (E2-F4-I1)

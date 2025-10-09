@@ -21,6 +21,7 @@ use App\Models\TicketWorkflow;
 use App\Models\TicketWorkflowState;
 use App\Models\TicketWorkflowTransition;
 use App\Models\User;
+use App\Services\CompanyService;
 use App\Services\ContactService;
 use App\Services\KbArticleService;
 use App\Services\TenantRoleProvisioner;
@@ -199,16 +200,29 @@ class DemoDataSeeder extends Seeder
             'joined_at' => now()->subDays(10),
         ]);
 
-        $company = Company::factory()->create([
-            'tenant_id' => $tenant->id,
-            'name' => 'Demo Company',
-        ]);
+        $companyService = app(CompanyService::class);
+        $contactService = app(ContactService::class);
 
-        $contact = Contact::factory()->for($company)->create([
-            'tenant_id' => $tenant->id,
+        $company = $companyService->create([
+            'name' => 'Demo Company',
+            'brand_id' => $brand->id,
+            'tags' => ['vip', 'demo'],
+            'metadata' => [
+                'tier' => 'NON-PRODUCTION',
+            ],
+        ], $admin, (string) Str::uuid());
+
+        $contact = $contactService->create([
             'name' => 'Demo Contact',
             'email' => 'contact@example.com',
-        ]);
+            'phone' => '+15550000001',
+            'company_id' => $company->getKey(),
+            'brand_id' => $brand->id,
+            'tags' => ['demo', 'vip'],
+            'metadata' => ['source' => 'NON-PRODUCTION seed'],
+            'gdpr_marketing_opt_in' => true,
+            'gdpr_data_processing_opt_in' => true,
+        ], $admin, (string) Str::uuid());
 
         $rootCategory = KbCategory::factory()->create([
             'tenant_id' => $tenant->id,
@@ -353,17 +367,19 @@ class DemoDataSeeder extends Seeder
         ]);
 
         $ticketService = app(TicketService::class);
-        $contactService = app(ContactService::class);
         $ticketService->update($ticket, ['priority' => 'high', 'workflow_state' => 'triage'], $admin);
         $contactService->update($contact, ['phone' => '+15550000000'], $admin);
 
-        $gdprContact = Contact::create([
-            'tenant_id' => $tenant->id,
-            'company_id' => $company->getKey(),
+        $gdprContact = $contactService->create([
             'name' => 'GDPR Demo Contact',
             'email' => 'gdpr-demo@example.com',
-            'metadata' => [],
-        ]);
+            'company_id' => $company->getKey(),
+            'brand_id' => $brand->id,
+            'tags' => ['gdpr'],
+            'metadata' => ['seed_source' => 'NON-PRODUCTION DEMO'],
+            'gdpr_marketing_opt_in' => true,
+            'gdpr_data_processing_opt_in' => true,
+        ], $admin, (string) Str::uuid());
 
         $anonymizationRequest = ContactAnonymizationRequest::create([
             'tenant_id' => $tenant->id,

@@ -9,12 +9,16 @@ use Illuminate\Support\Facades\Log;
 
 class ContactAuditLogger
 {
-    public function created(Contact $contact, ?User $actor, float $startedAt): void
+    public function created(Contact $contact, ?User $actor, float $startedAt, string $correlationId): void
     {
         $payload = [
             'snapshot' => [
-                'name' => $contact->name,
+                'name_hash' => $this->hashValue($contact->name),
                 'company_id' => $contact->company_id,
+                'brand_id' => $contact->brand_id,
+                'tags' => array_values($contact->tags ?? []),
+                'gdpr_marketing_opt_in' => $contact->gdpr_marketing_opt_in,
+                'gdpr_data_processing_opt_in' => $contact->gdpr_data_processing_opt_in,
             ],
             'sensitive' => [
                 'email_hash' => $this->hashValue($contact->email),
@@ -23,15 +27,15 @@ class ContactAuditLogger
             ],
         ];
 
-        $this->persist($contact, $actor, 'contact.created', $payload);
-        $this->logEvent('contact.created', $contact, $actor, $startedAt, $payload);
+        $this->persist($contact, $actor, 'contact.created', $payload, $correlationId);
+        $this->logEvent('contact.created', $contact, $actor, $startedAt, $payload, $correlationId);
     }
 
     /**
      * @param  array<string, mixed>  $changes
      * @param  array<string, mixed>  $original
      */
-    public function updated(Contact $contact, ?User $actor, array $changes, array $original, float $startedAt): void
+    public function updated(Contact $contact, ?User $actor, array $changes, array $original, float $startedAt, string $correlationId): void
     {
         $diff = $this->diff($contact, $changes, $original);
 
@@ -39,16 +43,20 @@ class ContactAuditLogger
             return;
         }
 
-        $this->persist($contact, $actor, 'contact.updated', $diff);
-        $this->logEvent('contact.updated', $contact, $actor, $startedAt, $diff);
+        $this->persist($contact, $actor, 'contact.updated', $diff, $correlationId);
+        $this->logEvent('contact.updated', $contact, $actor, $startedAt, $diff, $correlationId);
     }
 
-    public function deleted(Contact $contact, ?User $actor, float $startedAt): void
+    public function deleted(Contact $contact, ?User $actor, float $startedAt, string $correlationId): void
     {
         $payload = [
             'snapshot' => [
-                'name' => $contact->name,
+                'name_hash' => $this->hashValue($contact->name),
                 'company_id' => $contact->company_id,
+                'brand_id' => $contact->brand_id,
+                'tags' => array_values($contact->tags ?? []),
+                'gdpr_marketing_opt_in' => $contact->gdpr_marketing_opt_in,
+                'gdpr_data_processing_opt_in' => $contact->gdpr_data_processing_opt_in,
             ],
             'sensitive' => [
                 'email_hash' => $this->hashValue($contact->email),
@@ -56,23 +64,23 @@ class ContactAuditLogger
             ],
         ];
 
-        $this->persist($contact, $actor, 'contact.deleted', $payload);
-        $this->logEvent('contact.deleted', $contact, $actor, $startedAt, $payload);
+        $this->persist($contact, $actor, 'contact.deleted', $payload, $correlationId);
+        $this->logEvent('contact.deleted', $contact, $actor, $startedAt, $payload, $correlationId);
     }
 
     /**
      * @param  array<string, mixed>  $payload
      */
-    protected function persist(Contact $contact, ?User $actor, string $action, array $payload): void
+    protected function persist(Contact $contact, ?User $actor, string $action, array $payload, string $correlationId): void
     {
         AuditLog::create([
             'tenant_id' => $contact->tenant_id,
-            'brand_id' => $actor?->brand_id,
+            'brand_id' => $contact->brand_id ?? $actor?->brand_id,
             'user_id' => $actor?->getKey(),
             'action' => $action,
             'auditable_type' => Contact::class,
             'auditable_id' => $contact->getKey(),
-            'changes' => $payload,
+            'changes' => array_merge($payload, ['correlation_id' => $correlationId]),
             'ip_address' => request()?->ip(),
         ]);
     }
@@ -95,6 +103,14 @@ class ContactAuditLogger
                 continue;
             }
 
+            if ($field === 'tags') {
+                $diff['tags'] = [
+                    'old' => array_values((array) ($original['tags'] ?? [])),
+                    'new' => array_values($contact->tags ?? []),
+                ];
+                continue;
+            }
+
             if ($field === 'email') {
                 $diff['email_hash'] = [
                     'old' => $this->hashValue($original['email'] ?? null),
@@ -107,6 +123,14 @@ class ContactAuditLogger
                 $diff['phone_hash'] = [
                     'old' => $this->hashValue($original['phone'] ?? null),
                     'new' => $this->hashValue($contact->phone),
+                ];
+                continue;
+            }
+
+            if ($field === 'name') {
+                $diff['name_hash'] = [
+                    'old' => $this->hashValue($original['name'] ?? null),
+                    'new' => $this->hashValue($contact->name),
                 ];
                 continue;
             }
@@ -128,7 +152,7 @@ class ContactAuditLogger
     /**
      * @param  array<string, mixed>  $payload
      */
-    protected function logEvent(string $action, Contact $contact, ?User $actor, float $startedAt, array $payload): void
+    protected function logEvent(string $action, Contact $contact, ?User $actor, float $startedAt, array $payload, string $correlationId): void
     {
         $durationMs = (microtime(true) - $startedAt) * 1000;
 
@@ -136,10 +160,12 @@ class ContactAuditLogger
             'contact_id' => $contact->getKey(),
             'tenant_id' => $contact->tenant_id,
             'company_id' => $contact->company_id,
+            'brand_id' => $contact->brand_id,
             'changes_keys' => array_keys($payload),
             'duration_ms' => round($durationMs, 2),
             'user_id' => $actor?->getKey(),
             'context' => 'contact_audit',
+            'correlation_id' => $correlationId,
         ]);
     }
 }

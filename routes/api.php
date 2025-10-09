@@ -5,10 +5,12 @@ use App\Http\Controllers\Api\AuditLogController;
 use App\Http\Controllers\Api\BroadcastAuthController;
 use App\Http\Controllers\Api\BroadcastConnectionController;
 use App\Http\Controllers\Api\ContactAnonymizationRequestController;
+use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\HealthcheckController;
 use App\Http\Controllers\Api\KbArticleController;
 use App\Http\Controllers\Api\KbCategoryController;
 use App\Http\Controllers\Api\MessageController;
+use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\PortalTicketSubmissionController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\TicketController;
@@ -48,6 +50,9 @@ Route::middleware(['auth', 'tenant', 'ability:platform.access'])->prefix('v1')->
 
     Route::apiResource('contact-anonymization-requests', ContactAnonymizationRequestController::class)
         ->only(['index', 'store', 'show']);
+
+    Route::apiResource('companies', CompanyController::class)->except(['create', 'edit']);
+    Route::apiResource('contacts', ContactController::class)->except(['create', 'edit']);
 
     Route::apiResource('anonymization-policies', AnonymizationPolicyController::class)
         ->except(['create', 'edit']);
