@@ -15,6 +15,7 @@ use App\Models\Permission;
 use App\Models\Role;
 use App\Models\Ticket;
 use App\Models\TicketEvent;
+use App\Models\ObservabilityPipeline;
 use App\Models\TicketMerge;
 use App\Models\TicketSubmission;
 use App\Models\TwoFactorCredential;
@@ -40,6 +41,7 @@ use App\Policies\TeamPolicy;
 use App\Policies\TicketDeletionRequestPolicy;
 use App\Policies\TicketRelationshipPolicy;
 use App\Policies\TicketEventPolicy;
+use App\Policies\ObservabilityPipelinePolicy;
 use App\Policies\TicketMergePolicy;
 use App\Policies\TicketPolicy;
 use App\Policies\TicketSubmissionPolicy;
@@ -72,6 +74,7 @@ class AuthServiceProvider extends ServiceProvider
         TeamMembership::class => TeamMembershipPolicy::class,
         TwoFactorCredential::class => TwoFactorCredentialPolicy::class,
         CiQualityGate::class => CiQualityGatePolicy::class,
+        ObservabilityPipeline::class => ObservabilityPipelinePolicy::class,
     ];
 
     public function boot(): void
