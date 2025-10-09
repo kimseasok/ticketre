@@ -160,6 +160,24 @@ Filament exposes the same functionality at `/admin/contact-anonymization-request
 
 ## Ticket Deletion & Redaction Workflow
 
+## Team Operations & Memberships
+
+Coordinate support staff into tenant-scoped teams with RBAC, audit logging, and structured observability.
+
+- `GET /api/v1/teams` – paginate teams for the active tenant/brand. Requires `teams.view`.
+- `POST /api/v1/teams` – create a team with optional `brand_id`, `default_queue`, and `description`. Requires `teams.manage`. Slugs are unique per tenant.
+- `GET /api/v1/teams/{team}` – retrieve a single team with eager-loaded memberships and counts.
+- `PATCH /api/v1/teams/{team}` – update metadata safely; validation enforces tenant scope and unique slugs.
+- `DELETE /api/v1/teams/{team}` – soft delete a team while retaining audit history.
+- `GET /api/v1/teams/{team}/memberships` – list team memberships with user context. Requires `teams.view`.
+- `POST /api/v1/teams/{team}/memberships` – attach a user with a `role` (`lead`, `member`), primary flag, and optional `joined_at`. Requires `teams.manage`.
+- `PATCH /api/v1/teams/{team}/memberships/{membership}` – update membership role/flags.
+- `DELETE /api/v1/teams/{team}/memberships/{membership}` – detach a member; soft deletes allow re-adding users later.
+
+All endpoints require the standard tenant headers and respond with the `{ "data": { ... } }` envelope while emitting `{ "error": { "code", "message" } }` on failure. Structured JSON logs capture `team.*` and `team.membership.*` events with hashed names, correlation IDs (from `X-Correlation-ID` or generated UUIDs), and execution timings. Audit entries persist snapshots for compliance, redacting PII via SHA-256 digests.
+
+Filament exposes teams at `/admin/teams` with brand filters, inline membership management, and relation managers for attaching users. The demo seeder provisions NON-PRODUCTION Tier 1 and VIP teams for exploration.
+
 Tickets that contain personal data can be purged while preserving operational analytics via the queued deletion workflow. The new `tickets.redact` permission is provisioned for tenant Admins and governs both the API and Filament surfaces.
 
 - `GET /api/v1/ticket-deletion-requests` – list requests scoped to the active tenant/brand with optional `status`, `ticket_id`, and `brand_id` filters.

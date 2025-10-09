@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Models\Team;
+use App\Models\TeamMembership;
+use App\Models\Ticket;
 use App\Traits\BelongsToBrand;
 use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -42,5 +45,13 @@ class User extends Authenticatable
     public function tickets()
     {
         return $this->hasMany(Ticket::class, 'assignee_id');
+    }
+
+    public function teams()
+    {
+        return $this->belongsToMany(Team::class, 'team_memberships')
+            ->using(TeamMembership::class)
+            ->withPivot(['role', 'is_primary', 'joined_at'])
+            ->withTimestamps();
     }
 }

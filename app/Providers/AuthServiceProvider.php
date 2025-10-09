@@ -18,6 +18,8 @@ use App\Models\User;
 use App\Models\TicketDeletionRequest;
 use App\Models\TicketRelationship;
 use App\Models\TicketWorkflow;
+use App\Models\Team;
+use App\Models\TeamMembership;
 use App\Policies\AuditLogPolicy;
 use App\Policies\BroadcastConnectionPolicy;
 use App\Policies\ContactAnonymizationRequestPolicy;
@@ -26,6 +28,8 @@ use App\Policies\KbArticlePolicy;
 use App\Policies\KbCategoryPolicy;
 use App\Policies\MessagePolicy;
 use App\Policies\RolePolicy;
+use App\Policies\TeamMembershipPolicy;
+use App\Policies\TeamPolicy;
 use App\Policies\TicketDeletionRequestPolicy;
 use App\Policies\TicketRelationshipPolicy;
 use App\Policies\TicketEventPolicy;
@@ -54,6 +58,8 @@ class AuthServiceProvider extends ServiceProvider
         TicketSubmission::class => TicketSubmissionPolicy::class,
         BroadcastConnection::class => BroadcastConnectionPolicy::class,
         TicketWorkflow::class => TicketWorkflowPolicy::class,
+        Team::class => TeamPolicy::class,
+        TeamMembership::class => TeamMembershipPolicy::class,
     ];
 
     public function boot(): void

@@ -16,6 +16,8 @@ use App\Http\Controllers\Api\TicketWorkflowController;
 use App\Http\Controllers\Api\TicketDeletionRequestController;
 use App\Http\Controllers\Api\TicketRelationshipController;
 use App\Http\Controllers\Api\TicketSubmissionController;
+use App\Http\Controllers\Api\TeamController;
+use App\Http\Controllers\Api\TeamMembershipController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/v1/health', [HealthcheckController::class, 'show'])->name('api.health');
@@ -62,6 +64,10 @@ Route::middleware(['auth', 'tenant'])->prefix('v1')->name('api.')->group(functio
     Route::apiResource('ticket-merges', TicketMergeController::class)->only(['index', 'store', 'show']);
     Route::apiResource('ticket-relationships', TicketRelationshipController::class)->except(['create', 'edit']);
     Route::apiResource('ticket-workflows', TicketWorkflowController::class)->except(['create', 'edit']);
+    Route::apiResource('teams', TeamController::class)->except(['create', 'edit']);
+    Route::apiResource('teams.memberships', TeamMembershipController::class)
+        ->parameters(['memberships' => 'teamMembership'])
+        ->except(['create', 'edit']);
 
     Route::apiResource('kb-categories', KbCategoryController::class)->except(['create', 'edit']);
     Route::get('kb-articles/search', [KbArticleController::class, 'search'])->name('kb-articles.search');
