@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 ### Added
+- Tenant-aware RBAC middleware enforcing `platform.access` and `portal.submit` permissions across admin and portal surfaces with correlation IDs, structured denial logging, and documentation/test coverage. (E2-F3-I3)
+- GDPR anonymization policy registry with tenant/brand scoped API + Filament CRUD, RBAC, structured logging, and OpenAPI/README coverage. (E2-F7-I1)
 - Tenant-scoped teams and membership management with RBAC-protected API endpoints, Filament CRUD, audit logging, and structured observability. (E2-F4-I1)
 - Ticket relationship metadata modeling with tenant-scoped API, Filament CRUD, audit logging, and documentation updates. (E1-F6-I1)
 - Ticket merge workflow with transactional service, tenant-scoped API and Filament UI, audit logging, structured logging, and OpenAPI/README updates. (E1-F6-I2)

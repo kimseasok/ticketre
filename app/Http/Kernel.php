@@ -32,5 +32,6 @@ class Kernel extends HttpKernel
     protected $routeMiddleware = [
         'auth' => \App\Http\Middleware\Authenticate::class,
         'tenant' => \App\Http\Middleware\ResolveTenant::class,
+        'ability' => \App\Http\Middleware\EnsureTenantAccess::class,
     ];
 }

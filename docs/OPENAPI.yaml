@@ -600,6 +600,165 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/anonymization-policies:
+    get:
+      summary: List anonymization policies
+      tags: [Compliance]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, approved]
+        - name: brand_id
+          in: query
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Paginated anonymization policies
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AnonymizationPolicy'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Create anonymization policy
+      tags: [Compliance]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnonymizationPolicyCreate'
+      responses:
+        '201':
+          description: Anonymization policy created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/AnonymizationPolicy'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/anonymization-policies/{policy}:
+    get:
+      summary: Show anonymization policy
+      tags: [Compliance]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - $ref: '#/components/parameters/AnonymizationPolicyId'
+      responses:
+        '200':
+          description: Policy detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/AnonymizationPolicy'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      summary: Update anonymization policy
+      tags: [Compliance]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - $ref: '#/components/parameters/AnonymizationPolicyId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnonymizationPolicyUpdate'
+      responses:
+        '200':
+          description: Updated policy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/AnonymizationPolicy'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete anonymization policy
+      tags: [Compliance]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - $ref: '#/components/parameters/AnonymizationPolicyId'
+      responses:
+        '204':
+          description: Policy deleted
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /api/v1/ticket-deletion-requests:
     get:
       summary: List ticket deletion requests
@@ -1918,6 +2077,12 @@ paths:
                 properties:
                   data:
                     $ref: '#/components/schemas/PortalTicketSubmission'
+        '403':
+          description: Forbidden (authenticated user lacks portal permissions or tenant scope)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: Tenant not resolved
           content:
@@ -2326,6 +2491,12 @@ components:
         type: integer
     TeamMembershipId:
       name: teamMembership
+      in: path
+      required: true
+      schema:
+        type: integer
+    AnonymizationPolicyId:
+      name: policy
       in: path
       required: true
       schema:
@@ -3443,6 +3614,195 @@ components:
               type: integer
             name:
               type: string
+    AnonymizationPolicy:
+      type: object
+      properties:
+        id:
+          type: integer
+        tenant_id:
+          type: integer
+        brand_id:
+          type: integer
+          nullable: true
+        title:
+          type: string
+        status:
+          type: string
+          enum: [draft, approved]
+        description:
+          type: string
+          nullable: true
+        contact_anonymize_fields:
+          type: array
+          items:
+            type: string
+        contact_delete_fields:
+          type: array
+          items:
+            type: string
+        ticket_anonymize_fields:
+          type: array
+          items:
+            type: string
+        ticket_delete_fields:
+          type: array
+          items:
+            type: string
+        retention_period_days:
+          type: integer
+        retention_notes:
+          type: string
+          nullable: true
+        subject_request_procedure:
+          type: string
+        approval_notes:
+          type: string
+          nullable: true
+        approved_at:
+          type: string
+          format: date-time
+          nullable: true
+        approved_by_id:
+          type: integer
+          nullable: true
+        effective_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        approved_by:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+              nullable: true
+            email:
+              type: string
+              nullable: true
+    AnonymizationPolicyCreate:
+      type: object
+      required: [title, subject_request_procedure, retention_period_days]
+      properties:
+        title:
+          type: string
+          maxLength: 255
+        status:
+          type: string
+          enum: [draft, approved]
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        contact_anonymize_fields:
+          type: array
+          items:
+            type: string
+        contact_delete_fields:
+          type: array
+          items:
+            type: string
+        ticket_anonymize_fields:
+          type: array
+          items:
+            type: string
+        ticket_delete_fields:
+          type: array
+          items:
+            type: string
+        retention_period_days:
+          type: integer
+          minimum: 0
+        retention_notes:
+          type: string
+          nullable: true
+        subject_request_procedure:
+          type: string
+        approval_notes:
+          type: string
+          nullable: true
+        approved_at:
+          type: string
+          format: date-time
+          nullable: true
+        approved_by_id:
+          type: integer
+          nullable: true
+        effective_at:
+          type: string
+          format: date-time
+          nullable: true
+        brand_id:
+          type: integer
+          nullable: true
+        correlation_id:
+          type: string
+          maxLength: 64
+          nullable: true
+    AnonymizationPolicyUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          maxLength: 255
+        status:
+          type: string
+          enum: [draft, approved]
+        description:
+          type: string
+          nullable: true
+        contact_anonymize_fields:
+          type: array
+          items:
+            type: string
+        contact_delete_fields:
+          type: array
+          items:
+            type: string
+        ticket_anonymize_fields:
+          type: array
+          items:
+            type: string
+        ticket_delete_fields:
+          type: array
+          items:
+            type: string
+        retention_period_days:
+          type: integer
+          minimum: 0
+        retention_notes:
+          type: string
+          nullable: true
+        subject_request_procedure:
+          type: string
+        approval_notes:
+          type: string
+          nullable: true
+        approved_at:
+          type: string
+          format: date-time
+          nullable: true
+        approved_by_id:
+          type: integer
+          nullable: true
+        effective_at:
+          type: string
+          format: date-time
+          nullable: true
+        brand_id:
+          type: integer
+          nullable: true
+        correlation_id:
+          type: string
+          maxLength: 64
+          nullable: true
             email:
               type: string
               nullable: true

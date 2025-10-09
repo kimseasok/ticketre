@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AnonymizationPolicyController;
 use App\Http\Controllers\Api\AuditLogController;
 use App\Http\Controllers\Api\BroadcastAuthController;
 use App\Http\Controllers\Api\BroadcastConnectionController;
@@ -22,15 +23,15 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/v1/health', [HealthcheckController::class, 'show'])->name('api.health');
 
-Route::middleware(['tenant'])->prefix('v1/portal')->name('api.portal.')->group(function () {
+Route::middleware(['tenant', 'ability:portal.submit,allow-guest'])->prefix('v1/portal')->name('api.portal.')->group(function () {
     Route::post('tickets', [PortalTicketSubmissionController::class, 'store'])->name('tickets.store');
 });
 
 Route::post('/v1/broadcasting/auth', BroadcastAuthController::class)
-    ->middleware(['auth:api,web', 'tenant'])
+    ->middleware(['auth:api,web', 'tenant', 'ability:platform.access'])
     ->name('api.broadcasting.auth');
 
-Route::middleware(['auth', 'tenant'])->prefix('v1')->name('api.')->group(function () {
+Route::middleware(['auth', 'tenant', 'ability:platform.access'])->prefix('v1')->name('api.')->group(function () {
     Route::scopeBindings()->group(function () {
         Route::apiResource('tickets', TicketController::class)->only(['index', 'store', 'show', 'update']);
 
@@ -47,6 +48,9 @@ Route::middleware(['auth', 'tenant'])->prefix('v1')->name('api.')->group(functio
 
     Route::apiResource('contact-anonymization-requests', ContactAnonymizationRequestController::class)
         ->only(['index', 'store', 'show']);
+
+    Route::apiResource('anonymization-policies', AnonymizationPolicyController::class)
+        ->except(['create', 'edit']);
 
     Route::apiResource('ticket-deletion-requests', TicketDeletionRequestController::class)
         ->only(['index', 'store', 'show']);

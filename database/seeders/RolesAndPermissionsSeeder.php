@@ -13,6 +13,8 @@ class RolesAndPermissionsSeeder extends Seeder
     public function run(): void
     {
         $permissions = [
+            'platform.access',
+            'portal.submit',
             'tickets.view',
             'tickets.manage',
             'tickets.merge',
@@ -23,6 +25,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'tickets.relationships.manage',
             'contacts.manage',
             'contacts.anonymize',
+            'compliance.policies.view',
+            'compliance.policies.manage',
             'knowledge.manage',
             'knowledge.view',
             'reports.view',

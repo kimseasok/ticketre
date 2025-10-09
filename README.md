@@ -112,6 +112,20 @@ X-Tenant: <tenant-slug>
 ```
 
 Filament administrators can manage the same data under `/admin/roles`. The resource respects tenant scoping automatically, disables destructive actions for system roles, and surfaces permission counts to help audit access. Each create/update/delete call emits a structured JSON log with correlation IDs and writes a `role.*` audit entry for traceability.
+
+### RBAC Middleware Enforcement
+
+- `platform.access` – baseline permission provisioned to Admin/Agent/Viewer roles. Required to reach any authenticated admin API (`/api/v1/*`) or Filament panel route.
+- `portal.submit` – permission assigned to tenant roles for authenticated submissions. Guest access to customer portal routes remains available, but authenticated users must hold this permission.
+
+The `EnsureTenantAccess` middleware protects both admin and portal surfaces:
+
+- Verifies the authenticated user's tenant and brand match the resolved request context to prevent header spoofing across tenants.
+- Checks for the configured Spatie permissions and emits `rbac.denied` structured logs with correlation IDs, hashed identifiers, and denial reason metadata.
+- Automatically appends an `X-Correlation-ID` header to every response (success or error) to align API and view troubleshooting.
+- Returns JSON errors in the `{ "error": { "code", "message", "correlation_id" } }` schema for API requests and a stylised `errors/403` view for web requests.
+
+Portal routes (`/portal/*` and `/api/v1/portal/*`) continue to resolve tenants via headers while logging denied authenticated attempts. Admin APIs require `X-Tenant` (and optional `X-Brand`) headers; Filament relies on the authenticated user's tenant to scope data automatically.
 ## Audit Log Writers & Viewer
 
 Every ticket and contact create, update, and delete action now produces an audit trail entry with tenant, optional brand, actor, and a redacted change set:
@@ -157,6 +171,20 @@ Errors use the `{ "error": { "code", "message" } }` schema. Successful responses
 Filament exposes the same functionality at `/admin/contact-anonymization-requests`, complete with tenant/brand filters and request detail modals. Creating a request through Filament dispatches the same queue job and logs the action with hashed reason metadata.
 
 > The demo seeder provisions a NON-PRODUCTION example request showing the post-anonymization state. Run `php artisan queue:work` locally to process new requests automatically.
+
+## GDPR Anonymization Policies
+
+Codify the fields to anonymize or delete when processing GDPR subject requests. Policies are tenant-scoped, optionally brand-scoped, and enforce RBAC via the new `compliance.policies.view`/`compliance.policies.manage` permissions (Admins manage, Agents/Viewers read).
+
+- `GET /api/v1/anonymization-policies` – list policies for the active tenant/brand with optional `status`/`brand_id` filters (requires `compliance.policies.view`).
+- `POST /api/v1/anonymization-policies` – create or approve a policy definition, including retention notes and subject request procedures (requires `compliance.policies.manage`).
+- `GET /api/v1/anonymization-policies/{policy}` – retrieve a single policy including approval metadata.
+- `PATCH /api/v1/anonymization-policies/{policy}` – update fields, flip approval state, or adjust brand scope (requires `compliance.policies.manage`).
+- `DELETE /api/v1/anonymization-policies/{policy}` – retire a policy while preserving audit history (requires `compliance.policies.manage`).
+
+All API requests require the standard tenant headers and follow the `{ "data": { ... } }` / `{ "error": { ... } }` contract. Structured JSON logs include the supplied `X-Correlation-ID` (or generated UUID) and redact sensitive notes by hashing text fields.
+
+Filament administrators can manage the same records via `/admin/anonymization-policies`, with status and brand filters plus tags-based editors for the anonymize/delete field lists. Demo data seeds a NON-PRODUCTION approved policy for manual exploration.
 
 ## Ticket Deletion & Redaction Workflow
 
