@@ -113,6 +113,32 @@ X-Tenant: <tenant-slug>
 
 Filament administrators can manage the same data under `/admin/roles`. The resource respects tenant scoping automatically, disables destructive actions for system roles, and surfaces permission counts to help audit access. Each create/update/delete call emits a structured JSON log with correlation IDs and writes a `role.*` audit entry for traceability.
 
+## Permission Registry
+
+Tenant permissions build on the Spatie package but add tenant/brand awareness, audit logging, and observability hooks:
+
+- `GET /api/v1/permissions` – list permissions for the active tenant (requires `permissions.view`). Supports optional `search` query for name/slug matches and a `brand` query parameter (`brand=<brand-id>` or `brand=global`) to filter brand-specific definitions.
+- `POST /api/v1/permissions` – create a custom permission (requires `permissions.manage`). Requests accept `name`, optional `description`, and optional `brand_id` to scope the ability to a brand. Leaving `brand_id` empty creates a tenant-wide permission available to all brands.
+- `GET /api/v1/permissions/{permission}` – return a single permission with brand context and system flag metadata.
+- `PATCH /api/v1/permissions/{permission}` – update description or brand scope (requires `permissions.manage`). System permissions retain their name and tenant binding.
+- `DELETE /api/v1/permissions/{permission}` – remove custom permissions. System records respond with `ERR_PERMISSION_PROTECTED` and status `422`.
+
+Responses follow the existing `{ "data": { ... } }` envelope; validation/auth errors return `{ "error": { "code", "message", "details" } }` and include the upstream correlation ID. Every create/update/delete operation records a `permission.*` audit log entry with hashed fields, emits a structured JSON log containing the correlation ID, and flushes the tenant-aware Spatie cache to keep role assignments in sync.
+
+Filament exposes the same CRUD operations at `/admin/permissions`. The resource filters by the resolved tenant, offers a brand picker (including “All brands”), disables destructive actions for system permissions, and eager loads brand relationships to avoid N+1 queries.
+
+### Artisan helpers
+
+The Spatie commands remain available for operational tasks and now respect the tenant bindings configured in this project:
+
+```bash
+php artisan permission:create-permission "reports.download"
+php artisan permission:create-role "qa.auditor"
+php artisan permission:show
+```
+
+Run the commands with `--guard=web` to match the default guard. When scoped to a tenant, ensure the `currentTenant` helper is registered (the HTTP middleware does this automatically) or provide a `tenant_id` when seeding via factories.
+
 ### RBAC Middleware Enforcement
 
 - `platform.access` – baseline permission provisioned to Admin/Agent/Viewer roles. Required to reach any authenticated admin API (`/api/v1/*`) or Filament panel route.

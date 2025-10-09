@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Models\Permission;
+use App\Models\Role;
 use App\Models\Tenant;
 use App\Services\TenantRoleProvisioner;
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Permission;
-use App\Models\Role;
 
 class RolesAndPermissionsSeeder extends Seeder
 {
@@ -37,12 +37,21 @@ class RolesAndPermissionsSeeder extends Seeder
             'audit_logs.view',
             'roles.view',
             'roles.manage',
+            'permissions.view',
+            'permissions.manage',
             'teams.view',
             'teams.manage',
         ];
 
         foreach ($permissions as $permission) {
-            Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
+            Permission::withoutGlobalScopes()->firstOrCreate([
+                'tenant_id' => null,
+                'name' => $permission,
+                'guard_name' => 'web',
+            ], [
+                'description' => null,
+                'is_system' => true,
+            ]);
         }
 
         $superAdmin = Role::withoutGlobalScopes()->firstOrCreate([
@@ -60,8 +69,23 @@ class RolesAndPermissionsSeeder extends Seeder
         /** @var TenantRoleProvisioner $provisioner */
         $provisioner = app(TenantRoleProvisioner::class);
 
-        Tenant::query()->each(function (Tenant $tenant) use ($provisioner): void {
+        Tenant::query()->each(function (Tenant $tenant) use ($permissions, $provisioner): void {
+            app()->instance('currentTenant', $tenant);
+            app()->forgetInstance('currentBrand');
+
+            foreach ($permissions as $permission) {
+                Permission::firstOrCreate([
+                    'name' => $permission,
+                    'guard_name' => 'web',
+                ], [
+                    'description' => null,
+                    'is_system' => true,
+                ]);
+            }
+
             $provisioner->syncSystemRoles($tenant);
+
+            app()->forgetInstance('currentTenant');
         });
     }
 }

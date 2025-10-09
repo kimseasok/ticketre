@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\KbArticleController;
 use App\Http\Controllers\Api\KbCategoryController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\CompanyController;
+use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\PortalTicketSubmissionController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\TicketController;
@@ -82,6 +83,7 @@ Route::middleware(['auth', 'tenant', 'ability:platform.access'])->prefix('v1')->
     Route::get('kb-articles/search', [KbArticleController::class, 'search'])->name('kb-articles.search');
     Route::apiResource('kb-articles', KbArticleController::class)->except(['create', 'edit']);
     Route::apiResource('roles', RoleController::class)->except(['create', 'edit']);
+    Route::apiResource('permissions', \App\Http\Controllers\Api\PermissionController::class)->except(['create', 'edit']);
     Route::apiResource('ticket-submissions', TicketSubmissionController::class)->only(['index', 'show']);
     Route::apiResource('broadcast-connections', BroadcastConnectionController::class)->except(['create', 'edit']);
 });
