@@ -1109,6 +1109,215 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/ci-quality-gates:
+    get:
+      summary: List CI quality gates
+      tags: [CI Quality Gates]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: brand
+          in: query
+          description: Optional brand slug filter.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Collection of CI quality gates
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CiQualityGateResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Create CI quality gate
+      tags: [CI Quality Gates]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CiQualityGateRequest'
+      responses:
+        '201':
+          description: Created CI quality gate
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/CiQualityGateResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/ci-quality-gates/{ciQualityGate}:
+    get:
+      summary: Show CI quality gate
+      tags: [CI Quality Gates]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: ciQualityGate
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: CI quality gate details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/CiQualityGateResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      summary: Update CI quality gate
+      tags: [CI Quality Gates]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: ciQualityGate
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CiQualityGateRequest'
+      responses:
+        '200':
+          description: Updated CI quality gate
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/CiQualityGateResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete CI quality gate
+      tags: [CI Quality Gates]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: ciQualityGate
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: CI quality gate deleted
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /api/v1/two-factor:
     get:
       summary: Retrieve authenticated user's two-factor credential
@@ -4117,6 +4326,95 @@ components:
             name:
               type: string
               nullable: true
+    CiQualityGateResource:
+      type: object
+      required: [type, id, attributes]
+      properties:
+        type:
+          type: string
+          enum: [ci-quality-gates]
+        id:
+          type: string
+        attributes:
+          type: object
+          required:
+            [tenant_id, name, slug, coverage_threshold, max_critical_vulnerabilities, max_high_vulnerabilities, enforce_dependency_audit, enforce_docker_build, notifications_enabled, created_at, updated_at]
+          properties:
+            tenant_id:
+              type: integer
+            brand_id:
+              type: integer
+              nullable: true
+            name:
+              type: string
+            slug:
+              type: string
+            coverage_threshold:
+              type: number
+              format: float
+            max_critical_vulnerabilities:
+              type: integer
+            max_high_vulnerabilities:
+              type: integer
+            enforce_dependency_audit:
+              type: boolean
+            enforce_docker_build:
+              type: boolean
+            notifications_enabled:
+              type: boolean
+            notify_channel_digest:
+              type: string
+              nullable: true
+            metadata:
+              type: object
+              additionalProperties: {}
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+        relationships:
+          type: object
+          additionalProperties: {}
+    CiQualityGateRequest:
+      type: object
+      required: [name, coverage_threshold, max_critical_vulnerabilities, max_high_vulnerabilities]
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+          nullable: true
+        coverage_threshold:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+        max_critical_vulnerabilities:
+          type: integer
+          minimum: 0
+        max_high_vulnerabilities:
+          type: integer
+          minimum: 0
+        enforce_dependency_audit:
+          type: boolean
+        enforce_docker_build:
+          type: boolean
+        notifications_enabled:
+          type: boolean
+        notify_channel:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+          additionalProperties: {}
+        correlation_id:
+          type: string
+          nullable: true
+        brand_id:
+          type: integer
+          nullable: true
     ContactResource:
       type: object
       required: [type, id, attributes]

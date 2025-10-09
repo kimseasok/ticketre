@@ -6,7 +6,6 @@ use App\Models\TwoFactorCredential;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Crypt;
-use OTPHP\TOTP;
 
 class TwoFactorCredentialFactory extends Factory
 {
@@ -20,7 +19,7 @@ class TwoFactorCredentialFactory extends Factory
             $user = User::findOrFail($user);
         }
 
-        $secret = TOTP::generateSecret();
+        $secret = str()->random(32);
 
         return [
             'tenant_id' => $user->tenant_id,

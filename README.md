@@ -34,6 +34,14 @@
 
 > PHPUnit loads `.env.testing` to exercise the suite against in-memory SQLite, so `php artisan test` runs without external services.
 
+## CI Quality Gates & Pipeline
+
+- **GitHub Actions** – `.github/workflows/ci.yml` now runs linting, static analysis, matrix tests (PHP 8.3/8.4 across MySQL and PostgreSQL), dependency audits, and a Docker image build. Composer/npm caches and buildx layer caching keep the workflow fast, and every failure uploads structured logs plus test artifacts. Optional Slack webhooks (`SLACK_WEBHOOK_URL`) receive failure summaries with correlation IDs when configured.
+- **Coverage enforcement** – The `coverage` job generates `coverage/clover.xml` and runs `php artisan ci:enforce-quality-gate --source=coverage/clover.xml` to abort the pipeline when thresholds drop below tenant-configured minimums or when dependency scans exceed allowed critical/high counts.
+- **Artisan command** – `php artisan ci:enforce-quality-gate --gate=<slug> --tenant=<tenant-slug> --brand=<brand-slug> --coverage=92 --critical=0 --high=1` evaluates a specific gate. Pass `--source` with a Clover XML file to compute coverage automatically. The command emits JSON logs with hashed notification channels and correlation IDs.
+- **API** – Manage CI quality gates via `GET/POST /api/v1/ci-quality-gates` and `GET/PATCH/DELETE /api/v1/ci-quality-gates/{id}` (permissions: `ci.quality_gates.view` / `ci.quality_gates.manage`). Requests accept optional `metadata`, hashed notification channel hints, and correlation IDs; responses include digests instead of raw channels.
+- **Filament UI** – `/admin/ci-quality-gates` offers tenant/brand scoped CRUD with coverage/vulnerability fields, toggleable enforcement options, and NON-PRODUCTION operator notes.
+
 ## Ticket Message Visibility API
 
 Extend ticket conversations with explicit visibility controls:
