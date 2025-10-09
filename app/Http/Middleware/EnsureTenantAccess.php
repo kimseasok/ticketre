@@ -62,7 +62,9 @@ class EnsureTenantAccess
         }
 
         $brand = app()->bound('currentBrand') ? app('currentBrand') : null;
-        if ($brand && $user->brand_id && (int) $user->brand_id !== (int) $brand->getKey()) {
+        $isReadOnly = in_array(strtoupper($request->method()), ['GET', 'HEAD', 'OPTIONS'], true);
+
+        if ($brand && $user->brand_id && (int) $user->brand_id !== (int) $brand->getKey() && ! $isReadOnly) {
             return $this->deny(
                 $request,
                 $abilities,
