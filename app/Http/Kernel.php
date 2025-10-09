@@ -25,13 +25,15 @@ class Kernel extends HttpKernel
         'api' => [
             'throttle:api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \Illuminate\Session\Middleware\StartSession::class,
             \App\Http\Middleware\BindAuthenticatedTenant::class,
         ],
     ];
 
-    protected $routeMiddleware = [
+    protected $middlewareAliases = [
         'auth' => \App\Http\Middleware\Authenticate::class,
         'tenant' => \App\Http\Middleware\ResolveTenant::class,
         'ability' => \App\Http\Middleware\EnsureTenantAccess::class,
+        'twofactor' => \App\Http\Middleware\EnsureTwoFactorEnrolled::class,
     ];
 }

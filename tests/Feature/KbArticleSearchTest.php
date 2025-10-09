@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\KbArticleService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Queue;
+
 use function Pest\Laravel\actingAs;
 
 beforeEach(function () {

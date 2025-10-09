@@ -5,14 +5,15 @@
     "license": "proprietary",
     "require": {
         "php": "^8.3",
+        "filament/filament": "^3.2",
+        "guzzlehttp/guzzle": "^7.8",
         "laravel/framework": "^11.5",
-        "laravel/scout": "^10.6",
         "laravel/sail": "^1.30",
         "laravel/sanctum": "^4.0",
-        "spatie/laravel-permission": "^6.11",
-        "filament/filament": "^3.2",
+        "laravel/scout": "^10.6",
         "meilisearch/meilisearch-php": "^1.7",
-        "guzzlehttp/guzzle": "^7.8",
+        "spatie/laravel-permission": "^6.11",
+        "spomky-labs/otphp": "^11.3",
         "symfony/html-sanitizer": "^6.4"
     },
     "require-dev": {

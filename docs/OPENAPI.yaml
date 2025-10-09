@@ -1109,6 +1109,286 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/two-factor:
+    get:
+      summary: Retrieve authenticated user's two-factor credential
+      tags: [Two-Factor]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+      responses:
+        '200':
+          description: Active credential
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/TwoFactorCredentialResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/two-factor/enroll:
+    post:
+      summary: Begin two-factor enrollment
+      tags: [Two-Factor]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                label:
+                  type: string
+                  maxLength: 255
+      responses:
+        '201':
+          description: Enrollment initiated
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/TwoFactorCredentialResource'
+                  meta:
+                    type: object
+                    properties:
+                      secret:
+                        type: string
+                        description: Base32 encoded shared secret.
+                      otpauth_url:
+                        type: string
+                        format: uri
+                        description: otpauth URI suitable for QR provisioning.
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/two-factor/confirm:
+    post:
+      summary: Confirm a TOTP code to activate two-factor authentication
+      tags: [Two-Factor]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code:
+                  type: string
+                  pattern: '^\\d{6}$'
+      responses:
+        '200':
+          description: Enrollment confirmed with recovery codes
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/TwoFactorCredentialResource'
+                  meta:
+                    type: object
+                    properties:
+                      recovery_codes:
+                        type: array
+                        items:
+                          type: string
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Two-factor not yet enrolled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error or invalid code
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/two-factor/recovery-codes:
+    post:
+      summary: Regenerate recovery codes
+      tags: [Two-Factor]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+      responses:
+        '200':
+          description: Recovery codes regenerated
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/TwoFactorCredentialResource'
+                  meta:
+                    type: object
+                    properties:
+                      recovery_codes:
+                        type: array
+                        items:
+                          type: string
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Two-factor not confirmed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/two-factor/challenge:
+    post:
+      summary: Verify a TOTP or recovery code challenge
+      tags: [Two-Factor]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  pattern: '^\\d{6}$'
+                recovery_code:
+                  type: string
+              oneOf:
+                - required: [code]
+                - required: [recovery_code]
+      responses:
+        '200':
+          description: Challenge verified and session extended
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/TwoFactorCredentialResource'
+                  meta:
+                    type: object
+                    properties:
+                      verified_at:
+                        type: string
+                        format: date-time
+                      expires_at:
+                        type: string
+                        format: date-time
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '423':
+          description: Credential locked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '428':
+          description: Challenge required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /api/v1/teams:
     get:
       summary: List teams
@@ -3368,6 +3648,54 @@ components:
             sla_due_at:
               type: string
               format: date-time
+              nullable: true
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+    TwoFactorCredentialResource:
+      type: object
+      required: [type, id, attributes]
+      properties:
+        type:
+          type: string
+          enum: [two-factor-credentials]
+        id:
+          type: string
+        attributes:
+          type: object
+          properties:
+            user_id:
+              type: integer
+            tenant_id:
+              type: integer
+            brand_id:
+              type: integer
+              nullable: true
+            label:
+              type: string
+              nullable: true
+            status:
+              type: string
+              enum: [pending, active, locked]
+            confirmed_at:
+              type: string
+              format: date-time
+              nullable: true
+            last_verified_at:
+              type: string
+              format: date-time
+              nullable: true
+            locked_until:
+              type: string
+              format: date-time
+              nullable: true
+            failed_attempts:
+              type: integer
+            recovery_codes_remaining:
+              type: integer
               nullable: true
             created_at:
               type: string

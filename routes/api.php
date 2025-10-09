@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\TicketRelationshipController;
 use App\Http\Controllers\Api\TicketSubmissionController;
 use App\Http\Controllers\Api\TeamController;
 use App\Http\Controllers\Api\TeamMembershipController;
+use App\Http\Controllers\Api\TwoFactorController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/v1/health', [HealthcheckController::class, 'show'])->name('api.health');
@@ -31,10 +32,24 @@ Route::middleware(['tenant', 'ability:portal.submit,allow-guest'])->prefix('v1/p
 });
 
 Route::post('/v1/broadcasting/auth', BroadcastAuthController::class)
-    ->middleware(['auth:api,web', 'tenant', 'ability:platform.access'])
+    ->middleware([
+        'api',
+        'auth:api,web',
+        'tenant',
+        \Illuminate\Session\Middleware\StartSession::class,
+        \App\Http\Middleware\EnsureTwoFactorEnrolled::class,
+        'ability:platform.access',
+    ])
     ->name('api.broadcasting.auth');
 
-Route::middleware(['auth', 'tenant', 'ability:platform.access'])->prefix('v1')->name('api.')->group(function () {
+Route::middleware([
+    'api',
+    'auth',
+    'tenant',
+    \Illuminate\Session\Middleware\StartSession::class,
+    \App\Http\Middleware\EnsureTwoFactorEnrolled::class,
+    'ability:platform.access',
+])->prefix('v1')->name('api.')->group(function () {
     Route::scopeBindings()->group(function () {
         Route::apiResource('tickets', TicketController::class)->only(['index', 'store', 'show', 'update']);
 
@@ -86,4 +101,12 @@ Route::middleware(['auth', 'tenant', 'ability:platform.access'])->prefix('v1')->
     Route::apiResource('permissions', \App\Http\Controllers\Api\PermissionController::class)->except(['create', 'edit']);
     Route::apiResource('ticket-submissions', TicketSubmissionController::class)->only(['index', 'show']);
     Route::apiResource('broadcast-connections', BroadcastConnectionController::class)->except(['create', 'edit']);
+
+    Route::prefix('two-factor')->name('two-factor.')->group(function (): void {
+        Route::get('/', [TwoFactorController::class, 'show'])->name('show');
+        Route::post('enroll', [TwoFactorController::class, 'store'])->name('enroll');
+        Route::post('confirm', [TwoFactorController::class, 'confirm'])->name('confirm');
+        Route::post('recovery-codes', [TwoFactorController::class, 'regenerate'])->name('recovery-codes.regenerate');
+        Route::post('challenge', [TwoFactorController::class, 'challenge'])->name('challenge');
+    });
 });

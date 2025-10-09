@@ -6,9 +6,11 @@ use App\Models\Team;
 use App\Models\TeamMembership;
 use App\Models\Tenant;
 use App\Models\Ticket;
+use App\Models\TwoFactorCredential;
 use App\Traits\BelongsToBrand;
 use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -99,5 +101,10 @@ class User extends Authenticatable
             ->using(TeamMembership::class)
             ->withPivot(['role', 'is_primary', 'joined_at'])
             ->withTimestamps();
+    }
+
+    public function twoFactorCredential(): HasOne
+    {
+        return $this->hasOne(TwoFactorCredential::class);
     }
 }
