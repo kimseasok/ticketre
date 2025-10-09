@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Brand;
+use App\Models\CiQualityGate;
 use App\Models\BroadcastConnection;
 use App\Models\Company;
 use App\Models\Contact;
@@ -59,6 +60,24 @@ class DemoDataSeeder extends Seeder
         ]);
 
         app()->instance('currentBrand', $brand);
+
+        CiQualityGate::create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'name' => 'Demo CI Quality Gate',
+            'slug' => 'demo-ci-quality-gate',
+            'coverage_threshold' => 85,
+            'max_critical_vulnerabilities' => 0,
+            'max_high_vulnerabilities' => 0,
+            'enforce_dependency_audit' => true,
+            'enforce_docker_build' => true,
+            'notifications_enabled' => true,
+            'notify_channel' => '#demo-ci-alerts',
+            'metadata' => [
+                'owner' => 'platform-demo',
+                'description' => 'NON-PRODUCTION seed to illustrate CI enforcement policies.',
+            ],
+        ]);
 
         $workflow = TicketWorkflow::create([
             'tenant_id' => $tenant->id,

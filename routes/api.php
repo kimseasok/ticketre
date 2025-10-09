@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AnonymizationPolicyController;
 use App\Http\Controllers\Api\AuditLogController;
 use App\Http\Controllers\Api\BroadcastAuthController;
 use App\Http\Controllers\Api\BroadcastConnectionController;
+use App\Http\Controllers\Api\CiQualityGateController;
 use App\Http\Controllers\Api\ContactAnonymizationRequestController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\HealthcheckController;
@@ -89,6 +90,7 @@ Route::middleware([
     Route::apiResource('ticket-merges', TicketMergeController::class)->only(['index', 'store', 'show']);
     Route::apiResource('ticket-relationships', TicketRelationshipController::class)->except(['create', 'edit']);
     Route::apiResource('ticket-workflows', TicketWorkflowController::class)->except(['create', 'edit']);
+    Route::apiResource('ci-quality-gates', CiQualityGateController::class)->except(['create', 'edit']);
     Route::apiResource('teams', TeamController::class)->except(['create', 'edit']);
     Route::apiResource('teams.memberships', TeamMembershipController::class)
         ->parameters(['memberships' => 'teamMembership'])

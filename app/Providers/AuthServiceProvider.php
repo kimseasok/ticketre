@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\AuditLog;
 use App\Models\BroadcastConnection;
+use App\Models\CiQualityGate;
 use App\Models\Company;
 use App\Models\Contact;
 use App\Models\ContactAnonymizationRequest;
@@ -25,6 +26,7 @@ use App\Models\Team;
 use App\Models\TeamMembership;
 use App\Policies\AuditLogPolicy;
 use App\Policies\BroadcastConnectionPolicy;
+use App\Policies\CiQualityGatePolicy;
 use App\Policies\CompanyPolicy;
 use App\Policies\ContactAnonymizationRequestPolicy;
 use App\Policies\ContactPolicy;
@@ -69,6 +71,7 @@ class AuthServiceProvider extends ServiceProvider
         Team::class => TeamPolicy::class,
         TeamMembership::class => TeamMembershipPolicy::class,
         TwoFactorCredential::class => TwoFactorCredentialPolicy::class,
+        CiQualityGate::class => CiQualityGatePolicy::class,
     ];
 
     public function boot(): void
