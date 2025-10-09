@@ -10,6 +10,8 @@ use App\Models\ContactAnonymizationRequest;
 use App\Models\KbCategory;
 use App\Models\Message;
 use App\Models\Tenant;
+use App\Models\Team;
+use App\Models\TeamMembership;
 use App\Models\Ticket;
 use App\Models\TicketRelationship;
 use App\Models\TicketDeletionRequest;
@@ -151,6 +153,51 @@ class DemoDataSeeder extends Seeder
             'password' => Hash::make('password'),
         ]);
         $viewer->assignRole('Viewer');
+
+        $tierOneTeam = Team::create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'name' => 'Tier 1 Support',
+            'slug' => 'tier-1-support',
+            'default_queue' => 'inbox',
+            'description' => 'NON-PRODUCTION frontline support team for demo workloads.',
+        ]);
+
+        $tierOneTeam->memberships()->create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'user_id' => $admin->id,
+            'role' => TeamMembership::ROLE_LEAD,
+            'is_primary' => true,
+            'joined_at' => now()->subDays(45),
+        ]);
+
+        $tierOneTeam->memberships()->create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'user_id' => $agent->id,
+            'role' => TeamMembership::ROLE_MEMBER,
+            'is_primary' => true,
+            'joined_at' => now()->subDays(20),
+        ]);
+
+        $vipTeam = Team::create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'name' => 'VIP Success',
+            'slug' => 'vip-success',
+            'default_queue' => 'vip',
+            'description' => 'NON-PRODUCTION escalation pod for high-value customers.',
+        ]);
+
+        $vipTeam->memberships()->create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'user_id' => $admin->id,
+            'role' => TeamMembership::ROLE_LEAD,
+            'is_primary' => false,
+            'joined_at' => now()->subDays(10),
+        ]);
 
         $company = Company::factory()->create([
             'tenant_id' => $tenant->id,

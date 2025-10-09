@@ -71,6 +71,8 @@ class TenantRoleProvisioner
             'audit_logs.view',
             'roles.view',
             'roles.manage',
+            'teams.view',
+            'teams.manage',
         ];
 
         return [
@@ -96,6 +98,7 @@ class TenantRoleProvisioner
                     'knowledge.view',
                     'knowledge.manage',
                     'broadcast_connections.view',
+                    'teams.view',
                 ],
                 'is_system' => true,
             ],
@@ -108,6 +111,7 @@ class TenantRoleProvisioner
                     'tickets.relationships.view',
                     'reports.view',
                     'knowledge.view',
+                    'teams.view',
                 ],
                 'is_system' => true,
             ],
