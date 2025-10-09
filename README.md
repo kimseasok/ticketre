@@ -42,6 +42,14 @@
 - **API** – Manage CI quality gates via `GET/POST /api/v1/ci-quality-gates` and `GET/PATCH/DELETE /api/v1/ci-quality-gates/{id}` (permissions: `ci.quality_gates.view` / `ci.quality_gates.manage`). Requests accept optional `metadata`, hashed notification channel hints, and correlation IDs; responses include digests instead of raw channels.
 - **Filament UI** – `/admin/ci-quality-gates` offers tenant/brand scoped CRUD with coverage/vulnerability fields, toggleable enforcement options, and NON-PRODUCTION operator notes.
 
+## Observability Pipelines
+
+- **API** – `GET /api/v1/observability-pipelines` (view) and `POST /api/v1/observability-pipelines` (manage) expose tenant/brand scoped pipeline records, while `GET/PATCH/DELETE /api/v1/observability-pipelines/{id}` manage individual resources. Permissions: `observability.pipelines.view` for read access, `observability.pipelines.manage` for write operations. Payloads capture pipeline type (`logs`, `metrics`, or `traces`), ingest endpoint, buffering/retry policies, and optional metadata. Responses include hashed endpoint digests to avoid leaking PII, and all errors follow `{ "error": { "code", "message" } }`. PATCH requests default the metrics scrape interval to the current value so operators can tweak other fields without resubmitting metrics cadence.
+- **Metrics endpoint** – `GET /api/v1/observability-pipelines/metrics` returns Prometheus-compatible counters, gauges, and summaries tagged with `tenant_id`, `brand_id` (or `unscoped`), pipeline type, and operation. Authenticate with `platform.access` + `observability.pipelines.view`, and supply tenant headers: `X-Tenant` and optional `X-Brand`. Unauthorized requests receive the standard `{ "error": { "code": "ERR_HTTP_403", "message": "…" } }` payload while still logging the denial event.
+- **Structured logging** – Create/update/delete operations emit JSON logs to the default channel with correlation IDs, digested endpoints, and performance timings. The service also records audit log entries with hashed fields for traceability.
+- **Filament UI** – `/admin/observability-pipelines` provides CRUD forms with brand filters, pipeline type badges, and helper text marking NON-PRODUCTION operator guidance. Metrics-specific fields surface only when the pipeline type is `metrics`, and metadata is editable via key/value inputs.
+- **Demo data** – `DemoDataSeeder` provisions a NON-PRODUCTION logging pipeline tied to the demo tenant/brand so administrators can explore observability features locally without contacting external systems.
+
 ## Ticket Message Visibility API
 
 Extend ticket conversations with explicit visibility controls:

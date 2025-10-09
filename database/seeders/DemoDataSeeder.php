@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Brand;
 use App\Models\CiQualityGate;
+use App\Models\ObservabilityPipeline;
 use App\Models\BroadcastConnection;
 use App\Models\Company;
 use App\Models\Contact;
@@ -76,6 +77,25 @@ class DemoDataSeeder extends Seeder
             'metadata' => [
                 'owner' => 'platform-demo',
                 'description' => 'NON-PRODUCTION seed to illustrate CI enforcement policies.',
+            ],
+        ]);
+
+        ObservabilityPipeline::create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'name' => 'Demo Logging Pipeline',
+            'slug' => 'demo-logging-pipeline',
+            'pipeline_type' => 'logs',
+            'ingest_endpoint' => 'https://logs.demo.localhost/ingest',
+            'ingest_protocol' => 'https',
+            'buffer_strategy' => 'disk',
+            'buffer_retention_seconds' => 900,
+            'retry_backoff_seconds' => 30,
+            'max_retry_attempts' => 5,
+            'batch_max_bytes' => 1048576,
+            'metrics_scrape_interval_seconds' => null,
+            'metadata' => [
+                'description' => 'NON-PRODUCTION pipeline for demo observability flows.',
             ],
         ]);
 

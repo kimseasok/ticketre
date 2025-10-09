@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 ### Added
+- Centralized observability pipeline management with tenant/brand scoped models, REST + Filament CRUD, Prometheus metrics export, structured logging, and documentation updates. (E11-F4-I2)
 - CI quality gate management with tenant/brand scoped models, REST + Filament CRUD, artisan enforcement command, structured logging, and GitHub Actions quality gates. (E11-F5-I2)
 - Two-factor authentication enrollment and enforcement with tenant policy configuration, REST endpoints, challenge middleware, Filament credential management, and OpenAPI/README updates. (E10-F1-I2)
 - Tenant/brand-aware permission registry with REST + Filament CRUD, audit logging, artisan command docs, and OpenAPI/README updates. (E2-F3-I1)
@@ -26,6 +27,7 @@
 - Tenant-scoped ticket creation API with custom field validation, JSON:API responses, Filament custom field management, structured logging, and OpenAPI/README documentation. (E1-F1-I5)
 - Ticket workflow enforcement with migrations, API + FormRequest validation, Filament CRUD, SLA recalculation, audit/logging, and OpenAPI/README updates. (E1-F4-I3)
 ### Fixed
+- Preserve observability metrics scrape cadence during PATCH operations and return JSON-formatted `ERR_HTTP_403` payloads when metrics export is denied. (E11-F4-I2)
 - Restore Pint compatibility and database credentials so CI linting and migrations succeed on MySQL and PostgreSQL.
 - Declare the application as an ES module so Vite can import `laravel-vite-plugin` during CI builds without require() failures.
 - Provide a committed `.env.testing` profile so `php artisan test` can run against SQLite during CI without requiring MySQL.

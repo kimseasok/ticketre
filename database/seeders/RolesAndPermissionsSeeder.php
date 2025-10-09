@@ -15,6 +15,8 @@ class RolesAndPermissionsSeeder extends Seeder
         $permissions = [
             'platform.access',
             'portal.submit',
+            'observability.pipelines.view',
+            'observability.pipelines.manage',
             'ci.quality_gates.view',
             'ci.quality_gates.manage',
             'tickets.view',

@@ -1278,6 +1278,249 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/observability-pipelines:
+    get:
+      summary: List observability pipelines
+      tags: [Observability Pipelines]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: pipeline_type
+          in: query
+          description: Optional pipeline type filter (`logs`, `metrics`, or `traces`).
+          schema:
+            type: string
+            enum: [logs, metrics, traces]
+        - name: brand
+          in: query
+          description: Optional brand slug filter. Use `unscoped` to limit to tenant-wide pipelines.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Collection of observability pipelines
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ObservabilityPipelineResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Create observability pipeline
+      tags: [Observability Pipelines]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ObservabilityPipelineRequest'
+      responses:
+        '201':
+          description: Created observability pipeline
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/ObservabilityPipelineResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/observability-pipelines/metrics:
+    get:
+      summary: Export observability metrics
+      tags: [Observability Pipelines]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+      responses:
+        '200':
+          description: Prometheus metrics payload
+          content:
+            text/plain:
+              schema:
+                type: string
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/observability-pipelines/{observabilityPipeline}:
+    get:
+      summary: Show observability pipeline
+      tags: [Observability Pipelines]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: observabilityPipeline
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Observability pipeline details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/ObservabilityPipelineResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      summary: Update observability pipeline
+      tags: [Observability Pipelines]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: observabilityPipeline
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ObservabilityPipelineRequest'
+      responses:
+        '200':
+          description: Updated observability pipeline
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/ObservabilityPipelineResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete observability pipeline
+      tags: [Observability Pipelines]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: observabilityPipeline
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Pipeline deleted
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '422':
           description: Validation error
           content:
@@ -4414,6 +4657,116 @@ components:
           nullable: true
         brand_id:
           type: integer
+          nullable: true
+    ObservabilityPipelineResource:
+      type: object
+      required: [type, id, attributes]
+      properties:
+        type:
+          type: string
+          enum: [observability-pipelines]
+        id:
+          type: string
+        attributes:
+          type: object
+          required:
+            [name, slug, pipeline_type, ingest_endpoint_digest, buffer_strategy, buffer_retention_seconds, retry_backoff_seconds, max_retry_attempts, batch_max_bytes, created_at, updated_at]
+          properties:
+            tenant_id:
+              type: integer
+            brand_id:
+              type: integer
+              nullable: true
+            name:
+              type: string
+            slug:
+              type: string
+            pipeline_type:
+              type: string
+              enum: [logs, metrics, traces]
+            ingest_endpoint:
+              type: string
+            ingest_endpoint_digest:
+              type: string
+            ingest_endpoint_preview:
+              type: string
+              nullable: true
+            ingest_protocol:
+              type: string
+              nullable: true
+            buffer_strategy:
+              type: string
+            buffer_retention_seconds:
+              type: integer
+            retry_backoff_seconds:
+              type: integer
+            max_retry_attempts:
+              type: integer
+            batch_max_bytes:
+              type: integer
+            metrics_scrape_interval_seconds:
+              type: integer
+              nullable: true
+            metadata:
+              type: object
+              additionalProperties: {}
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+        relationships:
+          type: object
+          additionalProperties: {}
+    ObservabilityPipelineRequest:
+      type: object
+      required: [name, pipeline_type, ingest_endpoint, buffer_retention_seconds, retry_backoff_seconds, max_retry_attempts, batch_max_bytes]
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+          nullable: true
+        pipeline_type:
+          type: string
+          enum: [logs, metrics, traces]
+        ingest_endpoint:
+          type: string
+        ingest_protocol:
+          type: string
+          nullable: true
+        buffer_strategy:
+          type: string
+          nullable: true
+        buffer_retention_seconds:
+          type: integer
+          minimum: 0
+        retry_backoff_seconds:
+          type: integer
+          minimum: 0
+          maximum: 3600
+        max_retry_attempts:
+          type: integer
+          minimum: 0
+          maximum: 100
+        batch_max_bytes:
+          type: integer
+          minimum: 1024
+        metrics_scrape_interval_seconds:
+          type: integer
+          minimum: 5
+          maximum: 3600
+          nullable: true
+        metadata:
+          type: object
+          nullable: true
+          additionalProperties: {}
+        brand_id:
+          type: integer
+          nullable: true
+        correlation_id:
+          type: string
           nullable: true
     ContactResource:
       type: object
