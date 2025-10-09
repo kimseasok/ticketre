@@ -10,6 +10,7 @@ use App\Models\ContactAnonymizationRequest;
 use App\Models\KbArticle;
 use App\Models\KbCategory;
 use App\Models\Message;
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\Ticket;
 use App\Models\TicketEvent;
@@ -29,6 +30,7 @@ use App\Policies\ContactPolicy;
 use App\Policies\KbArticlePolicy;
 use App\Policies\KbCategoryPolicy;
 use App\Policies\MessagePolicy;
+use App\Policies\PermissionPolicy;
 use App\Policies\RolePolicy;
 use App\Policies\TeamMembershipPolicy;
 use App\Policies\TeamPolicy;
@@ -56,6 +58,7 @@ class AuthServiceProvider extends ServiceProvider
         KbArticle::class => KbArticlePolicy::class,
         KbCategory::class => KbCategoryPolicy::class,
         Message::class => MessagePolicy::class,
+        Permission::class => PermissionPolicy::class,
         AuditLog::class => AuditLogPolicy::class,
         Role::class => RolePolicy::class,
         TicketSubmission::class => TicketSubmissionPolicy::class,

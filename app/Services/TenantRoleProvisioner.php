@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
@@ -19,7 +20,11 @@ class TenantRoleProvisioner
         $previousTenant = app()->bound('currentTenant') ? app('currentTenant') : null;
         app()->instance('currentTenant', $tenant);
 
-        foreach ($this->definitions() as $definition) {
+        $definitions = $this->definitions();
+
+        $this->ensurePermissionsExist($definitions);
+
+        foreach ($definitions as $definition) {
             $existing = Role::withoutGlobalScopes()
                 ->where('tenant_id', $tenant->getKey())
                 ->where('slug', $definition['slug'])
@@ -76,6 +81,8 @@ class TenantRoleProvisioner
             'audit_logs.view',
             'roles.view',
             'roles.manage',
+            'permissions.view',
+            'permissions.manage',
             'teams.view',
             'teams.manage',
         ];
@@ -128,5 +135,26 @@ class TenantRoleProvisioner
                 'is_system' => true,
             ],
         ];
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $definitions
+     */
+    protected function ensurePermissionsExist(array $definitions): void
+    {
+        $names = collect($definitions)
+            ->pluck('permissions')
+            ->flatten()
+            ->unique()
+            ->values();
+
+        foreach ($names as $name) {
+            Permission::firstOrCreate([
+                'name' => $name,
+                'guard_name' => 'web',
+            ], [
+                'is_system' => true,
+            ]);
+        }
     }
 }

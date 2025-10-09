@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Role;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 
@@ -42,7 +43,7 @@ class UpdateRoleRequest extends ApiFormRequest
             'slug' => ['nullable', 'string', 'max:255', $this->uniqueSlugRule($tenantId, $role)],
             'description' => ['nullable', 'string'],
             'permissions' => ['sometimes', 'array'],
-            'permissions.*' => ['string', Rule::exists('permissions', 'name')->where('guard_name', 'web')],
+            'permissions.*' => ['string', $this->permissionExistsRule($tenantId)],
         ];
     }
 
@@ -54,5 +55,22 @@ class UpdateRoleRequest extends ApiFormRequest
     protected function uniqueSlugRule(int $tenantId, Role $role)
     {
         return Rule::unique('roles', 'slug')->where('tenant_id', $tenantId)->ignore($role->getKey());
+    }
+
+    protected function permissionExistsRule(int $tenantId)
+    {
+        return Rule::exists('permissions', 'name')
+            ->where('guard_name', 'web')
+            ->where(function (QueryBuilder $query) use ($tenantId): void {
+                if ($tenantId) {
+                    $query->where(fn (QueryBuilder $builder) => $builder
+                        ->whereNull('tenant_id')
+                        ->orWhere('tenant_id', $tenantId));
+
+                    return;
+                }
+
+                $query->whereNull('tenant_id');
+            });
     }
 }
