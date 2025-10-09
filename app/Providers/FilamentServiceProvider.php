@@ -25,6 +25,10 @@ class FilamentServiceProvider extends PanelProvider
             ->middleware([
                 'web',
             ])
+            ->authMiddleware([
+                'auth',
+                \App\Http\Middleware\EnsureTenantAccess::class.':platform.access',
+            ])
             ->authGuard('web')
             ->sidebarCollapsibleOnDesktop();
     }

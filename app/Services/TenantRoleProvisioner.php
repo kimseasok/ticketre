@@ -52,6 +52,8 @@ class TenantRoleProvisioner
     protected function definitions(): array
     {
         $basePermissions = [
+            'platform.access',
+            'portal.submit',
             'tickets.view',
             'tickets.manage',
             'tickets.merge',
@@ -62,6 +64,8 @@ class TenantRoleProvisioner
             'tickets.relationships.manage',
             'contacts.manage',
             'contacts.anonymize',
+            'compliance.policies.view',
+            'compliance.policies.manage',
             'knowledge.view',
             'knowledge.manage',
             'reports.view',
@@ -88,6 +92,8 @@ class TenantRoleProvisioner
                 'slug' => 'agent',
                 'description' => 'Work operational tickets, manage contacts, and publish knowledge base content for the tenant.',
                 'permissions' => [
+                    'platform.access',
+                    'portal.submit',
                     'tickets.view',
                     'tickets.manage',
                     'tickets.merge',
@@ -97,6 +103,7 @@ class TenantRoleProvisioner
                     'contacts.manage',
                     'knowledge.view',
                     'knowledge.manage',
+                    'compliance.policies.view',
                     'broadcast_connections.view',
                     'teams.view',
                 ],
@@ -107,10 +114,13 @@ class TenantRoleProvisioner
                 'slug' => 'viewer',
                 'description' => 'Read-only visibility into tickets, reports, and published knowledge base resources.',
                 'permissions' => [
+                    'platform.access',
+                    'portal.submit',
                     'tickets.view',
                     'tickets.relationships.view',
                     'reports.view',
                     'knowledge.view',
+                    'compliance.policies.view',
                     'teams.view',
                 ],
                 'is_system' => true,
