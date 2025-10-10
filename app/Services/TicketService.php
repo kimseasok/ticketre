@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Exceptions\InvalidCustomFieldException;
 use App\Models\Ticket;
 use App\Models\TicketEvent;
+use App\Services\SlaPolicyService;
 use App\Services\TicketMergeService;
 use App\Services\TicketWorkflowService;
 use App\Models\User;
@@ -20,6 +21,7 @@ class TicketService
         private readonly TicketAuditLogger $auditLogger,
         private readonly TicketMergeService $mergeService,
         private readonly TicketWorkflowService $workflowService,
+        private readonly SlaPolicyService $slaPolicyService,
     ) {
     }
 
@@ -37,6 +39,9 @@ class TicketService
         $data['channel'] = $data['channel'] ?? Ticket::CHANNEL_AGENT;
 
         $ticket = Ticket::create($data);
+        $ticket->refresh();
+
+        $this->slaPolicyService->assignToTicket($ticket, now(), $correlationId);
         $ticket->refresh();
 
         $this->auditLogger->created($ticket, $actor, $startedAt);
@@ -97,6 +102,15 @@ class TicketService
         $ticket->save();
 
         $ticket = $ticket->fresh(['assignee', 'contact', 'company']);
+
+        if (! empty($dirty)) {
+            $relevantKeys = ['priority', 'channel', 'brand_id', 'status'];
+            $changed = array_intersect(array_keys($dirty), $relevantKeys);
+
+            if (! empty($changed)) {
+                $this->slaPolicyService->assignToTicket($ticket, now());
+            }
+        }
 
         if (! empty($dirty)) {
             $this->auditLogger->updated($ticket, $actor, $dirty, $original, $startedAt);

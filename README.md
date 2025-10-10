@@ -361,6 +361,24 @@ Model configurable ticket workflows per tenant/brand and enforce transitions dir
 
 `TicketService` validates requested `workflow_state` changes against configured transitions, invokes optional guard/entry hooks, recalculates SLA timers when states define `sla_minutes`, writes `ticket.workflow.transitioned` audit entries, and emits structured lifecycle events. Invalid transitions return `422 ERR_VALIDATION` with the standard error envelope. Filament surfaces full CRUD management at `/admin/ticket-workflows`, including brand filters, default toggles, and NON-PRODUCTION repeaters for state/transition definitions.
 
+### SLA Policy Registry
+
+Define reusable SLA policies per tenant/brand that drive first-response and resolution timers directly from the ticket lifecycle.
+
+- `GET /api/v1/sla-policies` – list policies scoped to the active tenant with optional `brand_id`, `brand_slug`, and fuzzy `search` filters. Requires `sla.policies.view` (seeded for Admin/Agent/Viewer).
+- `POST /api/v1/sla-policies` – create a policy with timezone-aware business hours, holiday calendars, and channel/priority overrides. Requires `sla.policies.manage` (Admin only). Validation errors respond with `ERR_VALIDATION` using the standard error envelope.
+- `GET /api/v1/sla-policies/{id}` – retrieve a single policy including nested targets and schedule metadata.
+- `PATCH /api/v1/sla-policies/{id}` – update core attributes, calendars, and overrides idempotently. Policies emit `sla-policy.updated` audit rows plus structured JSON logs with correlation IDs.
+- `DELETE /api/v1/sla-policies/{id}` – soft delete a policy while retaining audit history.
+
+Policies accept business hours in `HH:MM` 24-hour format and optional holiday exceptions. Channel/priority targets can opt into or bypass business hours, enabling 24/7 escalation windows alongside standard coverage. The `SlaPolicyService` resolves brand-specific policies first, then falls back to tenant defaults; resolved policies are applied through the `SlaTimerService`, which:
+
+- Converts `now()` into the policy timezone, skips holidays/weekends, and adds working minutes without N+1 queries.
+- Persists `sla_policy_id`, `first_response_due_at`, `resolution_due_at`, and `sla_due_at` on the ticket model for downstream reporting.
+- Emits `sla.policy.applied` / `sla.policy.cleared` structured logs with correlation IDs, ticket/policy IDs, and redacted timestamps.
+
+Filament exposes the registry at `/admin/sla-policies` with repeaters for business hours, holiday calendars, and override rows. Brand selectors respect tenant scope, and the form highlights NON-PRODUCTION guidance for seeded demo data. The demo seeder provisions a “Demo Premier Support SLA” showcasing weekday business hours, a holiday skip, and mixed 24/7 chat coverage.
+
 ## Ticket Lifecycle Broadcasting
 
 Ticket lifecycle events are persisted, audited, and broadcast over Echo-compatible websockets so agent consoles can react in real time.

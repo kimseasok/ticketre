@@ -27,6 +27,7 @@ use App\Models\TicketSubmission;
 use App\Models\TicketWorkflow;
 use App\Models\TicketWorkflowState;
 use App\Models\TicketWorkflowTransition;
+use App\Models\SlaPolicy;
 use App\Models\User;
 use App\Services\CompanyService;
 use App\Services\ContactService;
@@ -108,6 +109,44 @@ class DemoDataSeeder extends Seeder
             'metrics_scrape_interval_seconds' => null,
             'metadata' => [
                 'description' => 'NON-PRODUCTION pipeline for demo observability flows.',
+            ],
+        ]);
+
+        $slaPolicy = SlaPolicy::create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'name' => 'Demo Premier Support SLA',
+            'slug' => 'demo-premier-support-sla',
+            'timezone' => 'America/New_York',
+            'business_hours' => [
+                ['day' => 'monday', 'start' => '09:00', 'end' => '17:00'],
+                ['day' => 'tuesday', 'start' => '09:00', 'end' => '17:00'],
+                ['day' => 'wednesday', 'start' => '09:00', 'end' => '17:00'],
+                ['day' => 'thursday', 'start' => '09:00', 'end' => '17:00'],
+                ['day' => 'friday', 'start' => '09:00', 'end' => '17:00'],
+            ],
+            'holiday_exceptions' => [
+                ['date' => now()->startOfYear()->addMonths(6)->format('Y-m-d'), 'name' => 'Demo Independence Day'],
+            ],
+            'default_first_response_minutes' => 60,
+            'default_resolution_minutes' => 1440,
+            'enforce_business_hours' => true,
+        ]);
+
+        $slaPolicy->targets()->createMany([
+            [
+                'channel' => 'email',
+                'priority' => 'high',
+                'first_response_minutes' => 30,
+                'resolution_minutes' => 720,
+                'use_business_hours' => true,
+            ],
+            [
+                'channel' => 'chat',
+                'priority' => 'urgent',
+                'first_response_minutes' => 15,
+                'resolution_minutes' => 240,
+                'use_business_hours' => false,
             ],
         ]);
 
