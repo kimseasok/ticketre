@@ -50,6 +50,14 @@
 - **Filament UI** – `/admin/observability-pipelines` provides CRUD forms with brand filters, pipeline type badges, and helper text marking NON-PRODUCTION operator guidance. Metrics-specific fields surface only when the pipeline type is `metrics`, and metadata is editable via key/value inputs.
 - **Demo data** – `DemoDataSeeder` provisions a NON-PRODUCTION logging pipeline tied to the demo tenant/brand so administrators can explore observability features locally without contacting external systems.
 
+## Observability Stack Selection
+
+- **API** – `GET /api/v1/observability-stacks` (view) and `POST /api/v1/observability-stacks` (manage) capture the tenant’s chosen tooling across logs, metrics, and alerting. `GET/PATCH/DELETE /api/v1/observability-stacks/{id}` manage individual evaluations. Permissions: `observability.stacks.view` for read access, `observability.stacks.manage` for write operations. Payloads include the selected vendors (`elk`, `opensearch`, or `loki-grafana` for logs), retention policies, cost estimates, and an optional decision matrix summarising alternatives. Responses expose SHA-256 digests for stack names and tooling to keep PII out of downstream logs while still enabling traceability.
+- **Evaluation matrix** – Each stack can persist a NON-PRODUCTION “decision_matrix” array detailing candidate tooling, monthly costs, scalability notes, and free-form observations. Validation enforces positive retention windows (1–365 days for logs/metrics, 1–180 for traces) and optional trace sampling strategies so operators can compare like-for-like data.
+- **Observability & metrics** – Stack lifecycle events emit structured JSON logs with correlation IDs, hashed tool digests, and operation timings. Prometheus counters (`observability_stack_events_total`), summaries (`observability_stack_duration_ms`), and gauges (`observability_stack_selected_cost`) are automatically updated so platform teams can trend adoption, latency, and budget impact per tenant/brand.
+- **Filament UI** – `/admin/observability-stacks` provides scoped CRUD with status badges, tooling selectors, retention inputs, and a collapsible decision matrix repeater. Helper text flags the fields as NON-PRODUCTION guidance, and operators can attach arbitrary metadata tags for automation. Brand filters mirror pipeline behaviour, ensuring tenants cannot inspect each other’s selections.
+- **Demo data** – `DemoDataSeeder` provisions a NON-PRODUCTION “Demo Observability Stack” comparing ELK versus Loki/Grafana with prefilled cost/scalability notes so local environments immediately demonstrate the evaluation flow alongside the existing logging pipeline.
+
 ## Ticket Message Visibility API
 
 Extend ticket conversations with explicit visibility controls:
