@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\ObservabilityPipelineController;
 use App\Http\Controllers\Api\ObservabilityStackController;
 use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\PermissionController;
+use App\Http\Controllers\Api\PermissionCoverageReportController;
 use App\Http\Controllers\Api\PortalTicketSubmissionController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\RedisConfigurationController;
@@ -112,6 +113,7 @@ Route::middleware([
         ->name('observability-pipelines.metrics');
     Route::apiResource('observability-pipelines', ObservabilityPipelineController::class)->except(['create', 'edit']);
     Route::apiResource('observability-stacks', ObservabilityStackController::class)->except(['create', 'edit']);
+    Route::apiResource('permission-coverage-reports', PermissionCoverageReportController::class)->except(['create', 'edit']);
     Route::apiResource('teams', TeamController::class)->except(['create', 'edit']);
     Route::apiResource('teams.memberships', TeamMembershipController::class)
         ->parameters(['memberships' => 'teamMembership'])

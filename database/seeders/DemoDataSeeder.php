@@ -7,6 +7,7 @@ use App\Models\BrandDomain;
 use App\Models\CiQualityGate;
 use App\Models\ObservabilityPipeline;
 use App\Models\ObservabilityStack;
+use App\Models\PermissionCoverageReport;
 use App\Models\BroadcastConnection;
 use App\Models\Company;
 use App\Models\Contact;
@@ -107,6 +108,18 @@ class DemoDataSeeder extends Seeder
             'metrics_scrape_interval_seconds' => null,
             'metadata' => [
                 'description' => 'NON-PRODUCTION pipeline for demo observability flows.',
+            ],
+        ]);
+
+
+        PermissionCoverageReport::create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'module' => 'api',
+            'notes' => 'NON-PRODUCTION snapshot seeded for CI demos.',
+            'metadata' => [
+                'source' => 'demo-seeder',
+                'build_reference' => 'demo-ci',
             ],
         ]);
 

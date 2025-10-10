@@ -4607,6 +4607,221 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /api/v1/permission-coverage-reports:
+    get:
+      summary: List permission coverage reports
+      tags: [Permission Coverage]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: module
+          in: query
+          description: Filter by coverage module (`api`, `admin`, or `portal`).
+          schema:
+            type: string
+            enum: [api, admin, portal]
+        - name: brand_id
+          in: query
+          description: Filter by brand identifier (use `unscoped` for tenant-wide snapshots).
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Collection of permission coverage reports
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PermissionCoverageReportResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Generate permission coverage report
+      tags: [Permission Coverage]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PermissionCoverageReportRequest'
+      responses:
+        '201':
+          description: Created permission coverage report
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PermissionCoverageReportResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/permission-coverage-reports/{permissionCoverageReport}:
+    get:
+      summary: Show permission coverage report
+      tags: [Permission Coverage]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: permissionCoverageReport
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Permission coverage report details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PermissionCoverageReportResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      summary: Update permission coverage report
+      tags: [Permission Coverage]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: permissionCoverageReport
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PermissionCoverageReportUpdateRequest'
+      responses:
+        '200':
+          description: Updated permission coverage report
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PermissionCoverageReportResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete permission coverage report
+      tags: [Permission Coverage]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: permissionCoverageReport
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Permission coverage report deleted
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /api/v1/permissions:
     get:
       summary: List permissions
@@ -6035,6 +6250,111 @@ components:
         metadata:
           type: object
           additionalProperties: {}
+    PermissionCoverageReportRequest:
+      type: object
+      required: [module]
+      properties:
+        module:
+          type: string
+          enum: [api, admin, portal]
+        brand_id:
+          type: integer
+          nullable: true
+        notes:
+          type: string
+          maxLength: 1024
+          nullable: true
+        metadata:
+          type: object
+          additionalProperties: {}
+        correlation_id:
+          type: string
+          maxLength: 64
+          nullable: true
+    PermissionCoverageReportUpdateRequest:
+      type: object
+      properties:
+        module:
+          type: string
+          enum: [api, admin, portal]
+        brand_id:
+          type: integer
+          nullable: true
+        notes:
+          type: string
+          maxLength: 1024
+          nullable: true
+        metadata:
+          type: object
+          additionalProperties: {}
+        correlation_id:
+          type: string
+          maxLength: 64
+          nullable: true
+    PermissionCoverageReportResource:
+      type: object
+      required: [type, id, attributes]
+      properties:
+        type:
+          type: string
+          enum: [permission-coverage-reports]
+        id:
+          type: string
+        attributes:
+          type: object
+          required:
+            [module, tenant_id, total_routes, guarded_routes, unguarded_routes, coverage, generated_at, created_at, updated_at]
+          properties:
+            module:
+              type: string
+              enum: [api, admin, portal]
+            tenant_id:
+              type: integer
+            brand_id:
+              type: integer
+              nullable: true
+            total_routes:
+              type: integer
+            guarded_routes:
+              type: integer
+            unguarded_routes:
+              type: integer
+            coverage:
+              type: number
+              format: float
+            uncovered_route_digests:
+              type: array
+              items:
+                type: string
+            notes:
+              type: string
+              nullable: true
+            metadata:
+              type: object
+              additionalProperties: {}
+            generated_at:
+              type: string
+              format: date-time
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+        relationships:
+          type: object
+          properties:
+            tenant:
+              type: object
+              nullable: true
+            brand:
+              type: object
+              nullable: true
+        links:
+          type: object
+          properties:
+            self:
+              type: string
     PermissionResource:
       type: object
       required: [type, id, attributes]

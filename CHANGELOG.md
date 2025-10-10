@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 ### Added
+- Tenant/brand scoped permission coverage reports with automated route analysis, REST + Filament CRUD, RBAC policy updates, structured logging/audit trails, and README/OpenAPI updates. (E10-F2-I2)
 - Horizon dashboard deployment infrastructure with tenant/brand scoped models, REST + Filament CRUD, health monitoring, audit logging, and OpenAPI/README updates. (E11-F2-I2)
 - Centralized observability pipeline management with tenant/brand scoped models, REST + Filament CRUD, Prometheus metrics export, structured logging, and documentation updates. (E11-F4-I2)
 - Observability stack selection registry with tenant/brand scoped models, REST + Filament CRUD, decision matrix support, structured logging/metrics, and OpenAPI/README coverage. (E11-F4-I1)
