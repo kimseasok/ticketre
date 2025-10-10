@@ -65,6 +65,19 @@ class Handler extends ExceptionHandler
 
     public function render($request, Throwable $e)
     {
+        if ($e instanceof AuthorizationException) {
+            if ($this->isApiRequest($request)) {
+                return response()->json([
+                    'error' => [
+                        'code' => 'ERR_HTTP_403',
+                        'message' => $this->resolveErrorMessage($e),
+                    ],
+                ], 403);
+            }
+
+            return parent::render($request, $e);
+        }
+
         if ($this->shouldReturnJson($request, $e)) {
             return response()->json([
                 'error' => [
@@ -174,5 +187,20 @@ class Handler extends ExceptionHandler
         }
 
         return 'An unexpected error occurred.';
+    }
+
+    protected function isApiRequest($request): bool
+    {
+        if (method_exists($request, 'expectsJson') && $request->expectsJson()) {
+            return true;
+        }
+
+        if (method_exists($request, 'getPathInfo')) {
+            $path = trim((string) $request->getPathInfo(), '/');
+
+            return str_starts_with($path, 'api/');
+        }
+
+        return false;
     }
 }

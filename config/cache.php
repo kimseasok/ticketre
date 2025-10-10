@@ -3,7 +3,7 @@
 use Illuminate\Support\Str;
 
 return [
-    'default' => env('CACHE_DRIVER', 'file'),
+    'default' => env('CACHE_DRIVER', 'redis-fallback'),
 
     'stores' => [
         'apc' => [
@@ -24,7 +24,13 @@ return [
         ],
         'redis' => [
             'driver' => 'redis',
-            'connection' => 'cache',
+            'connection' => env('CACHE_REDIS_CONNECTION', 'cache'),
+        ],
+        'redis-fallback' => [
+            'driver' => 'redis_fallback',
+            'connection' => env('CACHE_REDIS_CONNECTION', 'cache'),
+            'fallback' => env('CACHE_FALLBACK_STORE', 'file'),
+            'prefix' => env('CACHE_PREFIX', Str::slug(env('APP_NAME', 'ServiceDesk'), '_').'_cache'),
         ],
     ],
 

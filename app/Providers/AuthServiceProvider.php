@@ -13,6 +13,7 @@ use App\Models\KbCategory;
 use App\Models\Message;
 use App\Models\Permission;
 use App\Models\Role;
+use App\Models\RedisConfiguration;
 use App\Models\Ticket;
 use App\Models\TicketEvent;
 use App\Models\ObservabilityPipeline;
@@ -37,6 +38,7 @@ use App\Policies\KbCategoryPolicy;
 use App\Policies\MessagePolicy;
 use App\Policies\PermissionPolicy;
 use App\Policies\RolePolicy;
+use App\Policies\RedisConfigurationPolicy;
 use App\Policies\TeamMembershipPolicy;
 use App\Policies\TeamPolicy;
 use App\Policies\TicketDeletionRequestPolicy;
@@ -78,6 +80,7 @@ class AuthServiceProvider extends ServiceProvider
         CiQualityGate::class => CiQualityGatePolicy::class,
         ObservabilityPipeline::class => ObservabilityPipelinePolicy::class,
         ObservabilityStack::class => ObservabilityStackPolicy::class,
+        RedisConfiguration::class => RedisConfigurationPolicy::class,
     ];
 
     public function boot(): void

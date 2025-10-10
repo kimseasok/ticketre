@@ -38,6 +38,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'knowledge.view',
             'reports.view',
             'integrations.manage',
+            'infrastructure.redis.view',
+            'infrastructure.redis.manage',
             'broadcast_connections.view',
             'broadcast_connections.manage',
             'audit_logs.view',
