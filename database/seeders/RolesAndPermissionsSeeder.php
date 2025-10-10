@@ -61,6 +61,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'security.2fa.review',
             'security.permission_coverage.view',
             'security.permission_coverage.manage',
+            'security.rbac_gaps.view',
+            'security.rbac_gaps.manage',
         ];
 
         foreach ($permissions as $permission) {

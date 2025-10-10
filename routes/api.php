@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\SlaPolicyController;
 use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\PermissionCoverageReportController;
+use App\Http\Controllers\Api\RbacEnforcementGapAnalysisController;
 use App\Http\Controllers\Api\PortalTicketSubmissionController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\RedisConfigurationController;
@@ -116,6 +117,7 @@ Route::middleware([
     Route::apiResource('observability-stacks', ObservabilityStackController::class)->except(['create', 'edit']);
     Route::apiResource('sla-policies', SlaPolicyController::class)->except(['create', 'edit']);
     Route::apiResource('permission-coverage-reports', PermissionCoverageReportController::class)->except(['create', 'edit']);
+    Route::apiResource('rbac-gap-analyses', RbacEnforcementGapAnalysisController::class)->except(['create', 'edit']);
     Route::apiResource('teams', TeamController::class)->except(['create', 'edit']);
     Route::apiResource('teams.memberships', TeamMembershipController::class)
         ->parameters(['memberships' => 'teamMembership'])

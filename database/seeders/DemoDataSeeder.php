@@ -8,6 +8,7 @@ use App\Models\CiQualityGate;
 use App\Models\ObservabilityPipeline;
 use App\Models\ObservabilityStack;
 use App\Models\PermissionCoverageReport;
+use App\Models\RbacEnforcementGapAnalysis;
 use App\Models\BroadcastConnection;
 use App\Models\Company;
 use App\Models\Contact;
@@ -160,6 +161,60 @@ class DemoDataSeeder extends Seeder
                 'source' => 'demo-seeder',
                 'build_reference' => 'demo-ci',
             ],
+        ]);
+
+        RbacEnforcementGapAnalysis::create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'title' => 'NON-PRODUCTION RBAC Gap Analysis',
+            'status' => 'completed',
+            'analysis_date' => now()->subDay(),
+            'audit_matrix' => [
+                [
+                    'type' => 'route',
+                    'identifier' => 'GET /api/v1/permissions',
+                    'required_permissions' => ['permissions.view'],
+                    'roles' => ['Admin'],
+                    'notes' => 'NON-PRODUCTION sample mapping.',
+                ],
+                [
+                    'type' => 'command',
+                    'identifier' => 'queue:work --queue=high',
+                    'required_permissions' => ['tickets.manage'],
+                    'roles' => ['Admin'],
+                    'notes' => null,
+                ],
+            ],
+            'findings' => [
+                [
+                    'priority' => 'high',
+                    'summary' => 'Documented RBAC checks for ticket escalation queue.',
+                    'owner' => 'Security Engineering',
+                    'eta_days' => 7,
+                    'status' => 'completed',
+                ],
+                [
+                    'priority' => 'medium',
+                    'summary' => 'Add nightly audit for broadcast auth endpoint.',
+                    'owner' => 'Platform Ops',
+                    'eta_days' => 14,
+                    'status' => 'planned',
+                ],
+            ],
+            'remediation_plan' => [
+                'phase_one' => [
+                    'name' => 'Patch queue worker policies',
+                    'due_days' => 7,
+                ],
+                'phase_two' => [
+                    'name' => 'Roll out monitoring dashboards',
+                    'due_days' => 21,
+                ],
+            ],
+            'review_minutes' => 'NON-PRODUCTION meeting recap capturing remediation owners and due dates.',
+            'notes' => 'NON-PRODUCTION data for sample tenant only.',
+            'owner_team' => 'Trust & Safety',
+            'reference_id' => 'demo-rbac-gap',
         ]);
 
         RedisConfiguration::create([

@@ -17,6 +17,7 @@ use App\Models\Message;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\PermissionCoverageReport;
+use App\Models\RbacEnforcementGapAnalysis;
 use App\Models\RedisConfiguration;
 use App\Models\Ticket;
 use App\Models\TicketEvent;
@@ -47,6 +48,7 @@ use App\Policies\MessagePolicy;
 use App\Policies\PermissionPolicy;
 use App\Policies\RolePolicy;
 use App\Policies\PermissionCoverageReportPolicy;
+use App\Policies\RbacEnforcementGapAnalysisPolicy;
 use App\Policies\RedisConfigurationPolicy;
 use App\Policies\TeamMembershipPolicy;
 use App\Policies\TeamPolicy;
@@ -95,6 +97,7 @@ class AuthServiceProvider extends ServiceProvider
         BrandDomain::class => BrandDomainPolicy::class,
         HorizonDeployment::class => HorizonDeploymentPolicy::class,
         PermissionCoverageReport::class => PermissionCoverageReportPolicy::class,
+        RbacEnforcementGapAnalysis::class => RbacEnforcementGapAnalysisPolicy::class,
         SlaPolicy::class => SlaPolicyPolicy::class,
     ];
 
