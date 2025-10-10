@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\ObservabilityMetricsController;
 use App\Http\Controllers\Api\ObservabilityPipelineController;
 use App\Http\Controllers\Api\ObservabilityStackController;
+use App\Http\Controllers\Api\SlaPolicyController;
 use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\PermissionCoverageReportController;
@@ -113,6 +114,7 @@ Route::middleware([
         ->name('observability-pipelines.metrics');
     Route::apiResource('observability-pipelines', ObservabilityPipelineController::class)->except(['create', 'edit']);
     Route::apiResource('observability-stacks', ObservabilityStackController::class)->except(['create', 'edit']);
+    Route::apiResource('sla-policies', SlaPolicyController::class)->except(['create', 'edit']);
     Route::apiResource('permission-coverage-reports', PermissionCoverageReportController::class)->except(['create', 'edit']);
     Route::apiResource('teams', TeamController::class)->except(['create', 'edit']);
     Route::apiResource('teams.memberships', TeamMembershipController::class)

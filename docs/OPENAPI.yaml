@@ -1568,6 +1568,225 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/sla-policies:
+    get:
+      summary: List SLA policies
+      tags: [SLA]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: brand_id
+          in: query
+          description: Optional brand filter. Use `unscoped` to include tenant defaults.
+          schema:
+            type: string
+        - name: brand_slug
+          in: query
+          description: Filter by brand slug without requiring the X-Brand header.
+          schema:
+            type: string
+        - name: search
+          in: query
+          description: Optional fuzzy search by name or slug.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Collection of SLA policies
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SlaPolicyResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Create SLA policy
+      tags: [SLA]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SlaPolicyRequest'
+      responses:
+        '201':
+          description: Created SLA policy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/SlaPolicyResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/sla-policies/{slaPolicy}:
+    get:
+      summary: Show SLA policy
+      tags: [SLA]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: slaPolicy
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: SLA policy details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/SlaPolicyResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      summary: Update SLA policy
+      tags: [SLA]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: slaPolicy
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SlaPolicyRequest'
+      responses:
+        '200':
+          description: Updated SLA policy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/SlaPolicyResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete SLA policy
+      tags: [SLA]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: slaPolicy
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: SLA policy deleted
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /api/v1/horizon-deployments:
     get:
       summary: List Horizon deployments
@@ -5827,6 +6046,17 @@ components:
               type: string
               format: date-time
               nullable: true
+            sla_policy_id:
+              type: integer
+              nullable: true
+            first_response_due_at:
+              type: string
+              format: date-time
+              nullable: true
+            resolution_due_at:
+              type: string
+              format: date-time
+              nullable: true
             created_at:
               type: string
               format: date-time
@@ -6737,9 +6967,166 @@ components:
         correlation_id:
           type: string
           nullable: true
-        correlation_id:
+    SlaPolicyResource:
+      type: object
+      required: [type, id, attributes]
+      properties:
+        type:
+          type: string
+          enum: [sla-policies]
+        id:
+          type: string
+        attributes:
+          $ref: '#/components/schemas/SlaPolicyAttributes'
+    SlaPolicyAttributes:
+      type: object
+      required: [tenant_id, name, slug, timezone, enforce_business_hours]
+      properties:
+        tenant_id:
+          type: integer
+        brand_id:
+          type: integer
+          nullable: true
+        name:
+          type: string
+        slug:
+          type: string
+        timezone:
+          type: string
+        business_hours:
+          type: array
+          items:
+            $ref: '#/components/schemas/SlaBusinessHour'
+        holiday_exceptions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SlaHoliday'
+        default_first_response_minutes:
+          type: integer
+          nullable: true
+        default_resolution_minutes:
+          type: integer
+          nullable: true
+        enforce_business_hours:
+          type: boolean
+        targets:
+          type: array
+          items:
+            $ref: '#/components/schemas/SlaPolicyTarget'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    SlaPolicyRequest:
+      type: object
+      required: [name, timezone]
+      properties:
+        name:
+          type: string
+        slug:
           type: string
           nullable: true
+        brand_id:
+          type: integer
+          nullable: true
+        timezone:
+          type: string
+        business_hours:
+          type: array
+          items:
+            $ref: '#/components/schemas/SlaBusinessHourInput'
+        holiday_exceptions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SlaHolidayInput'
+        default_first_response_minutes:
+          type: integer
+          nullable: true
+          minimum: 0
+          maximum: 43200
+        default_resolution_minutes:
+          type: integer
+          nullable: true
+          minimum: 0
+          maximum: 43200
+        enforce_business_hours:
+          type: boolean
+          nullable: true
+        targets:
+          type: array
+          items:
+            $ref: '#/components/schemas/SlaPolicyTargetInput'
+    SlaPolicyTarget:
+      type: object
+      required: [channel, priority]
+      properties:
+        id:
+          type: integer
+          nullable: true
+        channel:
+          type: string
+        priority:
+          type: string
+        first_response_minutes:
+          type: integer
+          nullable: true
+        resolution_minutes:
+          type: integer
+          nullable: true
+        use_business_hours:
+          type: boolean
+    SlaPolicyTargetInput:
+      type: object
+      required: [channel, priority]
+      properties:
+        channel:
+          type: string
+        priority:
+          type: string
+        first_response_minutes:
+          type: integer
+          nullable: true
+          minimum: 0
+          maximum: 43200
+        resolution_minutes:
+          type: integer
+          nullable: true
+          minimum: 0
+          maximum: 43200
+        use_business_hours:
+          type: boolean
+          nullable: true
+    SlaBusinessHour:
+      type: object
+      required: [day, start, end]
+      properties:
+        day:
+          type: string
+          enum: [monday, tuesday, wednesday, thursday, friday, saturday, sunday]
+        start:
+          type: string
+          pattern: '^\\d{2}:\\d{2}$'
+        end:
+          type: string
+          pattern: '^\\d{2}:\\d{2}$'
+    SlaBusinessHourInput:
+      allOf:
+        - $ref: '#/components/schemas/SlaBusinessHour'
+    SlaHoliday:
+      type: object
+      required: [date]
+      properties:
+        date:
+          type: string
+          format: date
+        name:
+          type: string
+          nullable: true
+    SlaHolidayInput:
+      allOf:
+        - $ref: '#/components/schemas/SlaHoliday'
     ObservabilityStackResource:
       type: object
       required: [type, id, attributes]

@@ -38,6 +38,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'knowledge.view',
             'reports.view',
             'integrations.manage',
+            'sla.policies.view',
+            'sla.policies.manage',
             'brands.view',
             'brands.manage',
             'brand_domains.view',

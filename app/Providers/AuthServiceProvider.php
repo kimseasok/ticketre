@@ -22,6 +22,7 @@ use App\Models\Ticket;
 use App\Models\TicketEvent;
 use App\Models\ObservabilityPipeline;
 use App\Models\ObservabilityStack;
+use App\Models\SlaPolicy;
 use App\Models\TicketMerge;
 use App\Models\TicketSubmission;
 use App\Models\TwoFactorCredential;
@@ -54,6 +55,7 @@ use App\Policies\TicketRelationshipPolicy;
 use App\Policies\TicketEventPolicy;
 use App\Policies\ObservabilityPipelinePolicy;
 use App\Policies\ObservabilityStackPolicy;
+use App\Policies\SlaPolicyPolicy;
 use App\Policies\TicketMergePolicy;
 use App\Policies\TicketPolicy;
 use App\Policies\TicketSubmissionPolicy;
@@ -93,6 +95,7 @@ class AuthServiceProvider extends ServiceProvider
         BrandDomain::class => BrandDomainPolicy::class,
         HorizonDeployment::class => HorizonDeploymentPolicy::class,
         PermissionCoverageReport::class => PermissionCoverageReportPolicy::class,
+        SlaPolicy::class => SlaPolicyPolicy::class,
     ];
 
     public function boot(): void

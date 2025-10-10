@@ -33,6 +33,7 @@ class Ticket extends Model
         'company_id',
         'assignee_id',
         'ticket_workflow_id',
+        'sla_policy_id',
         'subject',
         'status',
         'priority',
@@ -43,13 +44,22 @@ class Ticket extends Model
         'metadata',
         'custom_fields',
         'sla_due_at',
+        'first_response_due_at',
+        'resolution_due_at',
     ];
 
     protected $casts = [
         'metadata' => 'array',
         'custom_fields' => 'array',
         'sla_due_at' => 'datetime',
+        'first_response_due_at' => 'datetime',
+        'resolution_due_at' => 'datetime',
     ];
+
+    public function slaPolicy()
+    {
+        return $this->belongsTo(SlaPolicy::class);
+    }
 
     public function assignee()
     {
