@@ -5626,6 +5626,216 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/brands/{brand}/theme:
+    get:
+      summary: Show brand theme tokens
+      tags: [Brands]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - $ref: '#/components/parameters/BrandId'
+      responses:
+        '200':
+          description: Theme configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/BrandTheme'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/brand-assets:
+    get:
+      summary: List brand assets
+      tags: [Brand Assets]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - in: query
+          name: brand_id
+          schema:
+            type: integer
+          description: Filter by brand identifier.
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum: [primary_logo, secondary_logo, favicon, portal_stylesheet]
+          description: Filter by asset type.
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Search by type or path.
+      responses:
+        '200':
+          description: Paginated brand assets
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BrandAsset'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Create brand asset
+      tags: [Brand Assets]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BrandAssetWrite'
+      responses:
+        '201':
+          description: Brand asset created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/BrandAsset'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/brand-assets/{brandAsset}:
+    get:
+      summary: Show brand asset
+      tags: [Brand Assets]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - $ref: '#/components/parameters/BrandAssetId'
+      responses:
+        '200':
+          description: Brand asset detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/BrandAsset'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      summary: Update brand asset
+      tags: [Brand Assets]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - $ref: '#/components/parameters/BrandAssetId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BrandAssetWrite'
+      responses:
+        '200':
+          description: Updated brand asset
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/BrandAsset'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete brand asset
+      tags: [Brand Assets]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - $ref: '#/components/parameters/BrandAssetId'
+      responses:
+        '204':
+          description: Deleted
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/brand-assets/{brandAsset}/deliver:
+    get:
+      summary: Deliver brand asset URL
+      tags: [Brand Assets]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - $ref: '#/components/parameters/BrandAssetId'
+      responses:
+        '200':
+          description: Delivery metadata
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+            ETag:
+              schema:
+                type: string
+            X-Brand-Asset-Version:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/BrandAssetDelivery'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /api/v1/brand-domains:
     get:
       summary: List brand domains
@@ -5836,6 +6046,12 @@ components:
       required: true
       schema:
         type: integer
+    BrandAssetId:
+      name: brandAsset
+      in: path
+      required: true
+      schema:
+        type: integer
     TicketId:
       name: ticket
       in: path
@@ -6041,6 +6257,137 @@ components:
           type: string
         favicon_path:
           type: string
+    BrandAsset:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [brand-assets]
+        id:
+          type: string
+        attributes:
+          type: object
+          properties:
+            brand_id:
+              type: integer
+            type:
+              type: string
+            disk:
+              type: string
+            path:
+              type: string
+            path_digest:
+              type: string
+              nullable: true
+            version:
+              type: integer
+            content_type:
+              type: string
+              nullable: true
+            size:
+              type: integer
+              nullable: true
+            checksum:
+              type: string
+              nullable: true
+            cache_control:
+              type: string
+              nullable: true
+            cdn_url:
+              type: string
+              nullable: true
+            meta:
+              type: object
+              additionalProperties:
+                type: string
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+        relationships:
+          type: object
+          properties:
+            brand:
+              type: object
+    BrandAssetWrite:
+      type: object
+      properties:
+        brand_id:
+          type: integer
+        type:
+          type: string
+          enum: [primary_logo, secondary_logo, favicon, portal_stylesheet]
+        path:
+          type: string
+        disk:
+          type: string
+        content_type:
+          type: string
+        size:
+          type: integer
+        checksum:
+          type: string
+        cache_control:
+          type: string
+        cdn_url:
+          type: string
+        meta:
+          type: object
+          additionalProperties:
+            type: string
+    BrandAssetDelivery:
+      type: object
+      properties:
+        url:
+          type: string
+          nullable: true
+        cdn_url:
+          type: string
+          nullable: true
+        cache_control:
+          type: string
+        etag:
+          type: string
+        version:
+          type: integer
+        content_type:
+          type: string
+          nullable: true
+    BrandTheme:
+      type: object
+      properties:
+        version:
+          type: string
+        cache_control:
+          type: string
+        colors:
+          type: object
+          properties:
+            primary:
+              type: string
+            secondary:
+              type: string
+            accent:
+              type: string
+            text:
+              type: string
+        typography:
+          type: object
+          properties:
+            font_family:
+              type: string
+        components:
+          type: object
+          properties:
+            button_radius:
+              type: integer
+        assets:
+          type: object
+          additionalProperties:
+            type: string
+            nullable: true
     BrandDomain:
       type: object
       properties:

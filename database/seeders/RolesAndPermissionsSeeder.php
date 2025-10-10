@@ -42,6 +42,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'sla.policies.manage',
             'brands.view',
             'brands.manage',
+            'brand_assets.view',
+            'brand_assets.manage',
             'brand_domains.view',
             'brand_domains.manage',
             'infrastructure.redis.view',
