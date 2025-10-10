@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Models\AuditLog;
+use App\Models\Brand;
+use App\Models\BrandDomain;
 use App\Models\BroadcastConnection;
 use App\Models\CiQualityGate;
 use App\Models\Company;
@@ -28,6 +30,8 @@ use App\Models\TicketWorkflow;
 use App\Models\Team;
 use App\Models\TeamMembership;
 use App\Policies\AuditLogPolicy;
+use App\Policies\BrandDomainPolicy;
+use App\Policies\BrandPolicy;
 use App\Policies\BroadcastConnectionPolicy;
 use App\Policies\CiQualityGatePolicy;
 use App\Policies\CompanyPolicy;
@@ -81,6 +85,8 @@ class AuthServiceProvider extends ServiceProvider
         ObservabilityPipeline::class => ObservabilityPipelinePolicy::class,
         ObservabilityStack::class => ObservabilityStackPolicy::class,
         RedisConfiguration::class => RedisConfigurationPolicy::class,
+        Brand::class => BrandPolicy::class,
+        BrandDomain::class => BrandDomainPolicy::class,
     ];
 
     public function boot(): void

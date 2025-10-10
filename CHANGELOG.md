@@ -6,6 +6,7 @@
 - Observability stack selection registry with tenant/brand scoped models, REST + Filament CRUD, decision matrix support, structured logging/metrics, and OpenAPI/README coverage. (E11-F4-I1)
 - Redis cache and session configuration with tenant/brand scoped models, REST + Filament CRUD, runtime fallback driver, structured logging, and OpenAPI/README coverage. (E11-F3-I2)
 - CI quality gate management with tenant/brand scoped models, REST + Filament CRUD, artisan enforcement command, structured logging, and GitHub Actions quality gates. (E11-F5-I2)
+- Brand configuration and custom domain management with tenant/brand scoped models, REST + Filament CRUD, verification jobs, structured logging/audit trails, and README/OpenAPI updates. (E9-F4-I3)
 - Two-factor authentication enrollment and enforcement with tenant policy configuration, REST endpoints, challenge middleware, Filament credential management, and OpenAPI/README updates. (E10-F1-I2)
 - Tenant/brand-aware permission registry with REST + Filament CRUD, audit logging, artisan command docs, and OpenAPI/README updates. (E2-F3-I1)
 - Tenant/brand-scoped contact and company directory with Filament CRM surfaces, REST APIs, GDPR consent enforcement, structured audit logging, and documentation/OpenAPI coverage. (E2-F1-I2)

@@ -25,6 +25,18 @@ class BrandFactory extends Factory
             'domain' => $slug.'.'.$tenant->domain,
             'theme' => [
                 'primary' => '#2563eb',
+                'secondary' => '#0f172a',
+            ],
+            'primary_logo_path' => 'brands/'.$slug.'/logo-primary.png',
+            'secondary_logo_path' => 'brands/'.$slug.'/logo-secondary.png',
+            'favicon_path' => 'brands/'.$slug.'/favicon.ico',
+            'theme_preview' => [
+                'gradient' => 'linear-gradient(90deg, #2563eb 0%, #38bdf8 100%)',
+                'text_color' => '#0f172a',
+            ],
+            'theme_settings' => [
+                'button_radius' => 8,
+                'font_family' => 'Inter',
             ],
         ];
     }
