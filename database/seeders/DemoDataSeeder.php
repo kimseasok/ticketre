@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Brand;
+use App\Models\BrandAsset;
 use App\Models\BrandDomain;
 use App\Models\CiQualityGate;
 use App\Models\ObservabilityPipeline;
@@ -68,6 +69,38 @@ class DemoDataSeeder extends Seeder
         ]);
 
         app()->instance('currentBrand', $brand);
+
+        BrandAsset::create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'type' => 'primary_logo',
+            'disk' => config('branding.asset_disk'),
+            'path' => 'brands/demo-brand/logo-primary.png',
+            'version' => 1,
+            'content_type' => 'image/png',
+            'size' => 98321,
+            'checksum' => hash('sha256', 'NON-PRODUCTION:demo-brand-logo'),
+            'cache_control' => config('branding.assets.cache_control'),
+            'meta' => [
+                'notes' => 'NON-PRODUCTION demo asset for portal previews.',
+            ],
+        ]);
+
+        BrandAsset::create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'type' => 'favicon',
+            'disk' => config('branding.asset_disk'),
+            'path' => 'brands/demo-brand/favicon.ico',
+            'version' => 1,
+            'content_type' => 'image/x-icon',
+            'size' => 2456,
+            'checksum' => hash('sha256', 'NON-PRODUCTION:demo-brand-favicon'),
+            'cache_control' => config('branding.assets.cache_control'),
+            'meta' => [
+                'notes' => 'NON-PRODUCTION favicon for portal demo.',
+            ],
+        ]);
 
         BrandDomain::factory()->verified()->create([
             'tenant_id' => $tenant->id,

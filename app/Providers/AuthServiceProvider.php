@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\AuditLog;
 use App\Models\Brand;
+use App\Models\BrandAsset;
 use App\Models\BrandDomain;
 use App\Models\BroadcastConnection;
 use App\Models\CiQualityGate;
@@ -35,6 +36,7 @@ use App\Models\Team;
 use App\Models\TeamMembership;
 use App\Policies\AuditLogPolicy;
 use App\Policies\BrandDomainPolicy;
+use App\Policies\BrandAssetPolicy;
 use App\Policies\BrandPolicy;
 use App\Policies\BroadcastConnectionPolicy;
 use App\Policies\CiQualityGatePolicy;
@@ -94,6 +96,7 @@ class AuthServiceProvider extends ServiceProvider
         ObservabilityStack::class => ObservabilityStackPolicy::class,
         RedisConfiguration::class => RedisConfigurationPolicy::class,
         Brand::class => BrandPolicy::class,
+        BrandAsset::class => BrandAssetPolicy::class,
         BrandDomain::class => BrandDomainPolicy::class,
         HorizonDeployment::class => HorizonDeploymentPolicy::class,
         PermissionCoverageReport::class => PermissionCoverageReportPolicy::class,

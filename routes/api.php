@@ -2,8 +2,10 @@
 
 use App\Http\Controllers\Api\AnonymizationPolicyController;
 use App\Http\Controllers\Api\AuditLogController;
+use App\Http\Controllers\Api\BrandAssetController;
 use App\Http\Controllers\Api\BrandController;
 use App\Http\Controllers\Api\BrandDomainController;
+use App\Http\Controllers\Api\BrandThemeController;
 use App\Http\Controllers\Api\BroadcastAuthController;
 use App\Http\Controllers\Api\BroadcastConnectionController;
 use App\Http\Controllers\Api\CiQualityGateController;
@@ -79,6 +81,12 @@ Route::middleware([
         ->only(['index', 'store', 'show']);
 
     Route::apiResource('brands', BrandController::class)->except(['create', 'edit']);
+    Route::get('brands/{brand}/theme', [BrandThemeController::class, 'show'])->name('brands.theme');
+    Route::apiResource('brand-assets', BrandAssetController::class)
+        ->parameters(['brand-assets' => 'brand_asset'])
+        ->except(['create', 'edit']);
+    Route::get('brand-assets/{brand_asset}/deliver', [BrandAssetController::class, 'deliver'])
+        ->name('brand-assets.deliver');
     Route::apiResource('brand-domains', BrandDomainController::class)
         ->parameters(['brand-domains' => 'brand_domain'])
         ->except(['create', 'edit']);
