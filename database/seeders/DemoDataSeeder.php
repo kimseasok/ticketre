@@ -12,6 +12,7 @@ use App\Models\Company;
 use App\Models\Contact;
 use App\Models\ContactAnonymizationRequest;
 use App\Models\KbCategory;
+use App\Models\HorizonDeployment;
 use App\Models\Message;
 use App\Models\RedisConfiguration;
 use App\Models\Tenant;
@@ -169,6 +170,59 @@ class DemoDataSeeder extends Seeder
             'metadata' => [
                 'owner' => 'platform-observability',
                 'environment' => 'demo',
+            ],
+        ]);
+
+        HorizonDeployment::create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'name' => 'Demo Horizon Deployment',
+            'slug' => 'demo-horizon-deployment',
+            'domain' => 'horizon.demo.localhost',
+            'auth_guard' => 'admin',
+            'horizon_connection' => 'sync',
+            'uses_tls' => false,
+            'supervisors' => [
+                [
+                    'name' => 'demo-app-supervisor',
+                    'connection' => 'sync',
+                    'queue' => ['default'],
+                    'balance' => 'auto',
+                    'min_processes' => 1,
+                    'max_processes' => 4,
+                    'max_jobs' => 0,
+                    'max_time' => 0,
+                    'timeout' => 60,
+                    'tries' => 1,
+                ],
+                [
+                    'name' => 'demo-priority-supervisor',
+                    'connection' => 'sync',
+                    'queue' => ['priority', 'emails'],
+                    'balance' => 'simple',
+                    'min_processes' => 1,
+                    'max_processes' => 2,
+                    'max_jobs' => 0,
+                    'max_time' => 0,
+                    'timeout' => 90,
+                    'tries' => 3,
+                ],
+            ],
+            'last_deployed_at' => now()->subDay(),
+            'last_health_status' => 'ok',
+            'last_health_checked_at' => now()->subMinutes(30),
+            'last_health_report' => [
+                'connection' => 'sync',
+                'supervisors' => [
+                    ['name' => 'demo-app-supervisor', 'issues' => []],
+                    ['name' => 'demo-priority-supervisor', 'issues' => []],
+                ],
+                'issues' => [],
+                'duration_ms' => 12.5,
+            ],
+            'metadata' => [
+                'owner' => 'platform-queues',
+                'notes' => 'NON-PRODUCTION Horizon deployment for dashboard demo.',
             ],
         ]);
 

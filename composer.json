@@ -8,6 +8,7 @@
         "filament/filament": "^3.2",
         "guzzlehttp/guzzle": "^7.8",
         "laravel/framework": "^11.5",
+        "laravel/horizon": "^5.35",
         "laravel/sail": "^1.30",
         "laravel/sanctum": "^4.0",
         "laravel/scout": "^10.6",

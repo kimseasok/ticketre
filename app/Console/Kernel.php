@@ -15,6 +15,11 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->onOneServer()
             ->when(fn () => config('scout.driver') === 'meilisearch');
+        $schedule->command('horizon:snapshot')->everyFiveMinutes();
+        $schedule->command('horizon:health-check')
+            ->everyFiveMinutes()
+            ->withoutOverlapping()
+            ->onOneServer();
     }
 
     protected function commands(): void

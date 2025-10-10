@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 ### Added
+- Horizon dashboard deployment infrastructure with tenant/brand scoped models, REST + Filament CRUD, health monitoring, audit logging, and OpenAPI/README updates. (E11-F2-I2)
 - Centralized observability pipeline management with tenant/brand scoped models, REST + Filament CRUD, Prometheus metrics export, structured logging, and documentation updates. (E11-F4-I2)
 - Observability stack selection registry with tenant/brand scoped models, REST + Filament CRUD, decision matrix support, structured logging/metrics, and OpenAPI/README coverage. (E11-F4-I1)
 - Redis cache and session configuration with tenant/brand scoped models, REST + Filament CRUD, runtime fallback driver, structured logging, and OpenAPI/README coverage. (E11-F3-I2)

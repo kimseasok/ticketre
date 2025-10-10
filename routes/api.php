@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\BrandDomainController;
 use App\Http\Controllers\Api\BroadcastAuthController;
 use App\Http\Controllers\Api\BroadcastConnectionController;
 use App\Http\Controllers\Api\CiQualityGateController;
+use App\Http\Controllers\Api\HorizonDeploymentController;
 use App\Http\Controllers\Api\ContactAnonymizationRequestController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\HealthcheckController;
@@ -104,6 +105,9 @@ Route::middleware([
     Route::apiResource('ticket-relationships', TicketRelationshipController::class)->except(['create', 'edit']);
     Route::apiResource('ticket-workflows', TicketWorkflowController::class)->except(['create', 'edit']);
     Route::apiResource('ci-quality-gates', CiQualityGateController::class)->except(['create', 'edit']);
+    Route::get('horizon-deployments/health', [HorizonDeploymentController::class, 'health'])->name('horizon-deployments.health');
+    Route::get('horizon-deployments/{horizon_deployment}/health', [HorizonDeploymentController::class, 'showHealth'])->name('horizon-deployments.show-health');
+    Route::apiResource('horizon-deployments', HorizonDeploymentController::class)->except(['create', 'edit']);
     Route::get('observability-pipelines/metrics', ObservabilityMetricsController::class)
         ->name('observability-pipelines.metrics');
     Route::apiResource('observability-pipelines', ObservabilityPipelineController::class)->except(['create', 'edit']);
