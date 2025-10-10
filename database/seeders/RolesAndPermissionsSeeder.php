@@ -57,6 +57,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'teams.manage',
             'security.2fa.manage',
             'security.2fa.review',
+            'security.permission_coverage.view',
+            'security.permission_coverage.manage',
         ];
 
         foreach ($permissions as $permission) {

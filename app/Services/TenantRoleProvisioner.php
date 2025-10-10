@@ -101,6 +101,8 @@ class TenantRoleProvisioner
             'teams.manage',
             'security.2fa.manage',
             'security.2fa.review',
+            'security.permission_coverage.view',
+            'security.permission_coverage.manage',
         ];
 
         return [
@@ -134,6 +136,7 @@ class TenantRoleProvisioner
                     'broadcast_connections.view',
                     'teams.view',
                     'security.2fa.manage',
+                    'security.permission_coverage.view',
                     'ci.quality_gates.view',
                     'observability.pipelines.view',
                     'observability.stacks.view',
@@ -162,6 +165,7 @@ class TenantRoleProvisioner
                     'observability.stacks.view',
                     'brands.view',
                     'brand_domains.view',
+                    'security.permission_coverage.view',
                 ],
                 'is_system' => true,
             ],
