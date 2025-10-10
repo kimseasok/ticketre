@@ -105,6 +105,8 @@ class TenantRoleProvisioner
             'security.2fa.review',
             'security.permission_coverage.view',
             'security.permission_coverage.manage',
+            'security.rbac_gaps.view',
+            'security.rbac_gaps.manage',
         ];
 
         return [
@@ -145,6 +147,7 @@ class TenantRoleProvisioner
                     'observability.stacks.view',
                     'brands.view',
                     'brand_domains.view',
+                    'security.rbac_gaps.view',
                 ],
                 'is_system' => true,
             ],
@@ -170,6 +173,7 @@ class TenantRoleProvisioner
                     'brands.view',
                     'brand_domains.view',
                     'security.permission_coverage.view',
+                    'security.rbac_gaps.view',
                 ],
                 'is_system' => true,
             ],

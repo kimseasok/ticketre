@@ -5041,6 +5041,231 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/rbac-gap-analyses:
+    get:
+      summary: List RBAC enforcement gap analyses
+      tags: [RBAC Gap Analyses]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: status
+          in: query
+          description: Filter by analysis status (`draft`, `in_progress`, or `completed`).
+          schema:
+            type: string
+            enum: [draft, in_progress, completed]
+        - name: brand_id
+          in: query
+          description: Filter by brand identifier (use `unscoped` for tenant-wide analyses).
+          schema:
+            type: string
+        - name: owner_team
+          in: query
+          description: Filter by owning team identifier.
+          schema:
+            type: string
+        - name: reference_id
+          in: query
+          description: Filter by external reference identifier.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Collection of RBAC enforcement gap analyses
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RbacGapAnalysisResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Create RBAC enforcement gap analysis
+      tags: [RBAC Gap Analyses]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RbacGapAnalysisRequest'
+      responses:
+        '201':
+          description: Created RBAC enforcement gap analysis
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/RbacGapAnalysisResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/rbac-gap-analyses/{rbacGapAnalysis}:
+    get:
+      summary: Show RBAC enforcement gap analysis
+      tags: [RBAC Gap Analyses]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: rbacGapAnalysis
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: RBAC enforcement gap analysis details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/RbacGapAnalysisResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      summary: Update RBAC enforcement gap analysis
+      tags: [RBAC Gap Analyses]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: rbacGapAnalysis
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RbacGapAnalysisUpdateRequest'
+      responses:
+        '200':
+          description: Updated RBAC enforcement gap analysis
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/RbacGapAnalysisResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete RBAC enforcement gap analysis
+      tags: [RBAC Gap Analyses]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: rbacGapAnalysis
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: RBAC enforcement gap analysis deleted
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /api/v1/permissions:
     get:
       summary: List permissions
@@ -6571,6 +6796,259 @@ components:
             updated_at:
               type: string
               format: date-time
+        relationships:
+          type: object
+          properties:
+            tenant:
+              type: object
+              nullable: true
+            brand:
+              type: object
+              nullable: true
+        links:
+          type: object
+          properties:
+            self:
+              type: string
+    RbacGapAnalysisRequest:
+      type: object
+      required: [title, status, analysis_date, audit_matrix, findings, review_minutes]
+      properties:
+        title:
+          type: string
+          maxLength: 160
+        slug:
+          type: string
+          maxLength: 160
+          nullable: true
+        status:
+          type: string
+          enum: [draft, in_progress, completed]
+        analysis_date:
+          type: string
+          format: date-time
+        audit_matrix:
+          type: array
+          items:
+            type: object
+            required: [type, identifier, required_permissions]
+            properties:
+              type:
+                type: string
+                enum: [route, command, queue]
+              identifier:
+                type: string
+                maxLength: 255
+              required_permissions:
+                type: array
+                items:
+                  type: string
+              roles:
+                type: array
+                nullable: true
+                items:
+                  type: string
+              notes:
+                type: string
+                nullable: true
+        findings:
+          type: array
+          items:
+            type: object
+            required: [priority, summary]
+            properties:
+              priority:
+                type: string
+                enum: [high, medium, low]
+              summary:
+                type: string
+                maxLength: 255
+              owner:
+                type: string
+                maxLength: 120
+                nullable: true
+              eta_days:
+                type: integer
+                minimum: 0
+                maximum: 365
+                nullable: true
+              status:
+                type: string
+                maxLength: 64
+                nullable: true
+        remediation_plan:
+          type: object
+          nullable: true
+          additionalProperties: {}
+        review_minutes:
+          type: string
+          maxLength: 4000
+        notes:
+          type: string
+          maxLength: 2000
+          nullable: true
+        owner_team:
+          type: string
+          maxLength: 120
+          nullable: true
+        reference_id:
+          type: string
+          maxLength: 64
+          nullable: true
+        brand_id:
+          type: integer
+          nullable: true
+    RbacGapAnalysisUpdateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          maxLength: 160
+        slug:
+          type: string
+          maxLength: 160
+          nullable: true
+        status:
+          type: string
+          enum: [draft, in_progress, completed]
+        analysis_date:
+          type: string
+          format: date-time
+        audit_matrix:
+          type: array
+          items:
+            type: object
+            required: [type, identifier, required_permissions]
+            properties:
+              type:
+                type: string
+                enum: [route, command, queue]
+              identifier:
+                type: string
+                maxLength: 255
+              required_permissions:
+                type: array
+                items:
+                  type: string
+              roles:
+                type: array
+                nullable: true
+                items:
+                  type: string
+              notes:
+                type: string
+                nullable: true
+        findings:
+          type: array
+          items:
+            type: object
+            required: [priority, summary]
+            properties:
+              priority:
+                type: string
+                enum: [high, medium, low]
+              summary:
+                type: string
+                maxLength: 255
+              owner:
+                type: string
+                maxLength: 120
+                nullable: true
+              eta_days:
+                type: integer
+                minimum: 0
+                maximum: 365
+                nullable: true
+              status:
+                type: string
+                maxLength: 64
+                nullable: true
+        remediation_plan:
+          type: object
+          nullable: true
+          additionalProperties: {}
+        review_minutes:
+          type: string
+          maxLength: 4000
+          nullable: true
+        notes:
+          type: string
+          maxLength: 2000
+          nullable: true
+        owner_team:
+          type: string
+          maxLength: 120
+          nullable: true
+        reference_id:
+          type: string
+          maxLength: 64
+          nullable: true
+        brand_id:
+          type: integer
+          nullable: true
+    RbacGapAnalysisResource:
+      type: object
+      required: [type, id, attributes]
+      properties:
+        type:
+          type: string
+          enum: [rbac-gap-analyses]
+        id:
+          type: string
+        attributes:
+          type: object
+          required: [title, status, analysis_date, audit_matrix, findings, review_minutes, tenant_id]
+          properties:
+            title:
+              type: string
+            slug:
+              type: string
+              nullable: true
+            status:
+              type: string
+            analysis_date:
+              type: string
+              format: date-time
+            audit_matrix:
+              type: array
+              items:
+                type: object
+            findings:
+              type: array
+              items:
+                type: object
+            remediation_plan:
+              type: object
+              nullable: true
+              additionalProperties: {}
+            review_minutes:
+              type: string
+            notes:
+              type: string
+              nullable: true
+            owner_team:
+              type: string
+              nullable: true
+            reference_id:
+              type: string
+              nullable: true
+            tenant_id:
+              type: integer
+            brand_id:
+              type: integer
+              nullable: true
+            created_at:
+              type: string
+              format: date-time
+              nullable: true
+            updated_at:
+              type: string
+              format: date-time
+              nullable: true
+            deleted_at:
+              type: string
+              format: date-time
+              nullable: true
         relationships:
           type: object
           properties:
