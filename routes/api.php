@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Api\AnonymizationPolicyController;
 use App\Http\Controllers\Api\AuditLogController;
+use App\Http\Controllers\Api\BrandController;
+use App\Http\Controllers\Api\BrandDomainController;
 use App\Http\Controllers\Api\BroadcastAuthController;
 use App\Http\Controllers\Api\BroadcastConnectionController;
 use App\Http\Controllers\Api\CiQualityGateController;
@@ -56,7 +58,7 @@ Route::middleware([
     'ability:platform.access',
 ])->prefix('v1')->name('api.')->group(function () {
     Route::scopeBindings()->group(function () {
-        Route::apiResource('tickets', TicketController::class)->only(['index', 'store', 'show', 'update']);
+    Route::apiResource('tickets', TicketController::class)->only(['index', 'store', 'show', 'update']);
 
         Route::get('tickets/{ticket}/events', [TicketController::class, 'events'])->name('tickets.events.index');
         Route::post('tickets/{ticket}/events', [TicketController::class, 'storeEvent'])->name('tickets.events.store');
@@ -71,6 +73,13 @@ Route::middleware([
 
     Route::apiResource('contact-anonymization-requests', ContactAnonymizationRequestController::class)
         ->only(['index', 'store', 'show']);
+
+    Route::apiResource('brands', BrandController::class)->except(['create', 'edit']);
+    Route::apiResource('brand-domains', BrandDomainController::class)
+        ->parameters(['brand-domains' => 'brand_domain'])
+        ->except(['create', 'edit']);
+    Route::post('brand-domains/{brand_domain}/verify', [BrandDomainController::class, 'verify'])
+        ->name('brand-domains.verify');
 
     Route::apiResource('companies', CompanyController::class)->except(['create', 'edit']);
     Route::apiResource('contacts', ContactController::class)->except(['create', 'edit']);

@@ -4228,6 +4228,317 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /api/v1/brands:
+    get:
+      summary: List brands
+      tags: [Brands]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+      responses:
+        '200':
+          description: Paginated brands
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Brand'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Create brand
+      tags: [Brands]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BrandWrite'
+      responses:
+        '201':
+          description: Brand created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Brand'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/brands/{brand}:
+    get:
+      summary: Show brand
+      tags: [Brands]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - $ref: '#/components/parameters/BrandId'
+      responses:
+        '200':
+          description: Brand detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Brand'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      summary: Update brand
+      tags: [Brands]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - $ref: '#/components/parameters/BrandId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BrandWrite'
+      responses:
+        '200':
+          description: Updated brand
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Brand'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete brand
+      tags: [Brands]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - $ref: '#/components/parameters/BrandId'
+      responses:
+        '204':
+          description: Deleted
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/brand-domains:
+    get:
+      summary: List brand domains
+      tags: [Brand Domains]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: brand_id
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Collection of brand domains
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BrandDomain'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Create brand domain
+      tags: [Brand Domains]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BrandDomainWrite'
+      responses:
+        '201':
+          description: Domain created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/BrandDomain'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/brand-domains/{brandDomain}:
+    get:
+      summary: Show brand domain
+      tags: [Brand Domains]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - $ref: '#/components/parameters/BrandDomainId'
+      responses:
+        '200':
+          description: Domain detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/BrandDomain'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      summary: Update brand domain
+      tags: [Brand Domains]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - $ref: '#/components/parameters/BrandDomainId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BrandDomainWrite'
+      responses:
+        '200':
+          description: Updated domain
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/BrandDomain'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete brand domain
+      tags: [Brand Domains]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - $ref: '#/components/parameters/BrandDomainId'
+      responses:
+        '204':
+          description: Deleted
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/brand-domains/{brandDomain}/verify:
+    post:
+      summary: Queue domain verification
+      tags: [Brand Domains]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - $ref: '#/components/parameters/BrandDomainId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                correlation_id:
+                  type: string
+                  maxLength: 64
+      responses:
+        '202':
+          description: Verification queued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        example: queued
+                      domain:
+                        type: string
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 components:
   securitySchemes:
     cookieAuth:
@@ -4247,6 +4558,18 @@ components:
       required: false
       schema:
         type: string
+    BrandId:
+      name: brand
+      in: path
+      required: true
+      schema:
+        type: integer
+    BrandDomainId:
+      name: brandDomain
+      in: path
+      required: true
+      schema:
+        type: integer
     TicketId:
       name: ticket
       in: path
@@ -4368,6 +4691,152 @@ components:
         updated_at:
           type: string
           format: date-time
+    Brand:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [brands]
+        id:
+          type: string
+        attributes:
+          type: object
+          properties:
+            name:
+              type: string
+            slug:
+              type: string
+            domain:
+              type: string
+              nullable: true
+            domain_digest:
+              type: string
+              nullable: true
+            theme:
+              type: object
+              additionalProperties:
+                type: string
+            theme_preview:
+              type: object
+              properties:
+                gradient:
+                  type: string
+                text_color:
+                  type: string
+            theme_settings:
+              type: object
+              properties:
+                button_radius:
+                  type: integer
+                font_family:
+                  type: string
+            primary_logo_path:
+              type: string
+              nullable: true
+            secondary_logo_path:
+              type: string
+              nullable: true
+            favicon_path:
+              type: string
+              nullable: true
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+        relationships:
+          type: object
+          properties:
+            domains:
+              type: object
+            tenant:
+              type: object
+    BrandWrite:
+      type: object
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+        domain:
+          type: string
+        theme:
+          type: object
+          additionalProperties:
+            type: string
+        theme_settings:
+          type: object
+          additionalProperties:
+            type: string
+        primary_logo_path:
+          type: string
+        secondary_logo_path:
+          type: string
+        favicon_path:
+          type: string
+    BrandDomain:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [brand-domains]
+        id:
+          type: string
+        attributes:
+          type: object
+          properties:
+            domain:
+              type: string
+            domain_digest:
+              type: string
+            status:
+              type: string
+            ssl_status:
+              type: string
+              nullable: true
+            dns_checked_at:
+              type: string
+              format: date-time
+              nullable: true
+            ssl_checked_at:
+              type: string
+              format: date-time
+              nullable: true
+            verified_at:
+              type: string
+              format: date-time
+              nullable: true
+            verification_error:
+              type: string
+              nullable: true
+            ssl_error:
+              type: string
+              nullable: true
+            dns_records:
+              type: array
+              items:
+                type: object
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+        relationships:
+          type: object
+          properties:
+            brand:
+              type: object
+    BrandDomainWrite:
+      type: object
+      properties:
+        brand_id:
+          type: integer
+        domain:
+          type: string
+        verification_token:
+          type: string
     BroadcastConnectionResource:
       type: object
       properties:

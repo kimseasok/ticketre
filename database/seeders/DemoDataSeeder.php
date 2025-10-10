@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Brand;
+use App\Models\BrandDomain;
 use App\Models\CiQualityGate;
 use App\Models\ObservabilityPipeline;
 use App\Models\ObservabilityStack;
@@ -63,6 +64,13 @@ class DemoDataSeeder extends Seeder
         ]);
 
         app()->instance('currentBrand', $brand);
+
+        BrandDomain::factory()->verified()->create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'domain' => 'support.demo.localhost',
+            'verification_token' => 'demo-token',
+        ]);
 
         CiQualityGate::create([
             'tenant_id' => $tenant->id,
