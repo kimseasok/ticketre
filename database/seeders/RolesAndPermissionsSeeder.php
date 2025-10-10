@@ -17,6 +17,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'portal.submit',
             'observability.pipelines.view',
             'observability.pipelines.manage',
+            'observability.stacks.view',
+            'observability.stacks.manage',
             'ci.quality_gates.view',
             'ci.quality_gates.manage',
             'tickets.view',

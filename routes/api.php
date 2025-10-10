@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\KbCategoryController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\ObservabilityMetricsController;
 use App\Http\Controllers\Api\ObservabilityPipelineController;
+use App\Http\Controllers\Api\ObservabilityStackController;
 use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\PortalTicketSubmissionController;
@@ -96,6 +97,7 @@ Route::middleware([
     Route::get('observability-pipelines/metrics', ObservabilityMetricsController::class)
         ->name('observability-pipelines.metrics');
     Route::apiResource('observability-pipelines', ObservabilityPipelineController::class)->except(['create', 'edit']);
+    Route::apiResource('observability-stacks', ObservabilityStackController::class)->except(['create', 'edit']);
     Route::apiResource('teams', TeamController::class)->except(['create', 'edit']);
     Route::apiResource('teams.memberships', TeamMembershipController::class)
         ->parameters(['memberships' => 'teamMembership'])

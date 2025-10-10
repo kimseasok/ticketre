@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Brand;
 use App\Models\CiQualityGate;
 use App\Models\ObservabilityPipeline;
+use App\Models\ObservabilityStack;
 use App\Models\BroadcastConnection;
 use App\Models\Company;
 use App\Models\Contact;
@@ -96,6 +97,42 @@ class DemoDataSeeder extends Seeder
             'metrics_scrape_interval_seconds' => null,
             'metadata' => [
                 'description' => 'NON-PRODUCTION pipeline for demo observability flows.',
+            ],
+        ]);
+
+        ObservabilityStack::create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'name' => 'Demo Observability Stack',
+            'slug' => 'demo-observability-stack',
+            'status' => 'selected',
+            'logs_tool' => 'loki-grafana',
+            'metrics_tool' => 'prometheus',
+            'alerts_tool' => 'grafana-alerting',
+            'log_retention_days' => 30,
+            'metric_retention_days' => 30,
+            'trace_retention_days' => 14,
+            'estimated_monthly_cost' => 650.00,
+            'trace_sampling_strategy' => 'probabilistic 20%',
+            'decision_matrix' => [
+                [
+                    'option' => 'ELK',
+                    'monthly_cost' => 1100.00,
+                    'scalability' => 'Requires dedicated data nodes and snapshot automation.',
+                    'notes' => 'Higher cost but best for log analytics depth.',
+                ],
+                [
+                    'option' => 'Loki/Grafana',
+                    'monthly_cost' => 650.00,
+                    'scalability' => 'Object storage backed, horizontally scalable queriers.',
+                    'notes' => 'Selected for demo due to cost and multi-tenant isolation.',
+                ],
+            ],
+            'security_notes' => 'NON-PRODUCTION seed illustrating TLS ingestion and RBAC enforcement.',
+            'compliance_notes' => 'Retention aligned with GDPR data minimization guidance.',
+            'metadata' => [
+                'owner' => 'platform-observability',
+                'environment' => 'demo',
             ],
         ]);
 
