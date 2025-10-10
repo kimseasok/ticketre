@@ -21,6 +21,13 @@
 - `make down` to stop
 - Copy `.env.docker.example` to `.env.docker` to populate container-specific secrets including the Meilisearch master key and health-check configuration.
 
+## Multi-stage Container Pipeline (E11-F1-I2)
+
+- **Stages** – `Dockerfile` now defines three primary stages: `dependencies` (installs PHP extensions plus Composer/Node dependencies), `tester` (copies `.env.testing`, runs the Laravel suite via `php artisan test --no-interaction --without-tty` inside the container), and `runtime` (supervisor-driven production image without development dependencies).
+- **Local validation** – Run `docker build --target dependencies --build-arg PHP_VERSION=8.3 --build-arg NODE_VERSION=20 .` to cache the dependency layer. Execute `docker build --target tester --build-arg PHP_VERSION=8.3 --build-arg NODE_VERSION=20 .` to execute the Laravel tests inside the container; the build fails if any test does. Build the deployable image with `docker build --target runtime --build-arg PHP_VERSION=8.3 --build-arg NODE_VERSION=20 -t ticketre:runtime .` and start it via `docker run --rm -p 8080:8000 ticketre:runtime`.
+- **CI artifact + benchmarks** – The `container` job in `.github/workflows/ci.yml` reuses the same three targets, writes per-stage size benchmarks to the workflow summary, and uploads a gzipped `docker save` artifact (`ticketre-runtime-<sha>.tar.gz`) so operators can pull the exact runtime image produced by CI.
+- **Debugging** – To inspect the testing environment interactively, build the `tester` stage with `--load` and run `docker run -it ticketre-test:<sha> sh`. All logs are emitted as JSON to stderr so they integrate cleanly with the platform log pipeline.
+
 ## Meilisearch Infrastructure
 
 - Configuration defaults live in `config/meilisearch.php` with environment keys documented in `.env.example`. Health checks and backup paths are safe to tweak per-tenant.
