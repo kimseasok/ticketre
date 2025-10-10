@@ -1330,6 +1330,220 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/redis-configurations:
+    get:
+      summary: List redis configurations
+      tags: [Infrastructure]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: brand_id
+          in: query
+          description: Optional brand filter. Use `unscoped` to include tenant-wide records.
+          schema:
+            type: string
+        - name: active
+          in: query
+          description: Optional boolean filter to limit results to active or inactive records.
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Collection of redis configurations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RedisConfigurationResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Create redis configuration
+      tags: [Infrastructure]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RedisConfigurationRequest'
+      responses:
+        '201':
+          description: Created redis configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/RedisConfigurationResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/redis-configurations/{redisConfiguration}:
+    get:
+      summary: Show redis configuration
+      tags: [Infrastructure]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: redisConfiguration
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Redis configuration details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/RedisConfigurationResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      summary: Update redis configuration
+      tags: [Infrastructure]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: redisConfiguration
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RedisConfigurationRequest'
+      responses:
+        '200':
+          description: Updated redis configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/RedisConfigurationResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete redis configuration
+      tags: [Infrastructure]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: redisConfiguration
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Redis configuration deleted
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /api/v1/ci-quality-gates:
     get:
       summary: List CI quality gates
@@ -4985,6 +5199,147 @@ components:
           additionalProperties: {}
         brand_id:
           type: integer
+          nullable: true
+    RedisConfigurationResource:
+      type: object
+      required: [type, id, attributes]
+      properties:
+        type:
+          type: string
+          enum: [redis-configurations]
+        id:
+          type: string
+        attributes:
+          type: object
+          required:
+            [tenant_id, brand_id, name, slug, cache_connection_name, cache_host_digest, cache_port, cache_database, session_connection_name, session_host_digest, session_port, session_database, session_lifetime_minutes, use_for_cache, use_for_sessions, fallback_store, is_active, created_at, updated_at]
+          properties:
+            tenant_id:
+              type: integer
+            brand_id:
+              type: integer
+              nullable: true
+            name:
+              type: string
+            slug:
+              type: string
+            cache_connection_name:
+              type: string
+            cache_host_digest:
+              type: string
+            cache_port:
+              type: integer
+            cache_database:
+              type: integer
+            cache_tls:
+              type: boolean
+            cache_prefix:
+              type: string
+              nullable: true
+            session_connection_name:
+              type: string
+            session_host_digest:
+              type: string
+            session_port:
+              type: integer
+            session_database:
+              type: integer
+            session_tls:
+              type: boolean
+            session_lifetime_minutes:
+              type: integer
+            use_for_cache:
+              type: boolean
+            use_for_sessions:
+              type: boolean
+            is_active:
+              type: boolean
+            fallback_store:
+              type: string
+              enum: [file, array]
+            options:
+              type: object
+              additionalProperties: {}
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+        relationships:
+          type: object
+          additionalProperties: {}
+    RedisConfigurationRequest:
+      type: object
+      required: [name, cache_host, cache_port, cache_database, session_host, session_port, session_database, session_lifetime_minutes]
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+          nullable: true
+        brand_id:
+          type: integer
+          nullable: true
+        cache_connection_name:
+          type: string
+          nullable: true
+        cache_host:
+          type: string
+        cache_port:
+          type: integer
+          minimum: 1
+          maximum: 65535
+        cache_database:
+          type: integer
+          minimum: 0
+          maximum: 16
+        cache_tls:
+          type: boolean
+        cache_prefix:
+          type: string
+          nullable: true
+        cache_auth_secret:
+          type: string
+          nullable: true
+        session_connection_name:
+          type: string
+          nullable: true
+        session_host:
+          type: string
+        session_port:
+          type: integer
+          minimum: 1
+          maximum: 65535
+        session_database:
+          type: integer
+          minimum: 0
+          maximum: 16
+        session_tls:
+          type: boolean
+        session_lifetime_minutes:
+          type: integer
+          minimum: 1
+          maximum: 1440
+        session_auth_secret:
+          type: string
+          nullable: true
+        use_for_cache:
+          type: boolean
+        use_for_sessions:
+          type: boolean
+        is_active:
+          type: boolean
+        fallback_store:
+          type: string
+          enum: [file, array]
+          nullable: true
+        options:
+          type: object
+          nullable: true
+          additionalProperties: {}
+        correlation_id:
+          type: string
           nullable: true
         correlation_id:
           type: string

@@ -12,6 +12,7 @@ use App\Models\Contact;
 use App\Models\ContactAnonymizationRequest;
 use App\Models\KbCategory;
 use App\Models\Message;
+use App\Models\RedisConfiguration;
 use App\Models\Tenant;
 use App\Models\Team;
 use App\Models\TeamMembership;
@@ -97,6 +98,33 @@ class DemoDataSeeder extends Seeder
             'metrics_scrape_interval_seconds' => null,
             'metadata' => [
                 'description' => 'NON-PRODUCTION pipeline for demo observability flows.',
+            ],
+        ]);
+
+        RedisConfiguration::create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'name' => 'Demo Redis Cluster',
+            'slug' => 'demo-redis-cluster',
+            'cache_connection_name' => 'cache',
+            'cache_host' => 'redis',
+            'cache_port' => 6379,
+            'cache_database' => 1,
+            'cache_tls' => false,
+            'cache_prefix' => 'demo_tenant_cache',
+            'session_connection_name' => 'default',
+            'session_host' => 'redis',
+            'session_port' => 6379,
+            'session_database' => 0,
+            'session_tls' => false,
+            'session_lifetime_minutes' => 120,
+            'use_for_cache' => true,
+            'use_for_sessions' => true,
+            'fallback_store' => 'file',
+            'cache_auth_secret' => encrypt('NON-PRODUCTION:cache-secret'),
+            'session_auth_secret' => encrypt('NON-PRODUCTION:session-secret'),
+            'options' => [
+                'cluster' => 'redis',
             ],
         ]);
 

@@ -58,6 +58,14 @@
 - **Filament UI** – `/admin/observability-stacks` provides scoped CRUD with status badges, tooling selectors, retention inputs, and a collapsible decision matrix repeater. Helper text flags the fields as NON-PRODUCTION guidance, and operators can attach arbitrary metadata tags for automation. Brand filters mirror pipeline behaviour, ensuring tenants cannot inspect each other’s selections.
 - **Demo data** – `DemoDataSeeder` provisions a NON-PRODUCTION “Demo Observability Stack” comparing ELK versus Loki/Grafana with prefilled cost/scalability notes so local environments immediately demonstrate the evaluation flow alongside the existing logging pipeline.
 
+## Redis Cache & Session Configuration
+
+- **API** – `GET /api/v1/redis-configurations` lists the active tenant’s clusters (permission: `infrastructure.redis.view`). Administrators can manage records via `POST /api/v1/redis-configurations`, `GET/PATCH/DELETE /api/v1/redis-configurations/{id}` with `infrastructure.redis.manage`. Payloads capture cache/session hosts, database indexes, TLS toggles, fallback strategy, and optional driver options. Secrets are encrypted at rest and never returned in responses; host fields are redacted via SHA-256 digests.
+- **Runtime fallback** – `config/cache.php` now defaults to a `redis-fallback` driver. At runtime the `RedisRuntimeConfigurator` applies the most specific active configuration (brand first, then tenant) and transparently falls back to the configured store (`file` by default) whenever Redis is unavailable. The fallback store emits structured JSON logs (`redis.fallback.engaged`) with correlation IDs, hashed host digests, and tenant/brand context.
+- **Session hardening** – Sessions run through the same `redis-fallback` store with per-record TTL control. Configuration changes flush the cache driver to avoid stale connections, propagate new secrets, and update the session lifetime immediately. Validation prevents cross-tenant brand leakage and enforces sane TTL/port ranges.
+- **Filament UI** – `/admin/redis-configurations` exposes scoped CRUD with brand filters, helper text marking NON-PRODUCTION guidance, revealable secret inputs, and fallback metadata controls. Table filters surface active/unscoped clusters, and every mutation records audit log entries plus performance metrics with correlation IDs.
+- **Demo data** – `DemoDataSeeder` provisions a NON-PRODUCTION “Demo Redis Cluster” wired to the Docker redis service so local environments demonstrate cache/session switching out of the box. The sample secrets are safe placeholders and flagged as NON-PRODUCTION in documentation.
+
 ## Ticket Message Visibility API
 
 Extend ticket conversations with explicit visibility controls:

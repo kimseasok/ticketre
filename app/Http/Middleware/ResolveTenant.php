@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Tenant;
+use App\Services\RedisRuntimeConfigurator;
 use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -44,6 +45,8 @@ class ResolveTenant
         if (method_exists($permissionRegistrar, 'clearPermissionsCollection')) {
             $permissionRegistrar->clearPermissionsCollection();
         }
+
+        app(RedisRuntimeConfigurator::class)->apply($tenant, $brand, $request->headers->get('X-Correlation-ID'));
 
         return $next($request);
     }
