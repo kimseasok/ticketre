@@ -251,6 +251,48 @@ it('E10-F2-I1 #422 enforces tenant isolation for RBAC analyses', function () {
     $response->assertJsonMissing(['title' => 'Tenant B Analysis']);
 });
 
+it('E10-F2-I1 #422 prevents RBAC gap analysis listings from leaking other brands when brand headers are omitted', function () {
+    $tenant = Tenant::factory()->create();
+    $brandA = Brand::factory()->create(['tenant_id' => $tenant->id]);
+    $brandB = Brand::factory()->create(['tenant_id' => $tenant->id]);
+
+    app()->instance('currentTenant', $tenant);
+    app(TenantRoleProvisioner::class)->syncSystemRoles($tenant);
+
+    $admin = User::factory()->create(['tenant_id' => $tenant->id, 'brand_id' => $brandA->id]);
+    $admin->assignRole('Admin');
+
+    actingAs($admin);
+
+    TwoFactorCredential::factory()->confirmed()->create([
+        'tenant_id' => $tenant->id,
+        'brand_id' => $brandA->id,
+        'user_id' => $admin->id,
+    ]);
+    rbacVerifyTwoFactor($admin);
+
+    $analysisA = RbacEnforcementGapAnalysis::factory()->create([
+        'tenant_id' => $tenant->id,
+        'brand_id' => $brandA->id,
+        'title' => 'Brand A Analysis',
+    ]);
+
+    $analysisB = RbacEnforcementGapAnalysis::factory()->create([
+        'tenant_id' => $tenant->id,
+        'brand_id' => $brandB->id,
+        'title' => 'Brand B Analysis',
+    ]);
+
+    $response = getJson('/api/v1/rbac-gap-analyses', rbacHeaders($tenant));
+
+    $response->assertOk();
+
+    $titles = collect($response->json('data'))->pluck('attributes.title');
+
+    expect($titles)->toContain($analysisA->title);
+    expect($titles)->not->toContain($analysisB->title);
+});
+
 it('E10-F2-I1 #422 enforces policy expectations for admin, agent, and viewer roles', function () {
     $tenant = Tenant::factory()->create();
     $brand = Brand::factory()->create(['tenant_id' => $tenant->id]);

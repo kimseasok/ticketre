@@ -25,17 +25,27 @@ class RbacEnforcementGapAnalysisController extends Controller
     {
         $this->authorizeAbility($request, 'viewAny', RbacEnforcementGapAnalysis::class);
 
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+
         $query = RbacEnforcementGapAnalysis::query()
             ->with(['tenant', 'brand'])
+            ->where('tenant_id', $user->tenant_id)
             ->when($request->query('status'), function ($builder, $status) {
                 $builder->where('status', str($status)->lower()->slug('_')->value());
             })
-            ->when($request->query('brand_id'), function ($builder, $brandId) {
+            ->when($request->query('brand_id'), function ($builder, $brandId) use ($user) {
                 if ($brandId === 'unscoped') {
                     $builder->whereNull('brand_id');
-                } else {
-                    $builder->where('brand_id', $brandId);
+
+                    return;
                 }
+
+                if ($user->brand_id !== null && (int) $brandId !== (int) $user->brand_id) {
+                    return;
+                }
+
+                $builder->where('brand_id', $brandId);
             })
             ->when($request->query('owner_team'), function ($builder, $ownerTeam) {
                 $builder->where('owner_team', str($ownerTeam)->limit(120, '')->value());
@@ -44,6 +54,15 @@ class RbacEnforcementGapAnalysisController extends Controller
                 $builder->where('reference_id', str($referenceId)->limit(64, '')->value());
             })
             ->orderByDesc('analysis_date');
+
+        if ($user->brand_id !== null) {
+            $query->where(function ($builder) use ($user) {
+                $builder->whereNull('brand_id')
+                    ->orWhere('brand_id', $user->brand_id);
+            });
+        } elseif (! $user->hasRole('Admin')) {
+            $query->whereNull('brand_id');
+        }
 
         return RbacEnforcementGapAnalysisResource::collection($query->paginate());
     }
