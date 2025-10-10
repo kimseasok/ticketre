@@ -44,6 +44,7 @@ return [
         App\Providers\BroadcastServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         App\Providers\FilamentServiceProvider::class,
+        App\Providers\HorizonServiceProvider::class,
     ],
     'aliases' => [
         'App' => Illuminate\Support\Facades\App::class,

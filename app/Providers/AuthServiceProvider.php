@@ -10,6 +10,7 @@ use App\Models\CiQualityGate;
 use App\Models\Company;
 use App\Models\Contact;
 use App\Models\ContactAnonymizationRequest;
+use App\Models\HorizonDeployment;
 use App\Models\KbArticle;
 use App\Models\KbCategory;
 use App\Models\Message;
@@ -37,6 +38,7 @@ use App\Policies\CiQualityGatePolicy;
 use App\Policies\CompanyPolicy;
 use App\Policies\ContactAnonymizationRequestPolicy;
 use App\Policies\ContactPolicy;
+use App\Policies\HorizonDeploymentPolicy;
 use App\Policies\KbArticlePolicy;
 use App\Policies\KbCategoryPolicy;
 use App\Policies\MessagePolicy;
@@ -87,6 +89,7 @@ class AuthServiceProvider extends ServiceProvider
         RedisConfiguration::class => RedisConfigurationPolicy::class,
         Brand::class => BrandPolicy::class,
         BrandDomain::class => BrandDomainPolicy::class,
+        HorizonDeployment::class => HorizonDeploymentPolicy::class,
     ];
 
     public function boot(): void

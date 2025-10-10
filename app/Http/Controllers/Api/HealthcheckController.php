@@ -2,17 +2,21 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Models\HorizonDeployment;
+use App\Services\HorizonDeploymentHealthService;
 use Illuminate\Contracts\Cache\Factory as CacheFactory;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 class HealthcheckController extends Controller
 {
     public function __construct(
         private ConnectionInterface $db,
-        private CacheFactory $cache
+        private CacheFactory $cache,
+        private HorizonDeploymentHealthService $healthService
     ) {
     }
 
@@ -21,6 +25,8 @@ class HealthcheckController extends Controller
         $status = 'ok';
         $dbStatus = 'ok';
         $redisStatus = 'skipped';
+        $horizonStatus = 'skipped';
+        $horizonDeployments = [];
 
         try {
             $this->db->select('select 1');
@@ -40,6 +46,32 @@ class HealthcheckController extends Controller
             }
         }
 
+        try {
+            $deployments = HorizonDeployment::withoutGlobalScopes()->get();
+
+            if ($deployments->isNotEmpty()) {
+                $summary = $this->healthService->summarize($deployments);
+                $horizonStatus = $summary['status'];
+                $horizonDeployments = $summary['deployments'];
+
+                if ($horizonStatus === 'fail') {
+                    $status = 'fail';
+                } elseif ($horizonStatus === 'degraded' && $status === 'ok') {
+                    $status = 'degraded';
+                }
+            }
+        } catch (Throwable $exception) {
+            $horizonStatus = 'error';
+            $status = $status === 'fail' ? 'fail' : 'degraded';
+
+            Log::channel(config('logging.default'))->error('healthcheck.horizon_failed', [
+                'exception' => [
+                    'class' => $exception::class,
+                    'message' => $exception->getMessage(),
+                ],
+            ]);
+        }
+
         if ($dbStatus === 'error' && $redisStatus === 'error') {
             $status = 'fail';
         }
@@ -51,6 +83,10 @@ class HealthcheckController extends Controller
             'uptime' => now()->diffInSeconds(app()->bound('startTime') ? app('startTime') : now()),
             'db' => $dbStatus,
             'redis' => $redisStatus,
+            'horizon' => [
+                'status' => $horizonStatus,
+                'deployments' => $horizonDeployments,
+            ],
         ], $responseStatus);
     }
 }

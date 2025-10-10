@@ -30,6 +30,30 @@ paths:
                   redis:
                     type: string
                     example: skipped
+                  horizon:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        example: ok
+                      deployments:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              example: 12
+                            slug:
+                              type: string
+                              example: horizon-demo
+                            status:
+                              type: string
+                              example: degraded
+                            issues:
+                              type: array
+                              items:
+                                type: string
         '503':
           description: Dependency failure
           content:
@@ -1526,6 +1550,589 @@ paths:
       responses:
         '204':
           description: Redis configuration deleted
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/horizon-deployments:
+    get:
+      summary: List Horizon deployments
+      tags: [Infrastructure]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: brand_id
+          in: query
+          description: Optional brand filter. Use `unscoped` to include tenant-wide deployments.
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: Optional health status filter (`ok`, `degraded`, `fail`, `unknown`).
+          schema:
+            type: string
+        - name: uses_tls
+          in: query
+          description: Filter deployments by TLS termination support.
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Collection of Horizon deployments
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/HorizonDeploymentResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Create Horizon deployment
+      tags: [Infrastructure]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HorizonDeploymentRequest'
+      responses:
+        '201':
+          description: Created Horizon deployment
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/HorizonDeploymentResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/horizon-deployments/{horizonDeployment}:
+    get:
+      summary: Show Horizon deployment
+      tags: [Infrastructure]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: horizonDeployment
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Horizon deployment details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/HorizonDeploymentResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      summary: Update Horizon deployment
+      tags: [Infrastructure]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: horizonDeployment
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HorizonDeploymentRequest'
+      responses:
+        '200':
+          description: Updated Horizon deployment
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/HorizonDeploymentResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete Horizon deployment
+      tags: [Infrastructure]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: horizonDeployment
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Horizon deployment deleted
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/horizon-deployments/health:
+    get:
+      summary: Aggregate Horizon health summary
+      tags: [Infrastructure]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: brand_id
+          in: query
+          description: Optional brand filter. Use `unscoped` to evaluate tenant-wide deployments.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Horizon health summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HorizonHealthResponse'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/horizon-deployments/{horizonDeployment}/health:
+    get:
+      summary: Horizon deployment health
+      tags: [Infrastructure]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: horizonDeployment
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Horizon deployment health response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HorizonHealthResponse'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/horizon-deployments:
+    get:
+      summary: List Horizon deployments
+      tags: [Infrastructure]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: brand_id
+          in: query
+          description: Optional brand filter. Use `unscoped` to include tenant-wide deployments.
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: Optional health status filter (`ok`, `degraded`, `fail`, `unknown`).
+          schema:
+            type: string
+        - name: uses_tls
+          in: query
+          description: Filter deployments by TLS termination support.
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Collection of Horizon deployments
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/HorizonDeploymentResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Create Horizon deployment
+      tags: [Infrastructure]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HorizonDeploymentRequest'
+      responses:
+        '201':
+          description: Created Horizon deployment
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/HorizonDeploymentResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/horizon-deployments/{horizonDeployment}:
+    get:
+      summary: Show Horizon deployment
+      tags: [Infrastructure]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: horizonDeployment
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Horizon deployment details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/HorizonDeploymentResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      summary: Update Horizon deployment
+      tags: [Infrastructure]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: horizonDeployment
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HorizonDeploymentRequest'
+      responses:
+        '200':
+          description: Updated Horizon deployment
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/HorizonDeploymentResource'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete Horizon deployment
+      tags: [Infrastructure]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: horizonDeployment
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Horizon deployment deleted
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/horizon-deployments/health:
+    get:
+      summary: Aggregate Horizon health summary
+      tags: [Infrastructure]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: brand_id
+          in: query
+          description: Optional brand filter. Use `unscoped` to evaluate tenant-wide deployments.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Horizon health summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HorizonHealthResponse'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/horizon-deployments/{horizonDeployment}/health:
+    get:
+      summary: Horizon deployment health
+      tags: [Infrastructure]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: horizonDeployment
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Horizon deployment health response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HorizonHealthResponse'
         '401':
           description: Unauthenticated
           content:
@@ -7132,6 +7739,248 @@ components:
               example: ERR_VALIDATION
             message:
               type: string
+    HorizonDeploymentResource:
+      type: object
+      required: [type, id, attributes]
+      properties:
+        type:
+          type: string
+          enum: [horizon-deployments]
+        id:
+          type: string
+        attributes:
+          type: object
+          required:
+            [tenant_id, brand_id, name, slug, domain, domain_digest, auth_guard, horizon_connection, uses_tls, supervisors, last_health_status, created_at, updated_at]
+          properties:
+            tenant_id:
+              type: integer
+            brand_id:
+              type: integer
+              nullable: true
+            name:
+              type: string
+            slug:
+              type: string
+            domain:
+              type: string
+            domain_digest:
+              type: string
+            auth_guard:
+              type: string
+            horizon_connection:
+              type: string
+            uses_tls:
+              type: boolean
+            supervisors:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  connection:
+                    type: string
+                  queue:
+                    type: array
+                    items:
+                      type: string
+                  balance:
+                    type: string
+                    nullable: true
+                  min_processes:
+                    type: integer
+                    nullable: true
+                  max_processes:
+                    type: integer
+                    nullable: true
+                  max_jobs:
+                    type: integer
+                    nullable: true
+                  max_time:
+                    type: integer
+                    nullable: true
+                  timeout:
+                    type: integer
+                    nullable: true
+                  tries:
+                    type: integer
+                    nullable: true
+            last_deployed_at:
+              type: string
+              format: date-time
+              nullable: true
+            ssl_certificate_expires_at:
+              type: string
+              format: date-time
+              nullable: true
+            last_health_status:
+              type: string
+            last_health_checked_at:
+              type: string
+              format: date-time
+              nullable: true
+            last_health_report:
+              type: object
+              nullable: true
+              properties:
+                connection:
+                  type: string
+                supervisors:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      connection:
+                        type: string
+                      queues:
+                        type: array
+                        items:
+                          type: string
+                      min_processes:
+                        type: integer
+                        nullable: true
+                      max_processes:
+                        type: integer
+                        nullable: true
+                issues:
+                  type: array
+                  items:
+                    type: string
+                duration_ms:
+                  type: number
+            metadata:
+              type: object
+              nullable: true
+              additionalProperties: {}
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+        relationships:
+          type: object
+          properties:
+            tenant:
+              type: object
+              nullable: true
+              properties:
+                id:
+                  type: integer
+                name:
+                  type: string
+                  nullable: true
+                slug:
+                  type: string
+            brand:
+              type: object
+              nullable: true
+              properties:
+                id:
+                  type: integer
+                name:
+                  type: string
+                  nullable: true
+                slug:
+                  type: string
+    HorizonDeploymentRequest:
+      type: object
+      required: [name, domain, supervisors]
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+          nullable: true
+        brand_id:
+          type: integer
+          nullable: true
+        domain:
+          type: string
+        auth_guard:
+          type: string
+          nullable: true
+        horizon_connection:
+          type: string
+          nullable: true
+        uses_tls:
+          type: boolean
+        supervisors:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              connection:
+                type: string
+                nullable: true
+              queue:
+                type: array
+                items:
+                  type: string
+              balance:
+                type: string
+                nullable: true
+              min_processes:
+                type: integer
+                nullable: true
+              max_processes:
+                type: integer
+                nullable: true
+              max_jobs:
+                type: integer
+                nullable: true
+              max_time:
+                type: integer
+                nullable: true
+              timeout:
+                type: integer
+                nullable: true
+              tries:
+                type: integer
+                nullable: true
+        last_deployed_at:
+          type: string
+          format: date-time
+          nullable: true
+        ssl_certificate_expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        metadata:
+          type: object
+          nullable: true
+          additionalProperties: {}
+    HorizonHealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        deployments:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              slug:
+                type: string
+              status:
+                type: string
+              issues:
+                type: array
+                items:
+                  type: string
+        meta:
+          type: object
+          properties:
+            correlation_id:
+              type: string
+              nullable: true
     TicketRelationshipCreateRequest:
       type: object
       required: [primary_ticket_id, related_ticket_id, relationship_type]

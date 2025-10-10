@@ -44,6 +44,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'brand_domains.manage',
             'infrastructure.redis.view',
             'infrastructure.redis.manage',
+            'infrastructure.horizon.view',
+            'infrastructure.horizon.manage',
             'broadcast_connections.view',
             'broadcast_connections.manage',
             'audit_logs.view',
