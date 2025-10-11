@@ -43,6 +43,10 @@ class PortalSessionController extends Controller
         $requestedBrandId = $validated['brand_id'] ?? null;
 
         if ($user && $user->brand_id) {
+            if ($requestedBrandId !== null && (int) $requestedBrandId !== (int) $user->brand_id) {
+                abort(403, 'You are not authorized to view sessions for this brand.');
+            }
+
             $query->where(function ($builder) use ($user): void {
                 $builder->whereNull('brand_id')->orWhere('brand_id', $user->brand_id);
             });
