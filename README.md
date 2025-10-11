@@ -145,6 +145,17 @@ Give contacts a branded, unauthenticated portal for raising support tickets whil
 
 All responses continue to use the `{ "data": { ... } }` envelope and include the structured JSON logging correlation ID. Tenant isolation is enforced by middleware, and demo seeds (`DemoDataSeeder`) provision NON-PRODUCTION sample submissions for manual testing.
 
+## Portal Authentication Sessions
+
+Deliver JWT-backed authentication for the customer portal without sacrificing RBAC or audit traceability:
+
+- **Token lifecycle** – `POST /api/v1/portal/auth/login` issues an access token + refresh token pair for an active portal account (requires tenant headers). Tokens are scoped to the tenant/brand and carry portal abilities derived from Spatie permissions. `POST /api/v1/portal/auth/refresh` rotates both tokens while preserving device metadata, and `POST /api/v1/portal/auth/logout` revokes the active session. Every response includes `meta.correlation_id` and echoes the identifier via the `X-Correlation-ID` header for observability.
+- **Session introspection** – `GET /api/v1/portal/auth/session` returns the active session resource, while `GET /api/v1/portal/auth/abilities` enumerates granted abilities. Both routes enforce the `EnsurePortalSession` middleware, which validates the JWT, verifies tenant headers, and rejects missing abilities with the shared `{ "error": { "code", "message" } }` schema.
+- **Administrative controls** – Operators with `portal.sessions.view` may list sessions via `GET /api/v1/portal-sessions` (with `status`, `portal_account_id`, `brand_id`, and `search` filters) or inspect individual sessions with `GET /api/v1/portal-sessions/{portalSession}`. Administrators holding `portal.sessions.manage` can revoke tokens through `DELETE /api/v1/portal-sessions/{portalSession}`. Responses include eager-loaded portal account context and propagate correlation IDs for auditing.
+- **Filament UI** – `/admin/portal-sessions` exposes tenant/brand scoped tables with revoke actions, correlation ID columns, and hashed IP/user agent digests. Actions funnel through the shared service layer so audit logs (`portal_session.*`) and structured JSON logs remain consistent. Demo data is seeded via `DemoDataSeeder` (marked NON-PRODUCTION) for local exploration.
+
+All middleware emits structured JSON logs with redacted hashes, stores correlation IDs, and respects tenant + brand isolation. Policies shortcut super-admins via `Gate::before`, while regular admins/agents must possess the explicit `portal.sessions.*` permissions provisioned by `RolesAndPermissionsSeeder`.
+
 ## Knowledge Base Categories & Articles
 
 The knowledge base module introduces hierarchical categories with closure table metadata and brand-aware article publishing. All APIs require authentication plus tenant and optional brand headers:

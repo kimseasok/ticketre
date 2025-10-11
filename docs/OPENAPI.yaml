@@ -4088,6 +4088,286 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/portal/auth/login:
+    post:
+      summary: Issue portal JWT session tokens
+      tags: [Portal Authentication]
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PortalSessionLoginRequest'
+      responses:
+        '200':
+          description: Portal session issued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PortalSessionToken'
+                  meta:
+                    $ref: '#/components/schemas/CorrelationMeta'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Tenant not resolved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/portal/auth/refresh:
+    post:
+      summary: Refresh portal JWT session tokens
+      tags: [Portal Authentication]
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PortalSessionRefreshRequest'
+      responses:
+        '200':
+          description: Portal session refreshed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PortalSessionToken'
+                  meta:
+                    $ref: '#/components/schemas/CorrelationMeta'
+        '401':
+          description: Refresh token invalid or expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Tenant not resolved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/portal/auth/logout:
+    post:
+      summary: Revoke the active portal session
+      tags: [Portal Authentication]
+      security:
+        - portalToken: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+      responses:
+        '204':
+          description: Session revoked
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/portal/auth/session:
+    get:
+      summary: Retrieve the current portal session details
+      tags: [Portal Authentication]
+      security:
+        - portalToken: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+      responses:
+        '200':
+          description: Session details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PortalSession'
+                  meta:
+                    $ref: '#/components/schemas/CorrelationMeta'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Insufficient portal permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/portal/auth/abilities:
+    get:
+      summary: List granted portal abilities for the active session
+      tags: [Portal Authentication]
+      security:
+        - portalToken: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+      responses:
+        '200':
+          description: Abilities returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      abilities:
+                        type: array
+                        items:
+                          type: string
+                  meta:
+                    $ref: '#/components/schemas/CorrelationMeta'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Insufficient portal permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/portal-sessions:
+    get:
+      summary: List portal sessions
+      tags: [Portal Sessions]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, revoked]
+          description: Filter by session status.
+        - name: portal_account_id
+          in: query
+          schema:
+            type: integer
+          description: Restrict to a specific portal account.
+        - name: brand_id
+          in: query
+          schema:
+            type: integer
+          description: Restrict sessions to a brand.
+        - name: search
+          in: query
+          schema:
+            type: string
+            maxLength: 120
+          description: Search by correlation ID or portal account email.
+      responses:
+        '200':
+          description: Paginated portal sessions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PortalSession'
+                  meta:
+                    $ref: '#/components/schemas/CorrelationMeta'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/portal-sessions/{portalSession}:
+    get:
+      summary: View a portal session
+      tags: [Portal Sessions]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - $ref: '#/components/parameters/PortalSessionId'
+      responses:
+        '200':
+          description: Portal session details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PortalSession'
+                  meta:
+                    $ref: '#/components/schemas/CorrelationMeta'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Revoke a portal session
+      tags: [Portal Sessions]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - $ref: '#/components/parameters/PortalSessionId'
+      responses:
+        '204':
+          description: Session revoked
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /api/v1/ticket-submissions:
     get:
       summary: List ticket submissions
@@ -6219,6 +6499,10 @@ components:
       type: apiKey
       in: cookie
       name: laravel_session
+    portalToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   parameters:
     TenantHeader:
       name: X-Tenant
@@ -6246,6 +6530,12 @@ components:
         type: integer
     BrandAssetId:
       name: brandAsset
+      in: path
+      required: true
+      schema:
+        type: integer
+    PortalSessionId:
+      name: portalSession
       in: path
       required: true
       schema:
@@ -9441,6 +9731,184 @@ components:
               type: integer
             name:
               type: string
+    CorrelationMeta:
+      type: object
+      properties:
+        correlation_id:
+          type: string
+          maxLength: 64
+          description: Correlation identifier echoed from the request header or generated server-side.
+    PortalSessionLoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        password:
+          type: string
+          minLength: 8
+          description: Portal account password.
+        device_name:
+          type: string
+          maxLength: 120
+          nullable: true
+          description: Friendly name recorded in the session metadata.
+    PortalSessionRefreshRequest:
+      type: object
+      required: [refresh_token]
+      properties:
+        refresh_token:
+          type: string
+          minLength: 32
+          description: Refresh token issued during login.
+        device_name:
+          type: string
+          maxLength: 120
+          nullable: true
+          description: Updates the stored device name for the session.
+    PortalSession:
+      type: object
+      required: [type, id, attributes]
+      properties:
+        type:
+          type: string
+          enum: [portal_sessions]
+        id:
+          type: string
+        attributes:
+          type: object
+          required:
+            [status, tenant_id, portal_account_id, abilities, issued_at, expires_at, refresh_expires_at, last_used_at, revoked_at, correlation_id, ip_hash, user_agent, metadata]
+          properties:
+            status:
+              type: string
+              enum: [active, revoked]
+            tenant_id:
+              type: integer
+            brand_id:
+              type: integer
+              nullable: true
+            portal_account_id:
+              type: integer
+            abilities:
+              type: array
+              items:
+                type: string
+            issued_at:
+              type: string
+              format: date-time
+              nullable: true
+            expires_at:
+              type: string
+              format: date-time
+              nullable: true
+            refresh_expires_at:
+              type: string
+              format: date-time
+              nullable: true
+            last_used_at:
+              type: string
+              format: date-time
+              nullable: true
+            revoked_at:
+              type: string
+              format: date-time
+              nullable: true
+            correlation_id:
+              type: string
+              maxLength: 64
+              nullable: true
+            ip_hash:
+              type: string
+              nullable: true
+            user_agent:
+              type: string
+              nullable: true
+            metadata:
+              type: object
+              additionalProperties: true
+        relationships:
+          type: object
+          properties:
+            account:
+              type: object
+              nullable: true
+              properties:
+                data:
+                  type: object
+                  nullable: true
+                  properties:
+                    type:
+                      type: string
+                      enum: [portal_accounts]
+                    id:
+                      type: string
+                    attributes:
+                      type: object
+                      properties:
+                        email:
+                          type: string
+                          format: email
+                        status:
+                          type: string
+    PortalSessionToken:
+      type: object
+      required: [type, id, attributes]
+      properties:
+        type:
+          type: string
+          enum: [portal_sessions]
+        id:
+          type: string
+        attributes:
+          type: object
+          required:
+            [access_token, refresh_token, expires_at, refresh_expires_at, expires_in, refresh_expires_in, abilities]
+          properties:
+            access_token:
+              type: string
+            refresh_token:
+              type: string
+            expires_at:
+              type: string
+              format: date-time
+            refresh_expires_at:
+              type: string
+              format: date-time
+            expires_in:
+              type: integer
+              minimum: 0
+            refresh_expires_in:
+              type: integer
+              minimum: 0
+            abilities:
+              type: array
+              items:
+                type: string
+        relationships:
+          type: object
+          properties:
+            account:
+              type: object
+              properties:
+                data:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum: [portal_accounts]
+                    id:
+                      type: string
+                    attributes:
+                      type: object
+                      properties:
+                        email:
+                          type: string
+                          format: email
+                        status:
+                          type: string
     PortalTicketSubmissionRequest:
       type: object
       required: [name, email, subject, message]

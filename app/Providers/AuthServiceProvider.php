@@ -20,6 +20,7 @@ use App\Models\Role;
 use App\Models\PermissionCoverageReport;
 use App\Models\RbacEnforcementGapAnalysis;
 use App\Models\RedisConfiguration;
+use App\Models\PortalSession;
 use App\Models\Ticket;
 use App\Models\TicketEvent;
 use App\Models\ObservabilityPipeline;
@@ -53,6 +54,7 @@ use App\Policies\RolePolicy;
 use App\Policies\PermissionCoverageReportPolicy;
 use App\Policies\RbacEnforcementGapAnalysisPolicy;
 use App\Policies\RedisConfigurationPolicy;
+use App\Policies\PortalSessionPolicy;
 use App\Policies\TeamMembershipPolicy;
 use App\Policies\TeamPolicy;
 use App\Policies\TicketDeletionRequestPolicy;
@@ -105,6 +107,7 @@ class AuthServiceProvider extends ServiceProvider
         RbacEnforcementGapAnalysis::class => RbacEnforcementGapAnalysisPolicy::class,
         SlaPolicy::class => SlaPolicyPolicy::class,
         SmtpOutboundMessage::class => SmtpOutboundMessagePolicy::class,
+        PortalSession::class => PortalSessionPolicy::class,
     ];
 
     public function boot(): void

@@ -59,6 +59,8 @@ class TenantRoleProvisioner
         $basePermissions = [
             'platform.access',
             'portal.submit',
+            'portal.sessions.view',
+            'portal.sessions.manage',
             'observability.pipelines.view',
             'observability.pipelines.manage',
             'observability.stacks.view',
@@ -128,6 +130,7 @@ class TenantRoleProvisioner
                 'permissions' => [
                     'platform.access',
                     'portal.submit',
+                    'portal.sessions.view',
                     'tickets.view',
                     'tickets.manage',
                     'tickets.merge',

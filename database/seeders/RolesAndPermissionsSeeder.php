@@ -15,6 +15,8 @@ class RolesAndPermissionsSeeder extends Seeder
         $permissions = [
             'platform.access',
             'portal.submit',
+            'portal.sessions.view',
+            'portal.sessions.manage',
             'observability.pipelines.view',
             'observability.pipelines.manage',
             'observability.stacks.view',
@@ -69,11 +71,27 @@ class RolesAndPermissionsSeeder extends Seeder
             'security.rbac_gaps.manage',
         ];
 
+        $portalGuardPermissions = [
+            'portal.access',
+            'portal.tickets.view',
+        ];
+
         foreach ($permissions as $permission) {
             Permission::withoutGlobalScopes()->firstOrCreate([
                 'tenant_id' => null,
                 'name' => $permission,
                 'guard_name' => 'web',
+            ], [
+                'description' => null,
+                'is_system' => true,
+            ]);
+        }
+
+        foreach ($portalGuardPermissions as $permission) {
+            Permission::withoutGlobalScopes()->firstOrCreate([
+                'tenant_id' => null,
+                'name' => $permission,
+                'guard_name' => 'portal',
             ], [
                 'description' => null,
                 'is_system' => true,
@@ -92,6 +110,18 @@ class RolesAndPermissionsSeeder extends Seeder
 
         $superAdmin->syncPermissions($permissions);
 
+        $portalRole = Role::withoutGlobalScopes()->firstOrCreate([
+            'name' => 'PortalUser',
+            'slug' => 'portal-user',
+            'guard_name' => 'portal',
+            'tenant_id' => null,
+        ], [
+            'description' => 'Portal customer with ticket visibility.',
+            'is_system' => true,
+        ]);
+
+        $portalRole->syncPermissions($portalGuardPermissions);
+
         /** @var TenantRoleProvisioner $provisioner */
         $provisioner = app(TenantRoleProvisioner::class);
 
@@ -108,6 +138,26 @@ class RolesAndPermissionsSeeder extends Seeder
                     'is_system' => true,
                 ]);
             }
+
+            foreach ($portalGuardPermissions as $permission) {
+                Permission::firstOrCreate([
+                    'name' => $permission,
+                    'guard_name' => 'portal',
+                ], [
+                    'description' => null,
+                    'is_system' => true,
+                ]);
+            }
+
+            Role::withoutGlobalScopes()->firstOrCreate([
+                'name' => 'PortalUser',
+                'slug' => 'portal-user',
+                'guard_name' => 'portal',
+                'tenant_id' => $tenant->getKey(),
+            ], [
+                'description' => 'Portal customer with ticket visibility.',
+                'is_system' => true,
+            ])->syncPermissions($portalGuardPermissions);
 
             $provisioner->syncSystemRoles($tenant);
 

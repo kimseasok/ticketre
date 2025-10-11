@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 ### Added
+- Portal JWT session infrastructure with tenant/brand scoped accounts, REST + Filament management, structured JSON logging with correlation IDs, and README/OpenAPI updates. (E9-F3-I2)
 - Queued SMTP outbound dispatcher with tenant/brand scoped model, REST + Filament CRUD, queued delivery job with retry/backoff, structured logging/audit trails, and README/OpenAPI updates. (E6-F2-I2)
 - Multi-stage Docker build pipeline with dedicated dependency/test/runtime targets, CI size benchmarking, and artifact exports. (E11-F1-I2)
 - Tenant/brand scoped permission coverage reports with automated route analysis, REST + Filament CRUD, RBAC policy updates, structured logging/audit trails, and README/OpenAPI updates. (E10-F2-I2)

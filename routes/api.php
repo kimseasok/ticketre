@@ -25,6 +25,9 @@ use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\PermissionCoverageReportController;
 use App\Http\Controllers\Api\RbacEnforcementGapAnalysisController;
 use App\Http\Controllers\Api\PortalTicketSubmissionController;
+use App\Http\Controllers\Api\PortalAuthController;
+use App\Http\Controllers\Api\PortalSessionController;
+use App\Http\Middleware\EnsurePortalSession;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\RedisConfigurationController;
 use App\Http\Controllers\Api\TicketController;
@@ -41,15 +44,29 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/v1/health', [HealthcheckController::class, 'show'])->name('api.health');
 
-Route::middleware(['tenant', 'ability:portal.submit,allow-guest'])->prefix('v1/portal')->name('api.portal.')->group(function () {
-    Route::post('tickets', [PortalTicketSubmissionController::class, 'store'])->name('tickets.store');
+Route::prefix('v1/portal')->middleware(['tenant'])->name('api.portal.')->group(function () {
+    Route::post('auth/login', [PortalAuthController::class, 'login'])->name('auth.login');
+    Route::post('auth/refresh', [PortalAuthController::class, 'refresh'])->name('auth.refresh');
+    Route::post('auth/logout', [PortalAuthController::class, 'logout'])
+        ->middleware(EnsurePortalSession::class)
+        ->name('auth.logout');
+    Route::get('auth/session', [PortalAuthController::class, 'session'])
+        ->middleware(EnsurePortalSession::class.':portal.access')
+        ->name('auth.session');
+    Route::get('auth/abilities', [PortalAuthController::class, 'abilities'])
+        ->middleware(EnsurePortalSession::class.':portal.tickets.view')
+        ->name('auth.abilities');
+
+    Route::middleware('ability:portal.submit,allow-guest')->group(function () {
+        Route::post('tickets', [PortalTicketSubmissionController::class, 'store'])->name('tickets.store');
+    });
 });
 
 Route::post('/v1/broadcasting/auth', BroadcastAuthController::class)
     ->middleware([
+        'tenant',
         'api',
         'auth:api,web',
-        'tenant',
         \Illuminate\Session\Middleware\StartSession::class,
         \App\Http\Middleware\EnsureTwoFactorEnrolled::class,
         'ability:platform.access',
@@ -57,9 +74,9 @@ Route::post('/v1/broadcasting/auth', BroadcastAuthController::class)
     ->name('api.broadcasting.auth');
 
 Route::middleware([
+    'tenant',
     'api',
     'auth',
-    'tenant',
     \Illuminate\Session\Middleware\StartSession::class,
     \App\Http\Middleware\EnsureTwoFactorEnrolled::class,
     'ability:platform.access',
@@ -141,6 +158,7 @@ Route::middleware([
     Route::apiResource('smtp-outbound-messages', SmtpOutboundMessageController::class)->except(['create', 'edit']);
     Route::apiResource('ticket-submissions', TicketSubmissionController::class)->only(['index', 'show']);
     Route::apiResource('broadcast-connections', BroadcastConnectionController::class)->except(['create', 'edit']);
+    Route::apiResource('portal-sessions', PortalSessionController::class)->only(['index', 'show', 'destroy']);
 
     Route::prefix('two-factor')->name('two-factor.')->group(function (): void {
         Route::get('/', [TwoFactorController::class, 'show'])->name('show');

@@ -10,6 +10,7 @@ use App\Models\ObservabilityPipeline;
 use App\Models\ObservabilityStack;
 use App\Models\PermissionCoverageReport;
 use App\Models\RbacEnforcementGapAnalysis;
+use App\Models\PortalAccount;
 use App\Models\BroadcastConnection;
 use App\Models\Company;
 use App\Models\Contact;
@@ -37,6 +38,7 @@ use App\Services\ContactService;
 use App\Services\KbArticleService;
 use App\Services\TenantRoleProvisioner;
 use App\Services\TicketLifecycleBroadcaster;
+use App\Services\PortalSessionService;
 use App\Services\PortalTicketSubmissionService;
 use App\Services\TicketRelationshipService;
 use App\Services\TicketMergeService;
@@ -695,6 +697,44 @@ class DemoDataSeeder extends Seeder
             'ip_address' => '198.51.100.42',
             'user_agent' => 'Demo Seed Browser/1.0',
         ], [], (string) Str::uuid());
+
+        $portalAccount = PortalAccount::factory()->create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'contact_id' => $contact->getKey(),
+            'email' => 'portal.customer@example.com',
+            'metadata' => [
+                'notes' => 'NON-PRODUCTION demo portal account',
+            ],
+        ]);
+
+        $portalAccount->syncPermissions(['portal.access', 'portal.tickets.view']);
+
+        $previousTenant = app()->bound('currentTenant') ? app('currentTenant') : null;
+        $previousBrand = app()->bound('currentBrand') ? app('currentBrand') : null;
+
+        app()->instance('currentTenant', $tenant);
+        app()->instance('currentBrand', $brand);
+
+        app(PortalSessionService::class)->issueForAccount(
+            $portalAccount,
+            '198.51.100.42',
+            'Demo Portal Client/1.0',
+            'demo-portal-session',
+            'NON-PRODUCTION Portal Device'
+        );
+
+        if ($previousTenant) {
+            app()->instance('currentTenant', $previousTenant);
+        } else {
+            app()->forgetInstance('currentTenant');
+        }
+
+        if ($previousBrand) {
+            app()->instance('currentBrand', $previousBrand);
+        } else {
+            app()->forgetInstance('currentBrand');
+        }
 
         BroadcastConnection::factory()->create([
             'tenant_id' => $tenant->id,

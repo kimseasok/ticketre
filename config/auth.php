@@ -15,12 +15,20 @@ return [
             'driver' => 'sanctum',
             'provider' => 'users',
         ],
+        'portal' => [
+            'driver' => 'session',
+            'provider' => 'portal_accounts',
+        ],
     ],
 
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
             'model' => App\Models\User::class,
+        ],
+        'portal_accounts' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\PortalAccount::class,
         ],
     ],
 

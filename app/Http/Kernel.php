@@ -35,5 +35,6 @@ class Kernel extends HttpKernel
         'tenant' => \App\Http\Middleware\ResolveTenant::class,
         'ability' => \App\Http\Middleware\EnsureTenantAccess::class,
         'twofactor' => \App\Http\Middleware\EnsureTwoFactorEnrolled::class,
+        'portal.jwt' => \App\Http\Middleware\EnsurePortalSession::class,
     ];
 }
