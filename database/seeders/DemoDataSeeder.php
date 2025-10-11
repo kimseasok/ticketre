@@ -17,6 +17,7 @@ use App\Models\ContactAnonymizationRequest;
 use App\Models\KbCategory;
 use App\Models\HorizonDeployment;
 use App\Models\Message;
+use App\Models\SmtpOutboundMessage;
 use App\Models\RedisConfiguration;
 use App\Models\Tenant;
 use App\Models\Team;
@@ -638,6 +639,43 @@ class DemoDataSeeder extends Seeder
             'author_role' => Message::ROLE_AGENT,
             'visibility' => Message::VISIBILITY_PUBLIC,
             'body' => 'Public reply seeded for demo. DO NOT USE IN PRODUCTION.',
+        ]);
+
+        $latestMessage = $ticket->messages()->latest('id')->first();
+
+        SmtpOutboundMessage::factory()->create([
+            'tenant_id' => $tenant->id,
+            'brand_id' => $brand->id,
+            'ticket_id' => $ticket->getKey(),
+            'message_id' => $latestMessage?->getKey(),
+            'subject' => 'NON-PRODUCTION queued SMTP dispatch',
+            'from_email' => 'support@'.$brand->domain,
+            'from_name' => $brand->name.' Support',
+            'to' => [[
+                'email' => $contact->email,
+                'name' => $contact->name,
+            ]],
+            'cc' => [],
+            'bcc' => [],
+            'reply_to' => [[
+                'email' => 'noreply@'.$brand->domain,
+                'name' => $brand->name.' Queue',
+            ]],
+            'attachments' => [[
+                'disk' => 'public',
+                'path' => 'demo/outbound/sample.pdf',
+                'name' => 'NON-PRODUCTION-sample.pdf',
+                'mime_type' => 'application/pdf',
+                'size' => 5120,
+            ]],
+            'headers' => [
+                'X-Demo' => 'NON-PRODUCTION',
+            ],
+            'body_html' => '<p>Demo outbound email queued for NON-PRODUCTION environments.</p>',
+            'body_text' => 'Demo outbound email queued for NON-PRODUCTION environments.',
+            'queued_at' => now(),
+            'status' => SmtpOutboundMessage::STATUS_QUEUED,
+            'correlation_id' => (string) Str::uuid(),
         ]);
 
         app(TicketRelationshipService::class)->create([

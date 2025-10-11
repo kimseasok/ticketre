@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 ### Added
+- Queued SMTP outbound dispatcher with tenant/brand scoped model, REST + Filament CRUD, queued delivery job with retry/backoff, structured logging/audit trails, and README/OpenAPI updates. (E6-F2-I2)
 - Multi-stage Docker build pipeline with dedicated dependency/test/runtime targets, CI size benchmarking, and artifact exports. (E11-F1-I2)
 - Tenant/brand scoped permission coverage reports with automated route analysis, REST + Filament CRUD, RBAC policy updates, structured logging/audit trails, and README/OpenAPI updates. (E10-F2-I2)
 - RBAC enforcement gap analyses with tenant/brand scoped API + Filament CRUD, sanitized audit matrices, structured logging/audit trails, updated permissions, and README/OpenAPI coverage. (E10-F2-I1)

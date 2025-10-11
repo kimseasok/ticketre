@@ -4166,6 +4166,204 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/smtp-outbound-messages:
+    get:
+      summary: List SMTP outbound messages
+      tags: [SMTP]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [queued, sending, retrying, sent, failed]
+        - name: ticket_id
+          in: query
+          schema:
+            type: integer
+        - name: brand_id
+          in: query
+          schema:
+            type: integer
+        - name: correlation_id
+          in: query
+          schema:
+            type: string
+            maxLength: 255
+      responses:
+        '200':
+          description: SMTP outbound message list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SmtpOutboundMessage'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Queue SMTP outbound message
+      tags: [SMTP]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SmtpOutboundMessageInput'
+      responses:
+        '201':
+          description: Message queued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/SmtpOutboundMessage'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/smtp-outbound-messages/{smtpOutboundMessage}:
+    get:
+      summary: Retrieve SMTP outbound message
+      tags: [SMTP]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: smtpOutboundMessage
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: SMTP outbound message detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/SmtpOutboundMessage'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      summary: Update SMTP outbound message
+      tags: [SMTP]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: smtpOutboundMessage
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SmtpOutboundMessageInput'
+      responses:
+        '200':
+          description: Updated SMTP message
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/SmtpOutboundMessage'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete SMTP outbound message
+      tags: [SMTP]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/BrandHeader'
+        - name: smtpOutboundMessage
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Deleted
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /api/v1/broadcast-connections:
     get:
       summary: List broadcast connections
@@ -6173,6 +6371,169 @@ components:
         updated_at:
           type: string
           format: date-time
+    SmtpRecipient:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+          nullable: true
+      required: [email]
+    SmtpAttachment:
+      type: object
+      properties:
+        disk:
+          type: string
+          nullable: true
+        path:
+          type: string
+        name:
+          type: string
+          nullable: true
+        mime_type:
+          type: string
+          nullable: true
+        size:
+          type: integer
+          minimum: 0
+          nullable: true
+      required: [path]
+    SmtpOutboundMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+        ticket_id:
+          type: integer
+        message_id:
+          type: integer
+          nullable: true
+        status:
+          type: string
+          enum: [queued, sending, retrying, sent, failed]
+        mailer:
+          type: string
+        subject:
+          type: string
+        from_email:
+          type: string
+          format: email
+        from_name:
+          type: string
+          nullable: true
+        to:
+          type: array
+          items:
+            $ref: '#/components/schemas/SmtpRecipient'
+        cc:
+          type: array
+          items:
+            $ref: '#/components/schemas/SmtpRecipient'
+        bcc:
+          type: array
+          items:
+            $ref: '#/components/schemas/SmtpRecipient'
+        reply_to:
+          type: array
+          items:
+            $ref: '#/components/schemas/SmtpRecipient'
+        headers:
+          type: object
+          additionalProperties:
+            type: string
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/SmtpAttachment'
+        body_html:
+          type: string
+          nullable: true
+        body_text:
+          type: string
+          nullable: true
+        attempts:
+          type: integer
+        queued_at:
+          type: string
+          format: date-time
+          nullable: true
+        dispatched_at:
+          type: string
+          format: date-time
+          nullable: true
+        delivered_at:
+          type: string
+          format: date-time
+          nullable: true
+        failed_at:
+          type: string
+          format: date-time
+          nullable: true
+        last_error:
+          type: string
+          nullable: true
+        correlation_id:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    SmtpOutboundMessageInput:
+      type: object
+      required: [ticket_id, subject, from_email, to]
+      properties:
+        ticket_id:
+          type: integer
+        message_id:
+          type: integer
+          nullable: true
+        subject:
+          type: string
+        from_email:
+          type: string
+          format: email
+        from_name:
+          type: string
+          nullable: true
+        mailer:
+          type: string
+          nullable: true
+        to:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/SmtpRecipient'
+        cc:
+          type: array
+          items:
+            $ref: '#/components/schemas/SmtpRecipient'
+        bcc:
+          type: array
+          items:
+            $ref: '#/components/schemas/SmtpRecipient'
+        reply_to:
+          type: array
+          items:
+            $ref: '#/components/schemas/SmtpRecipient'
+        headers:
+          type: object
+          additionalProperties:
+            type: string
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/SmtpAttachment'
+        body_html:
+          type: string
+          nullable: true
+        body_text:
+          type: string
+          nullable: true
     Brand:
       type: object
       properties:
@@ -8975,9 +9336,6 @@ components:
           type: string
           maxLength: 64
           nullable: true
-            email:
-              type: string
-              nullable: true
         requester:
           type: object
           nullable: true
@@ -8986,6 +9344,9 @@ components:
               type: integer
             name:
               type: string
+            email:
+              type: string
+              nullable: true
     TicketDeletionRequest:
       type: object
       properties:

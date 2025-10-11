@@ -25,6 +25,7 @@ use App\Models\TicketEvent;
 use App\Models\ObservabilityPipeline;
 use App\Models\ObservabilityStack;
 use App\Models\SlaPolicy;
+use App\Models\SmtpOutboundMessage;
 use App\Models\TicketMerge;
 use App\Models\TicketSubmission;
 use App\Models\TwoFactorCredential;
@@ -61,6 +62,7 @@ use App\Policies\ObservabilityPipelinePolicy;
 use App\Policies\ObservabilityStackPolicy;
 use App\Policies\SlaPolicyPolicy;
 use App\Policies\TicketMergePolicy;
+use App\Policies\SmtpOutboundMessagePolicy;
 use App\Policies\TicketPolicy;
 use App\Policies\TicketSubmissionPolicy;
 use App\Policies\TicketWorkflowPolicy;
@@ -102,6 +104,7 @@ class AuthServiceProvider extends ServiceProvider
         PermissionCoverageReport::class => PermissionCoverageReportPolicy::class,
         RbacEnforcementGapAnalysis::class => RbacEnforcementGapAnalysisPolicy::class,
         SlaPolicy::class => SlaPolicyPolicy::class,
+        SmtpOutboundMessage::class => SmtpOutboundMessagePolicy::class,
     ];
 
     public function boot(): void
