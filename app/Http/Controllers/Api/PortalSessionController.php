@@ -40,15 +40,16 @@ class PortalSessionController extends Controller
         }
 
         $user = $request->user();
-
-        if (isset($validated['brand_id'])) {
-            $query->where('brand_id', $validated['brand_id']);
-        }
+        $requestedBrandId = $validated['brand_id'] ?? null;
 
         if ($user && $user->brand_id) {
             $query->where(function ($builder) use ($user): void {
                 $builder->whereNull('brand_id')->orWhere('brand_id', $user->brand_id);
             });
+        }
+
+        if ($requestedBrandId !== null) {
+            $query->where('brand_id', $requestedBrandId);
         }
 
         if (isset($validated['search'])) {
