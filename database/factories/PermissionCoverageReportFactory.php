@@ -36,7 +36,7 @@ class PermissionCoverageReportFactory extends Factory
             ],
             'notes' => $this->faker->sentence(),
             'generated_at' => now()->subMinutes($this->faker->numberBetween(1, 120)),
-        };
+        ];
     }
 
     public function unscopedBrand(): self

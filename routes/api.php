@@ -36,6 +36,7 @@ use App\Http\Controllers\Api\TicketSubmissionController;
 use App\Http\Controllers\Api\TeamController;
 use App\Http\Controllers\Api\TeamMembershipController;
 use App\Http\Controllers\Api\TwoFactorController;
+use App\Http\Controllers\Api\SmtpOutboundMessageController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/v1/health', [HealthcheckController::class, 'show'])->name('api.health');
@@ -137,6 +138,7 @@ Route::middleware([
     Route::apiResource('roles', RoleController::class)->except(['create', 'edit']);
     Route::apiResource('redis-configurations', RedisConfigurationController::class)->except(['create', 'edit']);
     Route::apiResource('permissions', \App\Http\Controllers\Api\PermissionController::class)->except(['create', 'edit']);
+    Route::apiResource('smtp-outbound-messages', SmtpOutboundMessageController::class)->except(['create', 'edit']);
     Route::apiResource('ticket-submissions', TicketSubmissionController::class)->only(['index', 'show']);
     Route::apiResource('broadcast-connections', BroadcastConnectionController::class)->except(['create', 'edit']);
 

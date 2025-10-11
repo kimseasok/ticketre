@@ -46,6 +46,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'brand_assets.manage',
             'brand_domains.view',
             'brand_domains.manage',
+            'email.dispatches.view',
+            'email.dispatches.manage',
             'infrastructure.redis.view',
             'infrastructure.redis.manage',
             'infrastructure.horizon.view',
